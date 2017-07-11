@@ -1,0 +1,4 @@
+chrom	pos	A	T	G	C	N	ref	major	alleles	rsid
+chr21	9412837	0	45	0	0	0	T	T	C/T	rs556687069
+chr21	9413499	45	0	0	0	0	A	A	A/C	rs534965754
+chr22	51234677	0	0	0	0	0	A	A	A/C	rs189571549

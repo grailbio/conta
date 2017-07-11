@@ -1,0 +1,32 @@
+Package: conta
+Title: Detect cross-contamination
+Version: 0.1
+Authors@R: person("Onur", "Sakarya", email = "osakarya@grailbio.com",
+                  role = c("aut", "cre"))
+Description: Detect contamination from whole genome sequencing data. 
+    Input data comes in the format of tsv files which is a pileup from SNPs, 
+    and contains the MAF value for each SNP. Otherwise MAF is generated through
+    a merge with dbsnp vcf file. The contamination module builds a baseline 
+    profile and calculates the likelihood on each SNP for different 
+    contamination levels. The contamination level that maximizes the 
+    sum of log likelihood ratios (against 0 contamination) is reported as the 
+    level of contamination along with the confidence in the value which comes 
+    in sum of log lr and average log lr per SNP. Other metrics and graphics 
+    are also reported to support a contamination call.
+Imports:
+    dplyr,
+    Rcpp
+Depends: R (>= 3.3.1),
+    grails3r,
+    data.table,
+    ggplot2
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
+Suggests: knitr,
+    rmarkdown,
+    testthat
+VignetteBuilder: knitr
+LinkingTo: Rcpp
+SystemRequirements: C++11

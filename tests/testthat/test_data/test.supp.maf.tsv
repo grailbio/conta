@@ -1,0 +1,7 @@
+chrom	pos	A	T	G	C	N	ref	major	alleles	rsid	maf
+chr21	9412835	100	0	0	0	0	A	A	A/N	NA	0
+chr21	9413495	0	1	99	0	0	A	A	A/G	rs534965750	0.5
+chr21	9413496	2	0	98	0	0	G	G	G/N	NA	0
+chr21	9413505	3	0	0	97	0	C	C	C/N	NA	0
+chr21	9413506	1	99	1	98	0	C	C	C/T	rs534965759	0.5
+chr22	9413835	0	100	0	0	0	T	T	T/N	NA	0
