@@ -5,23 +5,23 @@
 
 using namespace Rcpp;
 
-// intersect
-void intersect(const char* tsvFileName, const char* outTsvFileName, const char* vcfFileName, bool nonDbSnp, bool DEBUG);
-RcppExport SEXP conta_intersect(SEXP tsvFileNameSEXP, SEXP outTsvFileNameSEXP, SEXP vcfFileNameSEXP, SEXP nonDbSnpSEXP, SEXP DEBUGSEXP) {
+// intersect_snps
+void intersect_snps(const char* tsv_filename, const char* out_tsv_filename, const char* vcf_filename, bool non_dbSNP, bool DEBUG);
+RcppExport SEXP conta_intersect_snps(SEXP tsv_filenameSEXP, SEXP out_tsv_filenameSEXP, SEXP vcf_filenameSEXP, SEXP non_dbSNPSEXP, SEXP DEBUGSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const char* >::type tsvFileName(tsvFileNameSEXP);
-    Rcpp::traits::input_parameter< const char* >::type outTsvFileName(outTsvFileNameSEXP);
-    Rcpp::traits::input_parameter< const char* >::type vcfFileName(vcfFileNameSEXP);
-    Rcpp::traits::input_parameter< bool >::type nonDbSnp(nonDbSnpSEXP);
+    Rcpp::traits::input_parameter< const char* >::type tsv_filename(tsv_filenameSEXP);
+    Rcpp::traits::input_parameter< const char* >::type out_tsv_filename(out_tsv_filenameSEXP);
+    Rcpp::traits::input_parameter< const char* >::type vcf_filename(vcf_filenameSEXP);
+    Rcpp::traits::input_parameter< bool >::type non_dbSNP(non_dbSNPSEXP);
     Rcpp::traits::input_parameter< bool >::type DEBUG(DEBUGSEXP);
-    intersect(tsvFileName, outTsvFileName, vcfFileName, nonDbSnp, DEBUG);
+    intersect_snps(tsv_filename, out_tsv_filename, vcf_filename, non_dbSNP, DEBUG);
     return R_NilValue;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"conta_intersect", (DL_FUNC) &conta_intersect, 5},
+    {"conta_intersect_snps", (DL_FUNC) &conta_intersect_snps, 5},
     {NULL, NULL, 0}
 };
 

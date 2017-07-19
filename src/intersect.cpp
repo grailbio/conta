@@ -25,12 +25,12 @@ int numericChr(std::string chr) {
 }
 
 // Compare two genomic positions.
-int compare(int thisChr, int thisPos, int otherChr, int otherPos) {
-  if (thisChr < otherChr) return -1;
-  if (thisChr > otherChr) return 1;
+int compare(int this_chr, int this_pos, int other_chr, int other_pos) {
+  if (this_chr < other_chr) return -1;
+  if (this_chr > other_chr) return 1;
   
   // chrs are the same.
-  return (thisPos - otherPos);
+  return (this_pos - other_pos);
 }
 
 // A generic VCF record for a VCF without genotype field.
@@ -40,7 +40,7 @@ class VcfRecord {
     this->line = line;
     std::istringstream ss(line);
     ss >> chr >> pos >> rsid >> ref >> alt >> qual >> filter >> info;
-    numChr = numericChr(chr);
+    num_chr = numericChr(chr);
 
     int cafStart = info.find("CAF=");
     if (cafStart != -1) {
@@ -51,15 +51,15 @@ class VcfRecord {
     }
 
     // Set whether this is an indel or multi-allelic SNP.
-    indelOrmultiAllelic = alt.length() > 1;
+    indel_or_multi_allelic = alt.length() > 1;
   }
 
   std::string toString() {
     return (line);
   }
 
-  bool indelOrmultiAllelic;
-  int pos, numChr;
+  bool indel_or_multi_allelic;
+  int pos, num_chr;
   double CAF = 0, MAF = 0;
   std::string line, chr, rsid, qual, filter, info, ref, alt;
 };
@@ -84,38 +84,38 @@ class VcfReader {
     if (line.empty() | fin.eof())
       return nullptr;
 
-    std::shared_ptr<VcfRecord> vcfRecord (new VcfRecord(line));
+    std::shared_ptr<VcfRecord> vcf_record (new VcfRecord(line));
     total++;
     getline(fin, line);
 
     // Skip if the new record is multi allelic.
-    while (vcfRecord->indelOrmultiAllelic) {
+    while (vcf_record->indel_or_multi_allelic) {
       skipped++;
       if (line.empty() | fin.eof())
         return nullptr;
-      vcfRecord.reset(new VcfRecord(line));
+      vcf_record.reset(new VcfRecord(line));
       total++;
       getline(fin, line);
     }
 
     // Test if the previous record was smaller than this one, otherwise file
-    // is not sorted. prevRecord is null for the first record only.
-    if (prevRecord != nullptr &&
-        compare(vcfRecord->numChr, vcfRecord->pos,
-                prevRecord->numChr, prevRecord->pos) < 0 ) {
-      std::cerr << "Records out of order: " << prevRecord->toString() << "\n"
-                << "larger than: " << vcfRecord->toString() << "\n";
+    // is not sorted. prev_record is null for the first record only.
+    if (prev_record != nullptr &&
+        compare(vcf_record->num_chr, vcf_record->pos,
+                prev_record->num_chr, prev_record->pos) < 0 ) {
+      std::cerr << "Records out of order: " << prev_record->toString() << "\n"
+                << "larger than: " << vcf_record->toString() << "\n";
       exit(EXIT_FAILURE);
     }
 
-    prevRecord = vcfRecord;
-    return vcfRecord;
+    prev_record = vcf_record;
+    return vcf_record;
   }
 
   int total = 0, skipped = 0;
 
  private:
-  std::shared_ptr<VcfRecord> prevRecord;
+  std::shared_ptr<VcfRecord> prev_record;
   std::string line;
   std::ifstream fin;
 };
@@ -131,24 +131,24 @@ class TsvRecord {
     } else {
       ss >> chr >> pos >> A >> T >> G >> C >> N >> ref >> major >> alts >> rsid;
     }
-    numChr = numericChr(chr);
+    num_chr = numericChr(chr);
 
     // Set whether this is a multi-allelic SNP.
-    multiAllelic = alts.length() > 3;
+    multi_allelic = alts.length() > 3;
   }
 
   std::string toString() {
     return (line);
   }
 
-  std::string toTsvFormat(std::shared_ptr<VcfRecord> vcfRecord) {
+  std::string toTsvFormat(std::shared_ptr<VcfRecord> vcf_record) {
     std::stringstream pp;
-    if (vcfRecord != nullptr) {
-      std::string alts = vcfRecord->ref + "/" + vcfRecord->alt;
+    if (vcf_record != nullptr) {
+      std::string alts = vcf_record->ref + "/" + vcf_record->alt;
       pp << chr << "\t" << pos << "\t" << A
         << "\t" << T << "\t" << G << "\t" << C << "\t" << N << "\t"
-        << vcfRecord->ref << "\t" << vcfRecord->ref << "\t"
-        << alts << "\t" << vcfRecord->rsid << "\t" << vcfRecord->MAF;
+        << vcf_record->ref << "\t" << vcf_record->ref << "\t"
+        << alts << "\t" << vcf_record->rsid << "\t" << vcf_record->MAF;
     } else {
       std::string alts = ref + "/N";
       pp << chr << "\t" << pos << "\t" << A
@@ -175,9 +175,9 @@ class TsvRecord {
   std::string line;
   std::string chr, alts, rsid;
   int depth = 0;
-  int pos, A, T, G, C, N, numChr, INS, DEL;
+  int pos, A, T, G, C, N, num_chr, INS, DEL;
   std::string ref, major;
-  bool multiAllelic;
+  bool multi_allelic;
 };
 
 // Object that holds a vector of TSV records.
@@ -190,17 +190,17 @@ class TsvReader {
       exit(EXIT_FAILURE);
     }
 
-    pileupHeader = "CHROM\tPOS\tDEPTH\tREF\tA\tC\tG\tT\tN\tINS\tDEL";
-    tsvHeader = "chrom\tpos\tA\tT\tG\tC\tN\tref\tmajor\talleles\trsid";
-    tsvHeaderWithMaf = tsvHeader + "\tmaf";
+    pileup_header = "CHROM\tPOS\tDEPTH\tREF\tA\tC\tG\tT\tN\tINS\tDEL";
+    tsv_header = "chrom\tpos\tA\tT\tG\tC\tN\tref\tmajor\talleles\trsid";
+    tsv_header_with_maf = tsv_header + "\tmaf";
     total = 0;
     skipped = 0;
 
     // Skip header of TSV file.
     getline(fin, header);
-    if (header == pileupHeader) {
+    if (header == pileup_header) {
       PILEUP = TRUE;
-    } else if (header == tsvHeader | header == tsvHeaderWithMaf) {
+    } else if (header == tsv_header | header == tsv_header_with_maf) {
       PILEUP = FALSE;
     } else {
       std::cerr << "\nHeader does not match expected: " << header <<  "\n";
@@ -215,42 +215,42 @@ class TsvReader {
     if (line.empty() | fin.eof())
       return nullptr;
 
-    std::shared_ptr<TsvRecord> tsvRecord(new TsvRecord(line, PILEUP));
+    std::shared_ptr<TsvRecord> tsv_record(new TsvRecord(line, PILEUP));
     total++;
     getline(fin, line);
 
     // Skip if the new record is multi allelic
-    while (tsvRecord->multiAllelic) {
+    while (tsv_record->multi_allelic) {
       skipped++;
       if (line.empty() | fin.eof())
         return nullptr;
-      tsvRecord.reset(new TsvRecord(line, PILEUP));
+      tsv_record.reset(new TsvRecord(line, PILEUP));
       total++;
       getline(fin, line);
     }
 
     // Test if the previous record was smaller than this one, otherwise file
-    // is not sorted. prevRecord is null for the first record only.
-    if (prevRecord != nullptr &&
-        compare(tsvRecord->numChr, tsvRecord->pos,
-                prevRecord->numChr, prevRecord->pos) < 0 ) {
-      std::cerr << "Records out of order: " << prevRecord->toString() << "\n"
-                << "larger than: " << tsvRecord->toString() << "\n";
+    // is not sorted. prev_record is null for the first record only.
+    if (prev_record != nullptr &&
+        compare(tsv_record->num_chr, tsv_record->pos,
+                prev_record->num_chr, prev_record->pos) < 0 ) {
+      std::cerr << "Records out of order: " << prev_record->toString() << "\n"
+                << "larger than: " << tsv_record->toString() << "\n";
       exit(EXIT_FAILURE);
     }
 
-    prevRecord = tsvRecord;
-    return tsvRecord;
+    prev_record = tsv_record;
+    return tsv_record;
   }
 
   bool PILEUP = FALSE;
   int total = 0, skipped = 0;
-  std::string pileupHeader, tsvHeader, tsvHeaderWithMaf, header;
+  std::string pileup_header, tsv_header, tsv_header_with_maf, header;
 
  private:
   std::string line;
   std::ifstream fin;
-  std::shared_ptr<TsvRecord> prevRecord;
+  std::shared_ptr<TsvRecord> prev_record;
 };
 
 //' Intersect a TSV file with VCF file and write a TSV output
@@ -258,74 +258,74 @@ class TsvReader {
 //' In the process, remove multiple-allele SNPs if the option
 //' is turned on.
 //'
-//' @param tsvFileName string name of input TSV file
-//' @param outTsvFileName string name of output TSV file
-//' @param vcfFileName string dbsnp VCF file name to be intersected
+//' @param tsv_filename string name of input TSV file
+//' @param out_tsv_filename string name of output TSV file
+//' @param vcf_filename string dbsnp VCF file name to be intersected
 //' @param DEBUG boolean whether to print out messages
 //' @return null
 //'
 //' @export
 // [[Rcpp::export]]
-void intersect(const char* tsvFileName, const char* outTsvFileName,
-               const char* vcfFileName, bool nonDbSnp = false,
+void intersect_snps(const char* tsv_filename, const char* out_tsv_filename,
+               const char* vcf_filename, bool non_dbSNP = false,
                bool DEBUG = false) {
     clock_t start_time, end_time;
     start_time = clock();
 
     if (DEBUG)
-      std::cout << "\nReading TSV file from " << tsvFileName << "\n";
-    TsvReader tsvReader(tsvFileName);
+      std::cout << "\nReading TSV file from " << tsv_filename << "\n";
+    TsvReader tsv_reader(tsv_filename);
 
     // Set up out file to write
     std::ofstream outfile;
-    outfile.open(outTsvFileName);
-    outfile << tsvReader.tsvHeaderWithMaf << "\n";
+    outfile.open(out_tsv_filename);
+    outfile << tsv_reader.tsv_header_with_maf << "\n";
 
     if (DEBUG)
-      std::cout << "Reading VCF file from " << vcfFileName << "\n";
-    VcfReader vcfReader(vcfFileName);
+      std::cout << "Reading VCF file from " << vcf_filename << "\n";
+    VcfReader vcf_reader(vcf_filename);
 
     // Get initial records from the files.
     int written = 0;
-    std::shared_ptr<VcfRecord> vcfRecord = vcfReader.getNext();
-    std::shared_ptr<TsvRecord> tsvRecord = tsvReader.getNext();
+    std::shared_ptr<VcfRecord> vcf_record = vcf_reader.getNext();
+    std::shared_ptr<TsvRecord> tsv_record = tsv_reader.getNext();
 
     if (DEBUG)
       std::cout << "Running the linear join\n";
 
     while (1) {
-      if (tsvRecord == nullptr || vcfRecord == nullptr) {
-        while (nonDbSnp && tsvRecord != nullptr) {
-          outfile << tsvRecord->toTsvFormat(nullptr) << "\n";
-          tsvRecord = tsvReader.getNext();
+      if (tsv_record == nullptr || vcf_record == nullptr) {
+        while (non_dbSNP && tsv_record != nullptr) {
+          outfile << tsv_record->toTsvFormat(nullptr) << "\n";
+          tsv_record = tsv_reader.getNext();
           written++;
         }
         break;
       }
 
-      int cmp = compare(tsvRecord->numChr, tsvRecord->pos,
-                        vcfRecord->numChr, vcfRecord->pos);
+      int cmp = compare(tsv_record->num_chr, tsv_record->pos,
+                        vcf_record->num_chr, vcf_record->pos);
 
       if (cmp < 0) {  // VCF is ahead
-        if (nonDbSnp)
-          outfile << tsvRecord->toTsvFormat(nullptr) << "\n";
-        tsvRecord = tsvReader.getNext();
+        if (non_dbSNP)
+          outfile << tsv_record->toTsvFormat(nullptr) << "\n";
+        tsv_record = tsv_reader.getNext();
       } else if (cmp > 0) {  // TSV is ahead
-        vcfRecord = vcfReader.getNext();
+        vcf_record = vcf_reader.getNext();
       } else {  // a matching record
-        outfile << tsvRecord->toTsvFormat(vcfRecord) << "\n";
-        tsvRecord = tsvReader.getNext();
-        vcfRecord = vcfReader.getNext();
+        outfile << tsv_record->toTsvFormat(vcf_record) << "\n";
+        tsv_record = tsv_reader.getNext();
+        vcf_record = vcf_reader.getNext();
         written++;
       }
     }
 
     if (DEBUG) {
-      std::cout << "Read " << vcfReader.total << " VCF records, and "
-                << tsvReader.total << " TSV records and wrote " << written
-                << " TSV records.\nTotal of " << tsvReader.skipped
+      std::cout << "Read " << vcf_reader.total << " VCF records, and "
+                << tsv_reader.total << " TSV records and wrote " << written
+                << " TSV records.\nTotal of " << tsv_reader.skipped
                 << " TSV records were skipped (multi-allelic).\n"
-                << "Total of " << vcfReader.skipped
+                << "Total of " << vcf_reader.skipped
                 << " VCF records were skipped (indel or multi-allelic)\n";
     }
     outfile.close();

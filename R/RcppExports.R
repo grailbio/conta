@@ -6,14 +6,14 @@
 #' In the process, remove multiple-allele SNPs if the option
 #' is turned on.
 #'
-#' @param tsvFileName string name of input TSV file
-#' @param outTsvFileName string name of output TSV file
-#' @param vcfFileName string dbsnp VCF file name to be intersected
+#' @param tsv_filename string name of input TSV file
+#' @param out_tsv_filename string name of output TSV file
+#' @param vcf_filename string dbsnp VCF file name to be intersected
 #' @param DEBUG boolean whether to print out messages
 #' @return null
 #'
 #' @export
-intersect <- function(tsvFileName, outTsvFileName, vcfFileName, nonDbSnp = FALSE, DEBUG = FALSE) {
-    invisible(.Call('conta_intersect', PACKAGE = 'conta', tsvFileName, outTsvFileName, vcfFileName, nonDbSnp, DEBUG))
+intersect_snps <- function(tsv_filename, out_tsv_filename, vcf_filename, non_dbSNP = FALSE, DEBUG = FALSE) {
+    invisible(.Call('conta_intersect_snps', PACKAGE = 'conta', tsv_filename, out_tsv_filename, vcf_filename, non_dbSNP, DEBUG))
 }
 

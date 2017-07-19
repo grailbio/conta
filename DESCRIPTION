@@ -1,8 +1,10 @@
 Package: conta
 Title: Detect cross-contamination
-Version: 0.1
-Authors@R: person("Onur", "Sakarya", email = "osakarya@grailbio.com",
-                  role = c("aut", "cre"))
+Version: 0.2
+Authors@R: as.person(c(
+    "Onur Sakarya <osakarya@grailbio.com> [aut, cre]", 
+    "TaeHyung Simon Kim <tkim@grailbio.com> [aut]"
+  ))
 Description: Detect contamination from whole genome sequencing data. 
     Input data comes in the format of tsv files which is a pileup from SNPs, 
     and contains the MAF value for each SNP. Otherwise MAF is generated through
@@ -15,11 +17,10 @@ Description: Detect contamination from whole genome sequencing data.
     are also reported to support a contamination call.
 Imports:
     dplyr,
-    Rcpp
-Depends: R (>= 3.3.1),
-    grails3r,
+    Rcpp,
     data.table,
-    ggplot2
+    parallel
+Depends: R (>= 3.3.1)
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true

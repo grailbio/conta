@@ -1,0 +1,50 @@
+context("test error model")
+
+test_that("error model correctly calculates error rate", {
+
+  expect_true(file.exists(error_tsv))
+  fdat <- annotate_and_filter(read_and_prep(error_tsv))
+  EE <- calculate_error_model(fdat, out_dir, "errorTest")
+  error_out_file <- file.path(out_dir, "errorTest.error.tsv")
+  expect_true(file.exists(error_out_file))
+  EE <- read_data_table(error_out_file)
+  avg_error <- mean(c(1 / 200, 1 / 200, 1 / 200, 2 / 300, 1 / 300,
+                     1 / 100, 1 / 300))
+  tol <- 1e-4
+  expect_equal(EE[ref == "A" & subs == "T", er], 1 / 200, tolerance = tol)
+  expect_equal(EE[ref == "A" & subs == "C", er], 1 / 200, tolerance = tol)
+  expect_equal(EE[ref == "A" & subs == "G", er], avg_error, tolerance = tol)
+  expect_equal(EE[ref == "G" & subs == "T", er], 1 / 200, tolerance = tol)
+  expect_equal(EE[ref == "G" & subs == "A", er], avg_error, tolerance = tol)
+  expect_equal(EE[ref == "G" & subs == "C", er], avg_error, tolerance = tol)
+  expect_equal(EE[ref == "C" & subs == "G", er], 2 / 300, tolerance = tol)
+  expect_equal(EE[ref == "C" & subs == "A", er], 1 / 300, tolerance = tol)
+  expect_equal(EE[ref == "C" & subs == "T", er], 1 / 300, tolerance = tol)
+  expect_equal(EE[ref == "T" & subs == "A", er], 1 / 100, tolerance = tol)
+  expect_equal(EE[ref == "T" & subs == "G", er], avg_error, tolerance = tol)
+  expect_equal(EE[ref == "T" & subs == "C", er], avg_error, tolerance = tol)
+})
+
+test_that("error model correctly calculates error rate with supp positions", {
+
+  expect_true(file.exists(supp_tsv))
+  fdat <- annotate_and_filter(read_and_prep(supp_tsv))
+  EE <- calculate_error_model(fdat, out_dir, "suppTest")
+  error_out_file <- file.path(out_dir, "suppTest.error.tsv")
+  expect_true(file.exists(error_out_file))
+  EE <- read_data_table(error_out_file)
+  avg_error <- mean(c(1 / 200, 2 / 200, 3 / 100))
+  tol <- 1e-4
+  expect_equal(EE[ref == "A" & subs == "T", er], avg_error, tolerance = tol)
+  expect_equal(EE[ref == "A" & subs == "C", er], avg_error, tolerance = tol)
+  expect_equal(EE[ref == "A" & subs == "G", er], avg_error, tolerance = tol)
+  expect_equal(EE[ref == "G" & subs == "T", er], 1 / 200, tolerance = tol)
+  expect_equal(EE[ref == "G" & subs == "A", er], 2 / 200, tolerance = tol)
+  expect_equal(EE[ref == "G" & subs == "C", er], avg_error, tolerance = tol)
+  expect_equal(EE[ref == "C" & subs == "G", er], avg_error, tolerance = tol)
+  expect_equal(EE[ref == "C" & subs == "A", er], 3 / 100, tolerance = tol)
+  expect_equal(EE[ref == "C" & subs == "T", er], avg_error, tolerance = tol)
+  expect_equal(EE[ref == "T" & subs == "A", er], avg_error, tolerance = tol)
+  expect_equal(EE[ref == "T" & subs == "G", er], avg_error, tolerance = tol)
+  expect_equal(EE[ref == "T" & subs == "C", er], avg_error, tolerance = tol)
+})

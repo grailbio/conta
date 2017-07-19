@@ -3,3 +3,4 @@
 .RData
 .Rproj
 tests/testthat/test_output
+tests/testthat/test_sim
