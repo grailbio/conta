@@ -15,17 +15,19 @@
 #'     be added to the current sample. The contaminant will be randomly
 #'     generated from minor allele frequencies of the SNPs in the population.
 #' @param baseline data.table noise model
+#' @param min_depth minimum depth for a SNP to be considered by conta
 #' @param cores number of cores to be used for parallelization
 #'
 #' @return none
 #'
 #' @export
 conta_main <- function(tsv_file, sample, save_dir, bin_file = NA, cnv_file = NA,
-                      lr_th = 0.05, sim_level = 0, baseline = NA, cores = 2) {
+                      lr_th = 0.05, sim_level = 0, baseline = NA, min_depth = 5,
+                      cores = 2) {
 
   options("digits" = 8)
   options("mc.cores" = cores)
-  
+
   # Create output folder if it doesn't exist
   dir.create(save_dir, showWarnings = FALSE)
 
@@ -36,7 +38,9 @@ conta_main <- function(tsv_file, sample, save_dir, bin_file = NA, cnv_file = NA,
   dat <- sim_conta(dat, sim_level)
 
   # Add in more useful fields and filter based on depth, maf and other alleles
-  dat <- annotate_and_filter(dat)
+  dat <- annotate_and_filter(dat, min_depth = min_depth)
+
+  if ( nrow(dat) == 0 ) stop(paste("No SNPs passed filters"))
 
   # Calculate substitution rates per base and add them to SNP data table
   EE <- calculate_error_model(dat, save_dir, sample)
@@ -61,7 +65,7 @@ conta_main <- function(tsv_file, sample, save_dir, bin_file = NA, cnv_file = NA,
   call_pass_stein <- ifelse(is.na(final_stein), NA,
                             ifelse(final_stein < 0.5 & result$conta_call,
                                    TRUE, FALSE))
-  
+
   # Plot het distortion and gather mad of hd metric
   loh_metric <- plot_het_dist(dat_het, save_dir, sample)
 
@@ -73,7 +77,7 @@ conta_main <- function(tsv_file, sample, save_dir, bin_file = NA, cnv_file = NA,
   pregnancy <- ifelse(!female_host | !male_contamination, NA,
                       ifelse(result$pos_lr_X <= result$pos_lr_all / 2,
                              TRUE, FALSE))
-    
+
   # Results to be written
   max_result <- data.table(sample = sample,
                            call_pass_stein = call_pass_stein,

@@ -5,7 +5,8 @@
 \title{Run conta.}
 \usage{
 conta_main(tsv_file, sample, save_dir, bin_file = NA, cnv_file = NA,
-  lr_th = 0.05, sim_level = 0, baseline = NA, cores = 2)
+  lr_th = 0.05, sim_level = 0, baseline = NA, min_depth = 5,
+  cores = 2)
 }
 \arguments{
 \item{tsv_file}{character input tsv file name}
@@ -27,6 +28,8 @@ be added to the current sample. The contaminant will be randomly
 generated from minor allele frequencies of the SNPs in the population.}
 
 \item{baseline}{data.table noise model}
+
+\item{min_depth}{minimum depth for a SNP to be considered by conta}
 
 \item{cores}{number of cores to be used for parallelization}
 }

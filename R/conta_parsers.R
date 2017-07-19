@@ -82,28 +82,28 @@ read_and_prep <- function(file) {
 #'
 #' @export
 ratio_and_counts <- function(dat) {
-  
+
   # Recalculate depth
   dat[, depth := A + T + G + C]
-  
+
   # TODO: implement with data.matrix and match function
   dat$major_count <- ifelse(dat$major == "A", dat$A,
                             ifelse(dat$major == "T", dat$T,
                                    ifelse(dat$major == "G", dat$G,
                                           ifelse(dat$major == "C", dat$C, 0))))
-  
+
   dat$major_ratio <- dat$major_count/dat$depth
-  
+
   dat$minor_count <- ifelse(dat$minor == "A", dat$A,
                             ifelse(dat$minor == "T", dat$T,
                                    ifelse(dat$minor == "G", dat$G,
                                           ifelse(dat$minor == "C", dat$C, 0))))
-  
+
   dat$minor_ratio <- dat$minor_count/dat$depth
-  
+
   dat$other_count <- dat$depth - dat$major_count - dat$minor_count
   dat$other_ratio <- round(1 - dat$major_ratio - dat$minor_ratio, 4)
-  
+
   return(dat)
 }
 
@@ -153,8 +153,8 @@ annotate_and_filter <- function(dat, het_limit = 0.25, min_other_ratio = 0.15,
   dat <- dat[ !(other_ratio >= min_other_ratio), ]
 
   # Remove low depth
-  dat <- dat[ !is.na(depth) & depth > min_depth &
-              depth > (mean(depth) - max_sd_depth * sd(depth)), ]
+  dat <- dat[ !is.na(depth) & depth >= min_depth &
+              depth >= (mean(depth) - max_sd_depth * sd(depth)), ]
 }
 
 #' Get the fraction of bases covered by at least 1 read on Y chr.

@@ -25,6 +25,8 @@ main <- function() {
                 help = "Likelihood ratio threshold", metavar = "numeric"),
     make_option(c("-m", "--sim_level"), type = "numeric", default = 0,
                 help = "Add simulated cf. 0 means none.", metavar = "numeric"),
+    make_option(c("-p", "--min_depth"), type = "numeric", default = 5,
+                help = "Minimum depth for a SNP.", metavar = "numeric"),
     make_option(c("-o", "--save_dir"), type = "character", default = "out",
                 help = "output folder", metavar = "character"),
     make_option(c("-r", "--remove_maf_file"), type = "logical", default = TRUE,
@@ -60,8 +62,8 @@ main <- function() {
                     save_dir = opt$save_dir, bin_file = opt$bin_file,
                     cnv_file = opt$cnv_file, lr_th = opt$lr_th,
                     sim_level = opt$sim_level, baseline = opt$baseline,
-                    cores = opt$cores)
-  
+                    min_depth = opt$min_depth, cores = opt$cores)
+
   # Remove maf file
   if (opt$remove_maf_file)
     file.remove(maf_file)

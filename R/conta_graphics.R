@@ -64,7 +64,7 @@ plot_lr <- function(save_dir, sample, dat, per_chr) {
 #' @export
 plot_sorted_lr <- function(dat, save_dir, sample) {
   png(file.path(save_dir, paste(sample, "sorted.lr.png", sep = ".")))
-  plot(sort(dat[lr > 0, lr], decreasing = TRUE),
+  plot(sort(c(0, dat[lr > 0, lr]), decreasing = TRUE),
        pch = ".", main = sample, ylab = "log likelihood ratio", xlab = "SNPs")
   msg.trap <- capture.output(suppressMessages(dev.off()))
 }
@@ -119,6 +119,8 @@ plot_lr_per_bin <- function(dat, save_dir, sample) {
 #'
 #' @export
 plot_het_dist <- function(dat, save_dir, sample) {
+
+  if (nrow(dat) == 0) return(NA)
 
   portions <- 10 # partions per chr
   dat[, chunk := 0]
