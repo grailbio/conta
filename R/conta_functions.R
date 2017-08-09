@@ -23,7 +23,7 @@ get_bases <- function() {
 #' @export
 get_initial_range <- function() {
   return(c(1e-5, 2e-5, 5e-5, 1e-4, 2e-4, 5e-4, 1e-3, 2e-3,
-           5e-3, 1e-2, 2e-2, 5e-2, 1e-1, 2e-1, 5e-1))
+           5e-3, 1e-2, 2e-2, 5e-2, 1e-1, 2e-1, 3e-1, 4e-1, 5e-1))
 }
 
 

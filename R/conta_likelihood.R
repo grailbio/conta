@@ -112,7 +112,7 @@ optimize_likelihood <- function(dat, EE, lr_th, save.dir = NA, sample = NA) {
   vmax <- which.max(grid_lr)
 
   # If max cf is the last or the first value, shift to prevent out of bounds
-  vmax <- ifelse(vmax > length(cf), vmax - 1, ifelse(vmax == 1, 2, vmax))
+  vmax <- ifelse(vmax == length(cf), vmax - 1, ifelse(vmax == 1, 2, vmax))
 
   # Optimize avg. likelihood around the cf that gave best result
   opt_val <- optimize(conta_lr, lower = cf[vmax - 1], upper = cf[vmax + 1],
