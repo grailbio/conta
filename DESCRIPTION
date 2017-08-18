@@ -19,7 +19,9 @@ Imports:
     dplyr,
     Rcpp,
     data.table,
-    parallel
+    parallel,
+    ggplot2,
+    grails3r
 Depends: R (>= 3.3.1)
 License: What license is it under?
 Encoding: UTF-8
