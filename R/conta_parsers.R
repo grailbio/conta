@@ -183,7 +183,7 @@ count_ychr <- function(bin_file) {
 get_final_stein <- function(cnv_file) {
   if (is.na(cnv_file) | cnv_file == "") return(NA)
   cnv <- read_data_table(cnv_file, header = T, sep = "\t", stop_if_missing = F)
-  return(ifelse(is.null(cnv), NA, cnv[keys == "final_stein", ]$values))
+  return(ifelse(is.null(cnv), NA, as.numeric(cnv[keys == "final_stein", ]$values)))
 }
 
 #' Get the final mapd score from CNV qc file
@@ -195,5 +195,5 @@ get_final_stein <- function(cnv_file) {
 get_final_mapd <- function(cnv_file) {
   if (is.na(cnv_file) | cnv_file == "") return(NA)
   cnv <- read_data_table(cnv_file)
-  return(ifelse(is.null(cnv), NA, cnv[keys == "final_mapd", ]$values))
+  return(ifelse(is.null(cnv), NA, as.numeric(cnv[keys == "final_mapd", ]$values)))
 }
