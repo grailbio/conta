@@ -15,8 +15,6 @@ test_that("conta test wgs run with cna and bincounts file", {
   expect_true(result[, conta_call])
   expect_equal(result[, cf], 0.2, tolerance = 5e-2)
   expect_equal(result[, y_count], 0.0021, tolerance = 1e-4)
-  expect_equal(result[, final_stein], 0.35, tolerance = 1e-2)
-  expect_equal(result[, final_mapd], 0.01, tolerance = 1e-2)
 })
 
 test_that("conta test targeted run", {
