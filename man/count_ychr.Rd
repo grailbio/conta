@@ -7,7 +7,7 @@
 count_ychr(bin_file)
 }
 \arguments{
-\item{bin_file}{character input tsv file name}
+\item{bin_file}{input tsv file name}
 }
 \value{
 Y chr counts

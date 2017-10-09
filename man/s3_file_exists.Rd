@@ -7,7 +7,7 @@
 s3_file_exists(file)
 }
 \arguments{
-\item{file}{character file name to check existence}
+\item{file}{file name to check existence}
 }
 \description{
 Return true if file exists on s3

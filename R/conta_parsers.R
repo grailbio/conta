@@ -4,15 +4,15 @@
 #' If the file does not exist, exit with an error message if needed.
 #'
 #'
-#' @param file character file name to read
+#' @param file file name to read
 #' @param header logical whether to read the header
-#' @param sep character the separator
+#' @param sep the separator
 #' @param stop_if_missing logical whether to stop execution if file is missing
 #' @return data.table
 #'
 #' @export
 read_data_table <- function(file, header = TRUE, sep = "\t",
-                            stop_if_missing = FALSE) {
+                            stop_if_missing = FALSE, ...) {
   if (startsWith(file, "s3://")) {
     if (s3_file_exists(file)) {
       if (endsWith(file, ".gz")) {
@@ -20,7 +20,7 @@ read_data_table <- function(file, header = TRUE, sep = "\t",
         stop(paste("Reading zipped file from s3 not supported.", file))
       } else {
         return(read_from_s3(file, fread, header = header,
-                          stringsAsFactors = FALSE, sep = sep))
+                          stringsAsFactors = FALSE, sep = sep, ...))
       }
     }
   }
@@ -28,10 +28,10 @@ read_data_table <- function(file, header = TRUE, sep = "\t",
     if (file.exists(file)) {
       if (endsWith(file, ".gz")) {
         return(fread(sprintf("zcat %s", file), header = header,
-                     stringsAsFactors = FALSE, sep = sep))
+                     stringsAsFactors = FALSE, sep = sep, ...))
       } else {
         return(fread(file, header = header, stringsAsFactors = FALSE,
-                     sep = sep))
+                     sep = sep, ...))
       }
     }
   }
@@ -44,19 +44,21 @@ read_data_table <- function(file, header = TRUE, sep = "\t",
   }
 }
 
-#' Return true if file exists on s3
+#' Return TRUE if file exists on s3
 #'
-#' @param file character file name to check existence
+#' @param file file name to check existence
+#' @return TRUE if file exists
 #' @export
 s3_file_exists <- function(file) {
-  return(suppressWarnings(nrow(s3_ls(file)) > 0))
+  return(ifelse(is.na(file), FALSE, suppressWarnings(nrow(s3_ls(file)) > 0)))
 }
+s3_file_exists <- Vectorize(s3_file_exists)
 
 #' Read a counts tsv file and prep it
 #'
 #' Supports reading file from s3 (to a temp file which is later removed)
 #'
-#' @param file character tsv file containing SNP info for the sample
+#' @param file tsv file containing SNP info for the sample
 #' @return data.table containing counts and metrics per SNP
 #'
 #' @export
@@ -164,7 +166,7 @@ annotate_and_filter <- function(dat, het_limit = 0.25, min_other_ratio = 0.15,
 #' 7th column in this file represents the percentage of bases on this bin
 #' covered by at least 1 read.
 #'
-#' @param bin_file character input tsv file name
+#' @param bin_file input tsv file name
 #' @return Y chr counts
 #'
 #' @export
@@ -176,7 +178,7 @@ count_ychr <- function(bin_file) {
 
 #' Get the final stein score from CNV qc file
 #'
-#' @param cnv_file character input tsv file name
+#' @param cnv_file input tsv file name
 #' @return Cnv z-score
 #'
 #' @export
@@ -188,7 +190,7 @@ get_final_stein <- function(cnv_file) {
 
 #' Get the final mapd score from CNV qc file
 #'
-#' @param cnv_file character input tsv file name
+#' @param cnv_file input tsv file name
 #' @return Cnv z-score
 #'
 #' @export
@@ -196,4 +198,51 @@ get_final_mapd <- function(cnv_file) {
   if (is.na(cnv_file) | cnv_file == "") return(NA)
   cnv <- read_data_table(cnv_file)
   return(ifelse(is.null(cnv), NA, as.numeric(cnv[keys == "final_mapd", ]$values)))
+}
+
+#' Read a vcf file as a data table
+#'
+#' @param vcf_file name of the input file
+#' @param n max number of header lines to skip
+#'
+#' @return data.table containing vcf data
+#'
+#' @export
+read_vcf_dt <- function(vcf_file, n = 100000) {
+  if (startsWith(vcf_file, "s3://")) {
+    lines <- read_from_s3(vcf_file, readLines, n)
+  } else {
+    lines <- readLines(vcf_file, n)
+  }
+  skipLines <- 0
+  for (i in 1:length(lines)) {
+    if (startsWith(lines[i], "##"))
+      next
+    else {
+      skipLines <- i - 1
+      break
+    }
+  }
+  vcf_dt <- read_data_table(vcf_file, header = TRUE, sep = "\t",
+                            stop_if_missing = FALSE, skip = skipLines)
+
+  caf <- parse_field(vcf_dt$INFO, "CAF")
+  vcf_dt$maf <- as.numeric(substring(caf, regexpr(',', caf) + 1,
+                                     nchar(caf) - 2))
+
+  return(vcf_dt)
+}
+
+#' Retrieve a specified field from a vcf info string
+#'
+#' @param info vcf info string
+#' @param field a specific field from info
+#' @return string field
+#'
+#' @export
+parse_field <- function(info, field) {
+  start_loc <- regexpr('CAF=', info)
+  end_loc <- start_loc +
+    regexpr(";", substring(info, start_loc, nchar(info))) - 1
+  caf_string <- substring(info, start_loc, end_loc)
 }

@@ -7,7 +7,7 @@
 get_final_stein(cnv_file)
 }
 \arguments{
-\item{cnv_file}{character input tsv file name}
+\item{cnv_file}{input tsv file name}
 }
 \value{
 Cnv z-score

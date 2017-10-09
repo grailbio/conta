@@ -4,14 +4,15 @@
 \alias{read_data_table}
 \title{Read a data.table from given path}
 \usage{
-read_data_table(file, header = TRUE, sep = "\\t", stop_if_missing = FALSE)
+read_data_table(file, header = TRUE, sep = "\\t", stop_if_missing = FALSE,
+  ...)
 }
 \arguments{
-\item{file}{character file name to read}
+\item{file}{file name to read}
 
 \item{header}{logical whether to read the header}
 
-\item{sep}{character the separator}
+\item{sep}{the separator}
 
 \item{stop_if_missing}{logical whether to stop execution if file is missing}
 }

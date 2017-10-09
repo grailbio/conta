@@ -7,7 +7,7 @@
 read_and_prep(file)
 }
 \arguments{
-\item{file}{character tsv file containing SNP info for the sample}
+\item{file}{tsv file containing SNP info for the sample}
 }
 \value{
 data.table containing counts and metrics per SNP

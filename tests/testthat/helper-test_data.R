@@ -4,6 +4,12 @@ out_dir <- "test_output"
 out_dir_wgs <- "test_output/wgs"
 out_dir_targeted <- "test_output/targeted"
 out_dir_sim <- "test_sim"
+
+# Remove existing test output directories
+unlink(out_dir, recursive = TRUE)
+unlink(out_dir_sim, recursive = TRUE)
+
+# Create them again
 dir.create(out_dir, showWarnings = FALSE)
 dir.create(out_dir_wgs, showWarnings = FALSE)
 dir.create(out_dir_targeted, showWarnings = FALSE)
@@ -23,3 +29,8 @@ supp_tsv <- sprintf("%s/test.supp.maf.tsv", data_dir)
 wgs_tsv <- sprintf("%s/test.wgs.maf.tsv", data_dir)
 targeted_tsv <- sprintf("%s/test.targeted.maf.tsv", data_dir)
 baseline <- sprintf("%s/test.posterior.txt", data_dir)
+
+# swap files
+pairing_file <- sprintf("%s/test.mapping_swap.csv", data_dir)
+shiny_file <- sprintf("%s/test.shiny.csv", data_dir)
+dbsnp_targeted <- sprintf("%s/test.dbSNP_common_art.vcf", data_dir)
