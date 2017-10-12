@@ -44,16 +44,6 @@ read_data_table <- function(file, header = TRUE, sep = "\t",
   }
 }
 
-#' Return TRUE if file exists on s3
-#'
-#' @param file file name to check existence
-#' @return TRUE if file exists
-#' @export
-s3_file_exists <- function(file) {
-  return(ifelse(is.na(file), FALSE, suppressWarnings(nrow(s3_ls(file)) > 0)))
-}
-s3_file_exists <- Vectorize(s3_file_exists)
-
 #' Read a counts tsv file and prep it
 #'
 #' Supports reading file from s3 (to a temp file which is later removed)
