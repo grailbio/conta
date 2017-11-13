@@ -4,7 +4,8 @@
 \alias{plot_lr}
 \title{Calculate a set of likelihood metrics across SNPs}
 \usage{
-plot_lr(save_dir, sample, dat, per_chr)
+plot_lr(save_dir, sample, dat, per_chr, ext_chr_table = "per_chr.tsv",
+  ext_loh_table = "per_bin.tsv", ext_loh_plot = "bin.lr.png")
 }
 \arguments{
 \item{save_dir}{folder location to write files and plots}
@@ -14,6 +15,12 @@ plot_lr(save_dir, sample, dat, per_chr)
 \item{dat}{data.table with likelihood information per locus}
 
 \item{per_chr}{data.table with per chromosome metrics}
+
+\item{ext_chr_table}{extension for per chr output table}
+
+\item{ext_loh_table}{extension for loh output table}
+
+\item{ext_loh_plot}{extension for loh plot}
 }
 \value{
 none

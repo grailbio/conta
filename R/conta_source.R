@@ -16,15 +16,21 @@
 #'
 #' @param base character base directory with a batch of conta results
 #' @param out_file character output file
-#' 
+#' @param batch_samples file that contains samples to limit the analysis to
+#' @param subfolder subfolder name if conta results are in a subfolder
+#' @param threshold re-call conta based on a new threshold
+#' @param blackswan blackswan term for maximum likelihood estimation
+#' @param core number of cores to use for calculations
+#'
 #' @return none
 #'
 #' @export
-conta_source <- function(base, out_file, cores = 8) {
+conta_source <- function(base, out_file, batch_samples = NA,
+                         subfolder = "", threshold = NA, blackswan, cores = 8) {
 
   options("digits" = 5)
   options("mc.cores" = cores)
-  
+
   # Add slash to the end of base if it wasn' specified
   base <- ifelse(!endsWith(base, "/"), paste(base, "/", sep = ""), base)
 
@@ -37,13 +43,35 @@ conta_source <- function(base, out_file, cores = 8) {
                   "/", sep = "")
   }
 
+  # Read conta results and genotypes, good to cache them at this point
+  subfolder <- ifelse(subfolder == "", subfolder,
+                      ifelse( !endsWith(subfolder, "/"),
+                              paste(subfolder, "/", sep = ""),
+                              subfolder))
+  # Limit to batch files
+  if (!is.na(batch_samples)) {
+    bs <- read_data_table(batch_samples, sep = "\t", header = F)
+    bs <- rbind(bs, data.table( V1 = tools::file_path_sans_ext(
+                                basename(batch_samples))))
+    bs <- unique(bs)
+    paths <- paths[sapply(1:length(paths),
+                          function(i) sum(startsWith(paths[i], bs$V1)) > 0)]
+  }
   names <- basename(paths)
 
-  # Read conta results and genotypes, good to cache them at this point
-  lres <- mclapply(paste(base, paths, names, ".conta.tsv", sep = ""),
+  lres <- mclapply(paste(base, paths, subfolder, names, ".conta.tsv", sep = ""),
                  read_data_table)
 
-  lgt <- mclapply(paste(base, paths, names, ".gt.tsv", sep = ""),
+  # Re-call if necessary
+  if (!is.na(threshold)) {
+    for (i in 1:length(lres)) {
+      lres[[i]]$conta_call <-
+        ifelse(lres[[i]]$avg_log_lr >= threshold, TRUE, FALSE)
+    }
+  }
+
+  # Keep only the same batch smples if batch files variable is specified
+  lgt <- mclapply(paste(base, paths, subfolder, names, ".gt.tsv", sep = ""),
                 read_data_table)
 
   # Define a data.frame for the output, one line for contaminated sample
@@ -65,7 +93,6 @@ conta_source <- function(base, out_file, cores = 8) {
 
     # find source only if it was called contaminated
     if (res$conta_call) {
-
       # contamination fraction
       cf <- res$cf
 
@@ -78,16 +105,16 @@ conta_source <- function(base, out_file, cores = 8) {
 
       # calculate source likelihood scores for each of the other samples
       scores <- mclapply(c(1:length(lres)), function(j) {
-        
-        gt2 <- lgt[[j]][gt != "0/1"]
-        
+
+        gt2 <- lgt[[j]]
+
         conc <- get_genotype_concordance(gt1, gt2)
-        
+
         if (is.na(conc) | conc >= 0.95) {
           return(NA)
         }
-        
-        avg_gt_lr <- get_source_lr(gt1, gt2, cf)
+
+        avg_gt_lr <- get_source_lr(gt1, gt2, cf, blackswan)
         return(avg_gt_lr)
         })
       scores <- unlist(scores)

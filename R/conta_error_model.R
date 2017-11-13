@@ -82,6 +82,7 @@ add_error_rates <- function(dat, EE) {
   # Substitution type
   dat[, et := ""]
   dat[gt == "0/0", et := paste(major, ">", minor, sep = "")]
+  dat[gt == "0/1", et := paste(major, ">", minor, sep = "")]
   dat[gt == "1/1", et := paste(minor, ">", major, sep = "")]
 
   # Error rate corresponding to that substitution type

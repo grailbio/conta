@@ -4,7 +4,7 @@
 \alias{get_source_lr}
 \title{Calculate likelihood ratio based on known source genotypes}
 \usage{
-get_source_lr(gt1, gt2, cf)
+get_source_lr(gt1, gt2, cf, blackswan)
 }
 \arguments{
 \item{gt1}{genotype/variant call table of the host}
@@ -12,6 +12,8 @@ get_source_lr(gt1, gt2, cf)
 \item{gt2}{genotype/variant call table of the contaminant}
 
 \item{cf}{numeric contamination fraction}
+
+\item{blackswan}{blackswan term for maximum likelihood}
 }
 \value{
 likelihood ratio from the source

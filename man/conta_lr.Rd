@@ -4,7 +4,8 @@
 \alias{conta_lr}
 \title{Calculate a set of likelihood metrics across SNPs}
 \usage{
-conta_lr(cf, dat, EE, save.dir = NA, sample = NA)
+conta_lr(cf, dat, EE, save_dir = NA, sample = NA, loh = FALSE, blackswan,
+  out_frac = 0.01)
 }
 \arguments{
 \item{cf}{numeric contamination fraction to be tested}
@@ -13,13 +14,19 @@ conta_lr(cf, dat, EE, save.dir = NA, sample = NA)
 
 \item{EE}{data.frame error model}
 
-\item{save.dir}{directory to save results}
+\item{save_dir}{directory to save results}
 
 \item{sample}{name of the sample for printing purposes}
+
+\item{loh}{whether to plot in loh mode}
+
+\item{blackswan}{blackswan term for maximum likelihood}
+
+\item{out_frac}{fraction of outliers to remove}
 }
 \value{
 numeric avg. log-likelihood ratio for the given cf or a more detailed
-  result if the save.dir and sample name are specified.
+  result if the save_dir and sample name are specified.
 }
 \description{
 Calculate a set of likelihood metrics across SNPs

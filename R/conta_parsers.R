@@ -84,14 +84,14 @@ ratio_and_counts <- function(dat) {
                                    ifelse(dat$major == "G", dat$G,
                                           ifelse(dat$major == "C", dat$C, 0))))
 
-  dat$major_ratio <- dat$major_count/dat$depth
+  dat$major_ratio <- dat$major_count / dat$depth
 
   dat$minor_count <- ifelse(dat$minor == "A", dat$A,
                             ifelse(dat$minor == "T", dat$T,
                                    ifelse(dat$minor == "G", dat$G,
                                           ifelse(dat$minor == "C", dat$C, 0))))
 
-  dat$minor_ratio <- dat$minor_count/dat$depth
+  dat$minor_ratio <- dat$minor_count / dat$depth
 
   dat$other_count <- dat$depth - dat$major_count - dat$minor_count
   dat$other_ratio <- round(1 - dat$major_ratio - dat$minor_ratio, 4)
@@ -124,20 +124,28 @@ ratio_and_counts <- function(dat) {
 annotate_and_filter <- function(dat, het_limit = 0.25, min_other_ratio = 0.15,
                                 min_depth = 5, max_sd_depth = 3) {
 
+  # Remove non-ATGC alleles
+  dat <- dat[major %in% c(get_bases(), "N")]
+  dat <- dat[minor %in% c(get_bases(), "N")]
+
   # Genotype calls
   dat$gt <- ifelse(dat$minor_ratio < het_limit, "0/0",
                    ifelse(dat$major_ratio < het_limit, "1/1", "0/1"))
 
   # Noise (or contamination) levels, flipped for 1/1 alt alleles
   dat$vfn <- ifelse(dat$gt == "1/1", dat$major_ratio,
-                    ifelse(dat$gt == "0/0", dat$minor_ratio, NA))
+                    ifelse(dat$gt == "0/0", dat$minor_ratio,
+                           ifelse(dat$gt == "0/1", pmin(dat$major_ratio,
+                                                        dat$minor_ratio), NA)))
 
   # Noise number of reads
   dat$vr <- (dat[, vfn]) * (dat[, depth])
 
   # Contamination probability based on minor allele frequency
   dat$cp <- ifelse(dat$gt == "1/1", (1 - (dat$maf) ^ 2),
-                   ifelse(dat$gt == "0/0", 1 - (1 - dat$maf) ^ 2, NA))
+                   ifelse(dat$gt == "0/0", 1 - (1 - dat$maf) ^ 2,
+                          ifelse(dat$gt == "0/1",
+                                 1 - 2 * dat$maf * (1 - dat$maf), NA)))
 
   # Remove otherAllele strange cases
   # This is some type of artifact that is seen in the tsv file
@@ -147,6 +155,9 @@ annotate_and_filter <- function(dat, het_limit = 0.25, min_other_ratio = 0.15,
   # Remove low depth
   dat <- dat[ !is.na(depth) & depth >= min_depth &
               depth >= (mean(depth) - max_sd_depth * sd(depth)), ]
+
+  # Add chunks
+  dat <- add_chunks(dat)
 }
 
 #' Get the fraction of bases covered by at least 1 read on Y chr.
@@ -175,7 +186,8 @@ count_ychr <- function(bin_file) {
 get_final_stein <- function(cnv_file) {
   if (is.na(cnv_file) | cnv_file == "") return(NA)
   cnv <- read_data_table(cnv_file, header = T, sep = "\t", stop_if_missing = F)
-  return(ifelse(is.null(cnv), NA, as.numeric(cnv[keys == "final_stein", ]$values)))
+  return(ifelse(is.null(cnv), NA,
+                as.numeric(cnv[keys == "final_stein", ]$values)))
 }
 
 #' Get the final mapd score from CNV qc file
@@ -187,7 +199,8 @@ get_final_stein <- function(cnv_file) {
 get_final_mapd <- function(cnv_file) {
   if (is.na(cnv_file) | cnv_file == "") return(NA)
   cnv <- read_data_table(cnv_file)
-  return(ifelse(is.null(cnv), NA, as.numeric(cnv[keys == "final_mapd", ]$values)))
+  return(ifelse(is.null(cnv), NA,
+                as.numeric(cnv[keys == "final_mapd", ]$values)))
 }
 
 #' Read a vcf file as a data table
@@ -235,4 +248,25 @@ parse_field <- function(info, field) {
   end_loc <- start_loc +
     regexpr(";", substring(info, start_loc, nchar(info))) - 1
   caf_string <- substring(info, start_loc, end_loc)
+}
+
+#' Partition each chromosome to bins and tag each SNP with its bin
+#'
+#' @param dat data.table containing SNPs
+#' @return data.table containing SNPs with tagged chunks
+#'
+#' @export
+add_chunks <- function(dat) {
+
+  if (nrow(dat) == 0) return(data.table())
+
+  portions <- 10 # partions per chr
+  dat[, chunk := 0]
+  for (j in dat[, unique(chrom)]) {
+    bin_size <- ceiling(as.numeric(dat[chrom == j, .(.N / portions)]))
+    dat[chrom == j, chunk := .(ceiling(.I / bin_size))]
+  }
+  dat$chrom <- factor(dat$chrom, levels = unique(dat$chrom))
+
+  return(dat)
 }

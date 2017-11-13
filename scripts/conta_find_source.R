@@ -13,6 +13,12 @@ main <- function() {
               help = "base folder with conta results", metavar = "character"),
   make_option(c("-o", "--out"), type = "character", default = NULL,
               help = "out file with source results", metavar = "character"),
+  make_option(c("-s", "--subfolder"), type = "character", default = "",
+              help = "specify if conta is in subfolder", metavar = "character"),
+  make_option(c("-t", "--threshold"), type = "numeric", default = NA,
+              help = "specify conta threshold", metavar = "numeric"),
+  make_option(c("-w", "--blackswan"), type = "numeric", default = 0.05,
+              help = "black swan term for MLE", metavar = "numeric"),
   make_option(c("-u", "--cores"), type = "numeric", default = 8,
               help = "cpu cores", metavar = "numeric"))
 
@@ -24,7 +30,11 @@ main <- function() {
     stop("Both base folder and output fil must be supplied.\n", call. = FALSE)
   }
   # Run conta
-  conta::conta_source(opt$base, opt$out, opt$cores)
+  conta::conta_source(opt$base, opt$out,
+                      subfolder = opt$subfolder,
+                      threshold = opt$threshold,
+                      blackswan = opt$blackswan,
+                      cores = opt$cores)
 }
 
 if (sys.nframe() == 0) {

@@ -7,15 +7,15 @@
 plot_max_likelihood(cf_range, grid_lr, opt_val, save_dir, sample)
 }
 \arguments{
-\item{cf_range}{numeric range of contamination fraction}
+\item{cf_range}{range of contamination fraction}
 
-\item{grid_lr}{numeric initial grid that was searched}
+\item{grid_lr}{initial grid that was searched}
 
-\item{opt_val}{list optimized result}
+\item{opt_val}{optimized result}
 
-\item{save_dir}{character location to save the results}
+\item{save_dir}{location to save the results}
 
-\item{sample}{character sample name}
+\item{sample}{sample name}
 }
 \value{
 none

@@ -26,6 +26,18 @@ get_initial_range <- function() {
            5e-3, 1e-2, 2e-2, 5e-2, 1e-1, 2e-1, 3e-1, 4e-1, 5e-1))
 }
 
+#' Fail if certain conditions are not met
+#'
+#' @param dat data.table with SNP counts and genotypes
+#'
+#' @export
+fail_test <- function(dat) {
+  if ( nrow(dat) == 0 |
+       nrow(dat[gt != "0/0"]) == 0 |
+       nrow(dat[gt != "1/1"]) == 0 |
+       nrow(dat[gt != "0/1"]) == 0 )
+    stop(paste("No SNPs passed filters"))
+}
 
 #' Return expected contamination fraction
 #'
@@ -34,10 +46,10 @@ get_initial_range <- function() {
 #' allele (half the fraction) contributes to the contamination. For the
 #' remaining 20% of SNPs which are homozygotes, both alleles contribute to the
 #' contamination.
-#' 
+#'
 #' @param cf numeric contamination fraction
 #' @return expected contamination fraction
-#' 
+#'
 #' @export
 get_exp_cf <- function(cf) {
   return(0.8 * cf / 2 + 0.2 * cf)
@@ -51,7 +63,7 @@ get_exp_cf <- function(cf) {
 #'
 #' @param wgs data.frame containing counts and metrics per SNP
 #' @param cf numeric contamination fraction
-#' @param seed numeric set seed for simulation 
+#' @param seed numeric set seed for simulation
 #'
 #' @return data.frame containing counts and metrics per SNP
 #'
@@ -84,4 +96,67 @@ sim_conta <- function(wgs, cf, seed = 1359) {
   wgs <- ratio_and_counts(wgs)
 
   return(wgs)
+}
+
+#' Simulate loh and/or contamination
+#'
+#' This simulation returns a simple data structure with metrics required to
+#' test LOH functions. It works by simulating 4 chromosomes (2 for host, and
+#' 2 for contaminant). It also simulates the ratio of the host chromosomes which
+#' is analogous to loss of heterozygosity.
+#'
+#' @param n number of SNPs to simulate
+#' @param min_maf minimum maf to simulate (and maximum is 1 - maf)
+#' @param dp_min min epth to simulate
+#' @param dp_max max depth to simulate
+#' @param er_min minimum error rate to simulate
+#' @param er_max maximum error rate to simulate
+#' @param delta loh deviation from heterozygosity
+#' @param alpha contamination level
+#' @param seed numeric set seed for simulation
+#'
+#' @return data.frame containing counts and metrics per SNP
+#'
+#' @export
+simulate_loh_conta <- function(n, min_maf, dp_min, dp_max, er_min, er_max,
+                               delta, alpha, seed = 1359) {
+
+  set.seed(seed)
+
+  # Simulate maf for each SNP (at range 25 to 75%)
+  maf <- runif(n, min = min_maf, max = 1 - min_maf)
+
+  # Simulate error rate for each SNP randomly at specified range
+  er <- runif(n, min = er_min, max = er_max)
+
+  # Simulate depth for each SNP randomly around specified target
+  dp <- rpois(n, runif(n, dp_min, dp_max))
+
+  # Simulate alleles for each chromosome
+  a1 <- ifelse(runif(n) > maf, 1, 0)
+  a2 <- ifelse(runif(n) > maf, 1, 0)
+
+  # Simulate contamination in case necessary
+  a3 <- ifelse(runif(n) > maf, 1, 0)
+  a4 <- ifelse(runif(n) > maf, 1, 0)
+
+  # Draw allelic depths based on parameters
+  # Allele 1 and Allele 2 contribute 50% unless there is LOH, in that case
+  # Allele 1 contributes a proportion of specified by delta (loh coefficient)
+  ad1 <- rpois(n, a1 * dp * (0.5 - delta) * (1 - alpha) * abs(a1 - er))
+  ad2 <- rpois(n, a2 * dp * (0.5 + delta) * (1 - alpha) * abs(a2 - er))
+
+  # Allele 3 and 4 contributes only if there is contamination (alpha)
+  ad3 <- rpois(n, a3 * dp * alpha * abs(a3 - er))
+  ad4 <- rpois(n, a4 * dp * alpha * abs(a4 - er))
+
+  # Sum the ads
+  ad <- ad1 + ad2 + ad3 + ad4
+
+  # Set contamination probs based on maf
+  cp <- ifelse(a1 == 1 & a2 == 1, 1 - maf ^ 2,
+               ifelse(a1 == 0 & a2 == 0, 1 - (1 - maf) ^ 2,
+                      1 - 2 * maf * (1 - maf)))
+
+  return(data.table(depth = dp, minor_count = ad, maf = maf, er = er, cp = cp))
 }

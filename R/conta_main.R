@@ -16,6 +16,11 @@
 #'     generated from minor allele frequencies of the SNPs in the population.
 #' @param baseline data.table noise model
 #' @param min_depth minimum depth for a SNP to be considered by conta
+#' @param loh_cutoff minimum maximum likelihood to call a region as LOH
+#' @param cf_correction cf correction calculated from empirical data
+#' @param min_cf minimum cf to call
+#' @param blackswan blackswan term for maximum likelihood estimation
+#' @param outlier_frac fraction of outlier SNPs (based on likelihood) to remove
 #' @param cores number of cores to be used for parallelization
 #'
 #' @return none
@@ -23,6 +28,8 @@
 #' @export
 conta_main <- function(tsv_file, sample, save_dir, bin_file = NA, cnv_file = NA,
                       lr_th = 0.05, sim_level = 0, baseline = NA, min_depth = 5,
+                      loh_cutoff = 0.01, min_maf = 0.25, cf_correction = 0,
+                      min_cf = 0.00025, blackswan = 0.05, outlier_frac = 0.01,
                       cores = 2) {
 
   options("digits" = 8)
@@ -37,24 +44,42 @@ conta_main <- function(tsv_file, sample, save_dir, bin_file = NA, cnv_file = NA,
   # Simulate contamination if sim_level is non-0
   dat <- sim_conta(dat, sim_level)
 
+  # Store original depth
+  orig_depth <- median(dat$depth, na.rm = TRUE)
+
   # Add in more useful fields and filter based on depth, maf and other alleles
   dat <- annotate_and_filter(dat, min_depth = min_depth)
 
-  if ( nrow(dat) == 0 ) stop(paste("No SNPs passed filters"))
+  # Fail if there is no data, or one of the genotypes is never observed
+  fail_test(dat)
 
   # Calculate substitution rates per base and add them to SNP data table
   EE <- calculate_error_model(dat, save_dir, sample)
   dat <- add_error_rates(dat, EE)
 
   # Remove low maf positions (they were kept for error model calculations)
-  dat <- dat[ maf > 0.25, ]
+  dat <- dat[ maf > min_maf & maf < (1 - min_maf), ]
+  plot_minor_ratio(dat, save_dir, sample)
+
+  # Obtain results and plot lr without loh filter applied yet
+  result <- optimize_likelihood(dat[gt != "0/1"], EE, lr_th, save_dir, sample,
+                                FALSE, blackswan, min_cf, cf_correction,
+                                outlier_frac)
+  # Remove LOH regions
+  bin_stats <- get_per_bin_loh(dat, save_dir, sample, loh_cutoff, blackswan)
+  dat_loh <- exclude_high_loh_regions(dat, bin_stats)
+
+  # Fail if there is no data, or one of the genotypes is never observed
+  fail_test(dat_loh)
 
   # Gather hets vs homs
-  dat_hom <- dat[gt == "1/1" | gt == "0/0"]
-  dat_het <- dat[gt == "0/1"]
+  dat_hom <- dat_loh[gt != "0/1"]
+  dat_het <- dat_loh[gt == "0/1"]
 
   # Calculate likelihood, max likelihood, and whether to call it
-  result <- optimize_likelihood(dat_hom, EE, lr_th, save_dir, sample)
+  result <- optimize_likelihood(dat_hom, EE, lr_th, save_dir, sample,
+                                TRUE, blackswan, min_cf, cf_correction,
+                                outlier_frac)
 
   # Read Y chr counts from bin file
   y_count <- count_ychr(bin_file)
@@ -62,12 +87,6 @@ conta_main <- function(tsv_file, sample, save_dir, bin_file = NA, cnv_file = NA,
   # Read z-scores from cna QC file
   final_stein <- get_final_stein(cnv_file)
   final_mapd <- get_final_mapd(cnv_file)
-  call_pass_stein <- ifelse(is.na(final_stein), NA,
-                            ifelse(final_stein < 0.5 & result$conta_call,
-                                   TRUE, FALSE))
-
-  # Plot het distortion and gather mad of hd metric
-  loh_metric <- plot_het_dist(dat_het, save_dir, sample)
 
   # A male pregnancy is a female host with lower likelihood on X chr
   # and Y chr count above expected (expected for female is ~0.002). We do not
@@ -80,11 +99,10 @@ conta_main <- function(tsv_file, sample, save_dir, bin_file = NA, cnv_file = NA,
 
   # Results to be written
   max_result <- data.table(sample = sample,
-                           call_pass_stein = call_pass_stein,
                            format(result, digits = 5),
                            y_count = round(y_count, 4),
-                           loh_metric = round(loh_metric, 3),
                            pregnancy = pregnancy,
+                           excluded_regions = bin_stats[loh == TRUE, .N],
                            error_rate = round(mean(EE$er), 7),
                            round(t(data.frame(EE$er,
                                  row.names = rownames(EE))), digits = 7))

@@ -30,7 +30,8 @@ swap <- function(pairing_table_name, out_table_name, shiny_loc, dbsnp_targeted,
 
   # Read mapping table. This table is an input that stores the pairings between
   # cfDNA and gDNA samples, along with a fake pair ID (DID) and StudyBatch
-  pairing_table <- read_data_table(pairing_table_name, sep = ",", showProgress = FALSE)
+  pairing_table <- read_data_table(pairing_table_name, sep = ",",
+                                   showProgress = FALSE)
 
   # Results are stored in a match table. Existing results are not re-calculated.
   # To re-calculate the output file needs to be removed.

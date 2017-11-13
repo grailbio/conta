@@ -4,7 +4,7 @@
 \alias{log_lr}
 \title{Calculate log likelihood ratio}
 \usage{
-log_lr(cp, depth, cf, mu, ad, blackswan = 10^-2)
+log_lr(cp, depth, cf, mu, ad, blackswan = 0.01)
 }
 \arguments{
 \item{cp}{numeric contamination prior based on maf and genotype}

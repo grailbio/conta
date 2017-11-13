@@ -4,7 +4,8 @@
 \alias{optimize_likelihood}
 \title{Optimize a set of likelihood metrics across SNPs using optimize function.}
 \usage{
-optimize_likelihood(dat, EE, lr_th, save.dir = NA, sample = NA)
+optimize_likelihood(dat, EE, lr_th, save_dir = NA, sample = NA,
+  loh = FALSE, blackswan, min_cf, cf_correction, outlier_frac)
 }
 \arguments{
 \item{dat}{data.table containing counts and metrics per SNP, hets filtered}
@@ -13,9 +14,19 @@ optimize_likelihood(dat, EE, lr_th, save.dir = NA, sample = NA)
 
 \item{lr_th}{numeric likelihood threshold to make a call}
 
-\item{save.dir}{character location to save the results}
+\item{save_dir}{character location to save the results}
 
 \item{sample}{character sample name}
+
+\item{loh}{whether to plot in LOH mode}
+
+\item{blackswan}{blackswan term for maximum likelihood}
+
+\item{min_cf}{minimum contamination fraction to call}
+
+\item{cf_correction}{cf correction which is subtracted from calculated cf}
+
+\item{outlier_frac}{fraction of outlier SNPs (based on likelihood) to remove}
 }
 \value{
 data.table of likelihoods and related metrics

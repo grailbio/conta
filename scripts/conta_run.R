@@ -21,18 +21,30 @@ main <- function() {
                 help = "input vcf file from dbSNP", metavar = "character"),
     make_option(c("-s", "--sample"), type = "character", default = "test",
                 help = "sample name to prefix out", metavar = "character"),
-    make_option(c("-l", "--lr_th"), type = "numeric", default = 0.05,
+    make_option(c("-l", "--lr_th"), type = "numeric", default = 0.003,
                 help = "Likelihood ratio threshold", metavar = "numeric"),
     make_option(c("-m", "--sim_level"), type = "numeric", default = 0,
                 help = "Add simulated cf. 0 means none.", metavar = "numeric"),
     make_option(c("-p", "--min_depth"), type = "numeric", default = 5,
                 help = "Minimum depth for a SNP.", metavar = "numeric"),
+    make_option(c("-z", "--min_cf"), type = "numeric", default = 0.00025,
+                help = "Minimum cf to call.", metavar = "numeric"),
+    make_option(c("-q", "--min_maf"), type = "numeric", default = 0.25,
+                help = "Minimum maf for a SNP.", metavar = "numeric"),
     make_option(c("-o", "--save_dir"), type = "character", default = "out",
                 help = "output folder", metavar = "character"),
     make_option(c("-r", "--remove_maf_file"), type = "logical", default = TRUE,
                 help = "remove maf file", metavar = "logical"),
     make_option(c("-n", "--baseline"), type = "character", default = NA,
                 help = "baseline file", metavar = "character"),
+    make_option(c("-f", "--loh_cutoff"), type = "numeric", default = 0.01,
+                help = "loss of heterozygosity cutoff", metavar = "numeric"),
+    make_option(c("-w", "--blackswan"), type = "numeric", default = 0.05,
+                help = "black swan term for MLE", metavar = "numeric"),
+    make_option(c("-v", "--outlier_frac"), type = "numeric", default = 0.05,
+                help = "remove outlier SNPs", metavar = "numeric"),
+    make_option(c("-x", "--cf_correction"), type = "numeric", default = 0.00086,
+                help = "conta fraction correction", metavar = "numeric"),
     make_option(c("-u", "--cores"), type = "numeric", default = 2,
                 help = "cpu cores", metavar = "numeric"))
 
@@ -62,7 +74,10 @@ main <- function() {
                     save_dir = opt$save_dir, bin_file = opt$bin_file,
                     cnv_file = opt$cnv_file, lr_th = opt$lr_th,
                     sim_level = opt$sim_level, baseline = opt$baseline,
-                    min_depth = opt$min_depth, cores = opt$cores)
+                    min_depth = opt$min_depth, loh_cutoff = opt$loh_cutoff,
+                    min_maf = opt$min_maf, cf_correction = opt$cf_correction,
+                    min_cf = opt$min_cf, blackswan = opt$blackswan,
+                    outlier_frac = opt$outlier_frac, cores = opt$cores)
 
   # Remove maf file
   if (opt$remove_maf_file)
