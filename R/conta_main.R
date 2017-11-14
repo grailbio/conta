@@ -94,7 +94,7 @@ conta_main <- function(tsv_file, sample, save_dir, bin_file = NA, cnv_file = NA,
   female_host <- !is.na(y_count) & y_count < 0.2
   male_contamination <- result$conta_call & !is.na(y_count) & y_count >= 0.005
   pregnancy <- ifelse(!female_host | !male_contamination, NA,
-                      ifelse(result$pos_lr_X <= result$pos_lr_all / 2,
+                      ifelse(result$pos_lr_x <= result$pos_lr_all / 2,
                              TRUE, FALSE))
 
   # Results to be written
