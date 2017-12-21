@@ -4,8 +4,7 @@
 \alias{calculate_concordance}
 \title{Calculate concordance for all datasets}
 \usage{
-calculate_concordance(mt, i, d, ctar_cwgs_cutoff, gtar_gwgs_cutoff,
-  ctar_gtar_cutoff, cwgs_gwgs_cutoff)
+calculate_concordance(mt, i, d, cutoff, signature_SNPs)
 }
 \arguments{
 \item{mt}{swap table to write to}
@@ -14,13 +13,9 @@ calculate_concordance(mt, i, d, ctar_cwgs_cutoff, gtar_gwgs_cutoff,
 
 \item{d}{list of data tables}
 
-\item{ctar_cwgs_cutoff}{cutoff for ctar vs cwgs concordance}
+\item{cutoff}{cutoff for concordance}
 
-\item{gtar_gwgs_cutoff}{cutoff for gtar vs gwgs concordance}
-
-\item{ctar_gtar_cutoff}{cutoff for ctar vs gtar concordance}
-
-\item{cwgs_gwgs_cutoff}{cutoff for cwgs vs gwgs concordance}
+\item{signature_SNPs}{table containing rsid, ref and alt of signature SNPs}
 }
 \description{
 Calculate concordance for all datasets

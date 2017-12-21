@@ -15,6 +15,8 @@ read_data_table(file, header = TRUE, sep = "\\t", stop_if_missing = FALSE,
 \item{sep}{the separator}
 
 \item{stop_if_missing}{logical whether to stop execution if file is missing}
+
+\item{...}{additional arguments}
 }
 \value{
 data.table

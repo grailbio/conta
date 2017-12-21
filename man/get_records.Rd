@@ -12,6 +12,8 @@ get_records(shiny_dt, mt, i, randomize)
 \item{mt}{swap table to write to}
 
 \item{i}{location on swap table}
+
+\item{randomize}{whether to randomize SNP order in order to generate mismatch}
 }
 \description{
 If randomize is selected, randomly select the entry

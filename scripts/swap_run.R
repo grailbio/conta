@@ -16,6 +16,10 @@ main <- function() {
                 help = "input locations and metrics", metavar = "character"),
     make_option(c("-d", "--dbsnp_file"), type = "character", default = NULL,
                 help = "dbsnp for targeted analysis", metavar = "character"),
+    make_option(c("-c", "--corrections"), type = "character", default = NULL,
+                help = "swap corrections", metavar = "character"),
+    make_option(c("-n", "--signatures"), type = "character", default = NULL,
+                help = "signature SNPs", metavar = "character"),
     make_option(c("-r", "--randomize"), type = "character", default = FALSE,
                 help = "random pairs for thresholding", metavar = "character")
   )
@@ -34,7 +38,9 @@ main <- function() {
               out_table_name = opt$output_file,
               shiny_loc = opt$shiny_file,
               dbsnp_targeted = opt$dbsnp_file,
-              randomize = opt$randomize)
+              randomize = opt$randomize,
+              corrections = opt$corrections,
+              signatures = opt$signatures)
 
   proc.time() - start_time
 

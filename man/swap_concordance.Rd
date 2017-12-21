@@ -2,9 +2,9 @@
 % Please edit documentation in R/conta_swap.R
 \name{swap_concordance}
 \alias{swap_concordance}
-\title{Calculate concordance between two samples' genotypes}
+\title{Calculate concordance between two samples' genotypes and make a swap call}
 \usage{
-swap_concordance(mt, i, dt1, dt2, col1, col2, conc_cutoff, min_dp = 10,
+swap_concordance(mt, i, dt1, dt2, col1, conc_cutoff, min_dp = 10,
   min_maf = 0.25)
 }
 \arguments{
@@ -16,12 +16,14 @@ swap_concordance(mt, i, dt1, dt2, col1, col2, conc_cutoff, min_dp = 10,
 
 \item{dt2}{genotype set 2}
 
-\item{col1}{column name 1}
-
-\item{col2}{column name 2}
+\item{col1}{column name 1 for results}
 
 \item{conc_cutoff}{concordance cutoff to make a swap call}
+
+\item{min_dp}{minimum average depth to include a sample for concordance test}
+
+\item{min_maf}{minimum population frequency for a SNP to be included}
 }
 \description{
-Calculate concordance between two samples' genotypes
+Calculate concordance between two samples' genotypes and make a swap call
 }

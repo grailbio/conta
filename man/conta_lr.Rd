@@ -5,7 +5,7 @@
 \title{Calculate a set of likelihood metrics across SNPs}
 \usage{
 conta_lr(cf, dat, EE, save_dir = NA, sample = NA, loh = FALSE, blackswan,
-  out_frac = 0.01)
+  out_frac = 0.01, min_maf = 0.25)
 }
 \arguments{
 \item{cf}{numeric contamination fraction to be tested}
@@ -23,6 +23,8 @@ conta_lr(cf, dat, EE, save_dir = NA, sample = NA, loh = FALSE, blackswan,
 \item{blackswan}{blackswan term for maximum likelihood}
 
 \item{out_frac}{fraction of outliers to remove}
+
+\item{min_maf}{minimum allele frequency used to filter SNPs}
 }
 \value{
 numeric avg. log-likelihood ratio for the given cf or a more detailed

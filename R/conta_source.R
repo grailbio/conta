@@ -20,13 +20,14 @@
 #' @param subfolder subfolder name if conta results are in a subfolder
 #' @param threshold re-call conta based on a new threshold
 #' @param blackswan blackswan term for maximum likelihood estimation
-#' @param core number of cores to use for calculations
+#' @param cores number of cores to use for calculations
 #'
 #' @return none
 #'
 #' @export
 conta_source <- function(base, out_file, batch_samples = NA,
-                         subfolder = "", threshold = NA, blackswan, cores = 8) {
+                         subfolder = "", threshold = NA, blackswan = 0.05,
+                         cores = 8) {
 
   options("digits" = 5)
   options("mc.cores" = cores)
@@ -71,7 +72,7 @@ conta_source <- function(base, out_file, batch_samples = NA,
   }
 
   # Keep only the same batch smples if batch files variable is specified
-  lgt <- mclapply(paste(base, paths, subfolder, names, ".gt.tsv", sep = ""),
+  lgt <- mclapply(paste(base, paths, subfolder, names, ".gt.loh.tsv", sep = ""),
                 read_data_table)
 
   # Define a data.frame for the output, one line for contaminated sample
@@ -79,11 +80,11 @@ conta_source <- function(base, out_file, batch_samples = NA,
                     cf = numeric(),
                     source_call = logical(),
                     avg_maf_lr = numeric(),
-                    best_gt_score = numeric(),
+                    best_conf = numeric(),
                     best_sample = character(),
-                    second_gt_score = numeric(),
+                    second_conf = numeric(),
                     second_sample = character(),
-                    third_gt_score = numeric(),
+                    third_conf = numeric(),
                     third_sample = character())
 
   # for each conta result file
@@ -136,15 +137,17 @@ conta_source <- function(base, out_file, batch_samples = NA,
                               which(third == scores)[3])
 
       # add the calls to output
+      # call if the result is at least 10% better than original
+      call_mt <- 1.1
       out <- rbind(out, data.frame(name = names[i],
                                    cf = cf,
-                                   source_call = best > avg_maf_lr,
+                                   source_call = best > (call_mt * avg_maf_lr),
                                    avg_maf_lr = avg_maf_lr,
-                                   best_gt_score = best,
+                                   best_conf = best - avg_maf_lr,
                                    best_sample = names[best_loc],
-                                   second_gt_score = second,
+                                   second_conf = second - avg_maf_lr,
                                    second_sample = names[second_loc],
-                                   third_gt_score = third,
+                                   third_conf = third - avg_maf_lr,
                                    third_sample = names[third_loc]))
     }
   }

@@ -5,7 +5,7 @@
 \title{Add in more useful columns, annotation and filter sites.}
 \usage{
 annotate_and_filter(dat, het_limit = 0.25, min_other_ratio = 0.15,
-  min_depth = 5, max_sd_depth = 3)
+  min_depth = 5, max_depth = 10000, out_frac = 0)
 }
 \arguments{
 \item{dat}{data.table containing counts and metrics per SNP}
@@ -21,11 +21,13 @@ analysis.}
 \item{min_depth}{if a SNP has depth less than this value, it will be
 filtered. This metric is mainly for WGS where overall coverage is low.}
 
-\item{max_sd_depth}{maximum number of standard deviations the depth
-of a given SNP is less than the mean depth across positions. If a
-position has depth less than that, it will be filtered. This metric is
-mainly for positions with high depth such as targeted or exome sequencing
-experiments.}
+\item{max_depth}{if a SNP has depth more than this value, it will be
+filtered. This metric is mainly for RNA where some genes have extreme
+coverage.}
+
+\item{out_frac}{remove SNPs that are outliers to depth distribution.
+This filter is applied post min_depth and max_depth filters to further
+remove any outliers that also tend to generate unexpected noise.}
 }
 \value{
 data.frame containing counts and metrics per SNP

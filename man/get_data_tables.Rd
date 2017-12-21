@@ -7,9 +7,11 @@
 get_data_tables(mt, i, snps)
 }
 \arguments{
-\item{snps}{targeted snps data table}
+\item{mt}{swap table to write to}
 
-\item{co}{previously calculated concordances}
+\item{i}{location on swap table}
+
+\item{snps}{targeted snps data table}
 }
 \value{
 list of conta genotype locations

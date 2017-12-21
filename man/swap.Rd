@@ -4,30 +4,27 @@
 \alias{swap}
 \title{Run swap tool}
 \usage{
-swap(pairing_table_name, out_table_name, shiny_loc, dbsnp_targeted,
-  randomize = FALSE, ctar_cwgs_cutoff = 0.7, gtar_gwgs_cutoff = 0.7,
-  ctar_gtar_cutoff = 0.7, cwgs_gwgs_cutoff = 0.7, max_conta = 0.2)
+swap(pairing_table_name, out_table_name, shiny_loc, dbsnp_targeted, corrections,
+  randomize = FALSE, cutoff = 0.7, max_conta = 0.2, signatures)
 }
 \arguments{
 \item{pairing_table_name}{name of the mapping table}
 
 \item{out_table_name}{name of the results table to output}
 
-\item{shiny_loc}{location of the shiny database to retrieve sequencing metrics}
+\item{shiny_loc}{location of the shiny database to retrieve metrics}
 
 \item{dbsnp_targeted}{targeted dbsnp vcf file same as used for targeted seq}
 
+\item{corrections}{file with swap corrections that were confirmed}
+
 \item{randomize}{generate random pairs instead of expected ones}
 
-\item{ctar_cwgs_cutoff}{cutoff to make a cfdna targeted vs wgs swap call}
-
-\item{gtar_gwgs_cutoff}{cutoff to make a gdna targeted vs wgs swap call}
-
-\item{ctar_gtar_cutoff}{cutoff to make a cfdna targeted vs gdna swap call}
-
-\item{cwgs_gwgs_cutoff}{cutoff to make a wgs targeted vs gdna wgs swap call}
+\item{cutoff}{cutoff to make a cfdna targeted vs wgs swap call}
 
 \item{max_conta}{if contamination is above this level, do not call swap}
+
+\item{signatures}{location of file containing signature SNPs}
 }
 \description{
 Compare genotypes across specified sample pairings (specific to GRAIL CCGA

@@ -31,6 +31,6 @@ targeted_tsv <- sprintf("%s/test.targeted.maf.tsv", data_dir)
 baseline <- sprintf("%s/test.posterior.txt", data_dir)
 
 # swap files
-pairing_file <- sprintf("%s/test.mapping_swap.csv", data_dir)
-shiny_file <- sprintf("%s/test.shiny.csv", data_dir)
-dbsnp_targeted <- sprintf("%s/test.dbSNP_common_art.vcf", data_dir)
+swap_test_file_1 <- sprintf("%s/test.sample1_wgs.gt.tsv", data_dir)
+swap_test_file_2 <- sprintf("%s/test.sample1_wbc.gt.tsv", data_dir)
+swap_test_file_3 <- sprintf("%s/test.sample2_wbc.gt.tsv", data_dir)

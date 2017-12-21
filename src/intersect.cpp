@@ -17,9 +17,9 @@ int numericChr(std::string chr) {
   if (chr.find("chr") == 0 || chr.find("Chr") == 0 || chr.find("CHR") == 0)
     chr = chr.substr(3);
 
-  if (chr[0] =='M') return 0;
   if (chr[0] =='X') return 23;
   if (chr[0] =='Y') return 24;
+  if (chr[0] =='M') return 25;
 
   return atoi(chr.c_str());
 }
@@ -28,7 +28,7 @@ int numericChr(std::string chr) {
 int compare(int this_chr, int this_pos, int other_chr, int other_pos) {
   if (this_chr < other_chr) return -1;
   if (this_chr > other_chr) return 1;
-  
+
   // chrs are the same.
   return (this_pos - other_pos);
 }
@@ -261,6 +261,7 @@ class TsvReader {
 //' @param tsv_filename string name of input TSV file
 //' @param out_tsv_filename string name of output TSV file
 //' @param vcf_filename string dbsnp VCF file name to be intersected
+//' @param non_dbSNP allow non dbSNP positions to be included
 //' @param DEBUG boolean whether to print out messages
 //' @return null
 //'

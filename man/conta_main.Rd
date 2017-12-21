@@ -6,8 +6,9 @@
 \usage{
 conta_main(tsv_file, sample, save_dir, bin_file = NA, cnv_file = NA,
   lr_th = 0.05, sim_level = 0, baseline = NA, min_depth = 5,
-  loh_cutoff = 0.01, min_maf = 0.25, cf_correction = 0,
-  min_cf = 0.00025, blackswan = 0.05, outlier_frac = 0.01, cores = 2)
+  max_depth = 10000, loh_cutoff = 0.01, loh_delta_cutoff = 0.05,
+  min_maf = 0.25, cf_correction = 0, min_cf = 0.00025, blackswan = 0.05,
+  outlier_frac = 0.01, cores = 2)
 }
 \arguments{
 \item{tsv_file}{character input tsv file name}
@@ -32,7 +33,13 @@ generated from minor allele frequencies of the SNPs in the population.}
 
 \item{min_depth}{minimum depth for a SNP to be considered by conta}
 
+\item{max_depth}{maximum depth for a SNP to be considered by conta}
+
 \item{loh_cutoff}{minimum maximum likelihood to call a region as LOH}
+
+\item{loh_delta_cutoff}{minimum delta (het deviation) to call a region as LOH}
+
+\item{min_maf}{minimum minor allele frequency to include a SNP}
 
 \item{cf_correction}{cf correction calculated from empirical data}
 
@@ -40,7 +47,7 @@ generated from minor allele frequencies of the SNPs in the population.}
 
 \item{blackswan}{blackswan term for maximum likelihood estimation}
 
-\item{outlier_frac}{fraction of outlier SNPs (based on likelihood) to remove}
+\item{outlier_frac}{fraction of outlier SNPs (based on depth) to remove}
 
 \item{cores}{number of cores to be used for parallelization}
 }

@@ -7,6 +7,10 @@
 set_result_locations(mt, i, r)
 }
 \arguments{
+\item{mt}{data.table with swap data}
+
+\item{i}{location on the table}
+
 \item{r}{result_locations for each sample type}
 }
 \description{

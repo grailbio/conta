@@ -17,6 +17,8 @@ lr_cont(ad, depth, maf, er, alpha, cp, blackswan)
 
 \item{alpha}{contamination fraction to be tested}
 
+\item{cp}{contamination probability calculated from minor allele frequency}
+
 \item{blackswan}{blackswan term sets a limit on probability for each event}
 }
 \value{

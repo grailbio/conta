@@ -5,7 +5,8 @@
 \title{Calculate a set of likelihood metrics across SNPs}
 \usage{
 plot_lr(save_dir, sample, dat, per_chr, ext_chr_table = "per_chr.tsv",
-  ext_loh_table = "per_bin.tsv", ext_loh_plot = "bin.lr.png")
+  ext_loh_table = "per_bin.tsv", ext_loh_plot = "bin.lr.png",
+  min_maf = 0.25)
 }
 \arguments{
 \item{save_dir}{folder location to write files and plots}
@@ -21,6 +22,8 @@ plot_lr(save_dir, sample, dat, per_chr, ext_chr_table = "per_chr.tsv",
 \item{ext_loh_table}{extension for loh output table}
 
 \item{ext_loh_plot}{extension for loh plot}
+
+\item{min_maf}{minimum allele frequency used to filter SNPs}
 }
 \value{
 none

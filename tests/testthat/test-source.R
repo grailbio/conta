@@ -1,7 +1,7 @@
 context("test source detect")
 
 test_that("conta source detection run", {
-  
+
   expect_true(file.exists(out_dir))
   source_out <- paste(out_dir, "source.tsv", sep = "/")
   conta_source(out_dir, source_out, cores = 4)
@@ -12,6 +12,6 @@ test_that("conta source detection run", {
   expect_false(result[2, source_call])
   expect_true(result[1, is.na(best_sample)])
   expect_true(result[2, is.na(best_sample)])
-  expect_equal(result[1, best_gt_score], 0)
-  expect_equal(result[2, best_gt_score], 0)
+  expect_true(result[1, best_conf] <= 0)
+  expect_true(result[2, best_conf] <= 0)
 })

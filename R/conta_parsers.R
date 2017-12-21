@@ -8,6 +8,7 @@
 #' @param header logical whether to read the header
 #' @param sep the separator
 #' @param stop_if_missing logical whether to stop execution if file is missing
+#' @param ... additional arguments
 #' @return data.table
 #'
 #' @export
@@ -113,16 +114,18 @@ ratio_and_counts <- function(dat) {
 #'     analysis.
 #' @param min_depth if a SNP has depth less than this value, it will be
 #'     filtered. This metric is mainly for WGS where overall coverage is low.
-#' @param max_sd_depth maximum number of standard deviations the depth
-#'     of a given SNP is less than the mean depth across positions. If a
-#'     position has depth less than that, it will be filtered. This metric is
-#'     mainly for positions with high depth such as targeted or exome sequencing
-#'     experiments.
+#' @param max_depth if a SNP has depth more than this value, it will be
+#'     filtered. This metric is mainly for RNA where some genes have extreme
+#'     coverage.
+#' @param out_frac remove SNPs that are outliers to depth distribution.
+#'     This filter is applied post min_depth and max_depth filters to further
+#'     remove any outliers that also tend to generate unexpected noise.
 #' @return data.frame containing counts and metrics per SNP
 #'
 #' @export
 annotate_and_filter <- function(dat, het_limit = 0.25, min_other_ratio = 0.15,
-                                min_depth = 5, max_sd_depth = 3) {
+                                min_depth = 5, max_depth = 10000,
+                                out_frac = 0) {
 
   # Remove non-ATGC alleles
   dat <- dat[major %in% c(get_bases(), "N")]
@@ -152,9 +155,12 @@ annotate_and_filter <- function(dat, het_limit = 0.25, min_other_ratio = 0.15,
   # It may be due to alignments or tsv generation
   dat <- dat[ !(other_ratio >= min_other_ratio), ]
 
-  # Remove low depth
-  dat <- dat[ !is.na(depth) & depth >= min_depth &
-              depth >= (mean(depth) - max_sd_depth * sd(depth)), ]
+  # Remove low and high depth
+  dat <- dat[ !is.na(depth) & depth >= min_depth & depth <= max_depth, ]
+
+  # Remove depth outliers
+  dat <- dat[depth <= quantile(depth, 1 - out_frac)
+             & depth >= quantile(depth, out_frac), ]
 
   # Add chunks
   dat <- add_chunks(dat)
@@ -217,20 +223,20 @@ read_vcf_dt <- function(vcf_file, n = 100000) {
   } else {
     lines <- readLines(vcf_file, n)
   }
-  skipLines <- 0
+  skip_lines <- 0
   for (i in 1:length(lines)) {
     if (startsWith(lines[i], "##"))
       next
     else {
-      skipLines <- i - 1
+      skip_lines <- i - 1
       break
     }
   }
   vcf_dt <- read_data_table(vcf_file, header = TRUE, sep = "\t",
-                            stop_if_missing = FALSE, skip = skipLines)
+                            stop_if_missing = FALSE, skip = skip_lines)
 
   caf <- parse_field(vcf_dt$INFO, "CAF")
-  vcf_dt$maf <- as.numeric(substring(caf, regexpr(',', caf) + 1,
+  vcf_dt$maf <- as.numeric(substring(caf, regexpr(",", caf) + 1,
                                      nchar(caf) - 2))
 
   return(vcf_dt)
@@ -244,7 +250,7 @@ read_vcf_dt <- function(vcf_file, n = 100000) {
 #'
 #' @export
 parse_field <- function(info, field) {
-  start_loc <- regexpr('CAF=', info)
+  start_loc <- regexpr("CAF=", info)
   end_loc <- start_loc +
     regexpr(";", substring(info, start_loc, nchar(info))) - 1
   caf_string <- substring(info, start_loc, end_loc)

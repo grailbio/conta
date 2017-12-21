@@ -4,7 +4,7 @@
 \alias{set_metrics}
 \title{Set various metrics from shiny to swap table}
 \usage{
-set_metrics(mt, i, r, min_MaxLh = 0.00025, min_LhDiff = 50)
+set_metrics(mt, i, r, min_max_lh = 0.00025, min_lh_diff = 50)
 }
 \arguments{
 \item{mt}{data.table with swap data}
@@ -13,9 +13,9 @@ set_metrics(mt, i, r, min_MaxLh = 0.00025, min_LhDiff = 50)
 
 \item{r}{list of records containing ctar, gtar, cwgs and gwgs results}
 
-\item{min_MaxLh}{minimum MaxLh to make a contamination call}
+\item{min_max_lh}{minimum max_lh to make a contamination call}
 
-\item{min_LhDiff}{minimum LhDiff to make a contamination call}
+\item{min_lh_diff}{minimum lh_diff to make a contamination call}
 }
 \value{
 mt with metrics added

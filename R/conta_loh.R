@@ -47,6 +47,7 @@ avg_lr_loh <- function(dat, delta, blackswan) {
 #' @param maf minor allele frequency for a given SNP
 #' @param er error rate for a given SNP
 #' @param alpha contamination fraction to be tested
+#' @param cp contamination probability calculated from minor allele frequency
 #' @param blackswan blackswan term sets a limit on probability for each event
 #' @return log likelihood ratio for contamination vs no contamination
 #'
@@ -136,6 +137,7 @@ p_cont <- function(ad, depth, maf, er, alpha, cp) {
 #' @param cutoff threshold to call loh
 #' @param blackswan blackswan term sets a limit on probability for each event
 #' @param min_loh to worry about, if loh is less than this fraction, it is ok
+#' @param min_snps minimum number of snps required to evaluate a region for loh
 #' @return data.table containing stats per bin
 #'
 #' @export

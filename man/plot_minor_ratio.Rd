@@ -4,7 +4,8 @@
 \alias{plot_minor_ratio}
 \title{Plot minor allele ratio sorted by chromosomes}
 \usage{
-plot_minor_ratio(dat, save_dir, sample, ext_plot = "vr.png", maxp = 20000)
+plot_minor_ratio(dat, save_dir, sample, ext_plot = "vr.png", maxp = 20000,
+  seed = 1)
 }
 \arguments{
 \item{dat}{data.table with snp allele ratio information per locus}
@@ -17,7 +18,7 @@ plot_minor_ratio(dat, save_dir, sample, ext_plot = "vr.png", maxp = 20000)
 
 \item{maxp}{maximum number of points to plot}
 
-\item{ext_table}{extension for the table output}
+\item{seed}{random seed}
 }
 \value{
 none

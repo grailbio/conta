@@ -9,11 +9,12 @@
 #' @param tsv_filename string name of input TSV file
 #' @param out_tsv_filename string name of output TSV file
 #' @param vcf_filename string dbsnp VCF file name to be intersected
+#' @param non_dbSNP allow non dbSNP positions to be included
 #' @param DEBUG boolean whether to print out messages
 #' @return null
 #'
 #' @export
 intersect_snps <- function(tsv_filename, out_tsv_filename, vcf_filename, non_dbSNP = FALSE, DEBUG = FALSE) {
-    invisible(.Call('conta_intersect_snps', PACKAGE = 'conta', tsv_filename, out_tsv_filename, vcf_filename, non_dbSNP, DEBUG))
+    invisible(.Call('_conta_intersect_snps', PACKAGE = 'conta', tsv_filename, out_tsv_filename, vcf_filename, non_dbSNP, DEBUG))
 }
 

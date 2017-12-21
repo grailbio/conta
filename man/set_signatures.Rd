@@ -4,7 +4,7 @@
 \alias{set_signatures}
 \title{Set signatures for all datasets}
 \usage{
-set_signatures(mt, i, d)
+set_signatures(mt, i, d, signature_SNPs)
 }
 \arguments{
 \item{mt}{swap table to write to}
@@ -12,6 +12,8 @@ set_signatures(mt, i, d)
 \item{i}{location on swap table}
 
 \item{d}{list of data tables}
+
+\item{signature_SNPs}{table containing rsid, ref and alt of signature SNPs}
 }
 \description{
 Set signatures for all datasets

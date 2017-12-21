@@ -5,7 +5,7 @@ test_that("conta test wgs run with cna and bincounts file", {
   expect_true(file.exists(wgs_tsv))
   expect_true(file.exists(bin_file))
   expect_true(file.exists(cna_file))
-  
+
   # run conta on dummy sample
   conta_main(wgs_tsv, "wgs", out_dir_wgs, bin_file, cna_file, cores = 4)
   conta_out <- file.path(out_dir_wgs, "wgs.conta.tsv")
@@ -28,5 +28,5 @@ test_that("conta test targeted run", {
   result <- read_data_table(conta_out)
   expect_true(result[, .N] == 1)
   expect_true(result[, conta_call])
-  expect_equal(result[, cf], 0.001, tolerance = 1e-4)
+  expect_equal(result[, cf], 0.001, tolerance = 2e-4)
 })

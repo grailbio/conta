@@ -44,13 +44,14 @@ log_lr <- function(cp, depth, cf, mu, ad, blackswan = 0.01) {
 #' @param loh whether to plot in loh mode
 #' @param blackswan blackswan term for maximum likelihood
 #' @param out_frac fraction of outliers to remove
+#' @param min_maf minimum allele frequency used to filter SNPs
 #'
 #' @return numeric avg. log-likelihood ratio for the given cf or a more detailed
 #'   result if the save_dir and sample name are specified.
 #'
 #' @export
 conta_lr <- function(cf, dat, EE, save_dir = NA, sample = NA,
-                     loh = FALSE, blackswan, out_frac = 0.01) {
+                     loh = FALSE, blackswan, out_frac = 0.01, min_maf = 0.25) {
 
   # Likelihood for each SNP to be contaminated at this level
   lr <- log_lr(dat$cp, dat$depth, get_exp_cf(cf), dat$er, dat$vr, blackswan)
@@ -88,9 +89,10 @@ conta_lr <- function(cf, dat, EE, save_dir = NA, sample = NA,
       plot_lr(save_dir, sample, dat, per_chr,
               ext_chr_table = "per_chr.loh.tsv",
               ext_loh_table = "per_bin.loh.tsv",
-              ext_loh_plot = "bin.lr.loh.png")
+              ext_loh_plot = "bin.lr.loh.png",
+              min_maf = min_maf)
     } else {
-      plot_lr(save_dir, sample, dat, per_chr)
+      plot_lr(save_dir, sample, dat, per_chr, min_maf = min_maf)
     }
 
     # Pos lr ratio on X chr tells us whether the contaminant is male or female

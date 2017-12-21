@@ -19,6 +19,8 @@ get_per_bin_loh(dat, save_dir, sample, cutoff, blackswan, min_loh = 0.05,
 \item{blackswan}{blackswan term sets a limit on probability for each event}
 
 \item{min_loh}{to worry about, if loh is less than this fraction, it is ok}
+
+\item{min_snps}{minimum number of snps required to evaluate a region for loh}
 }
 \value{
 data.table containing stats per bin

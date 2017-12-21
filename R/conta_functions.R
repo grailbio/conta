@@ -3,14 +3,6 @@
 #' @import data.table parallel ggplot2 grails3r
 NULL
 
-#' Clean given object and perform garbage collection
-#'
-#' @export
-clean <- function(object) {
-  rm(object)
-  gc()
-}
-
 #' Return nucleotide bases
 #'
 #' @export
@@ -32,11 +24,11 @@ get_initial_range <- function() {
 #'
 #' @export
 fail_test <- function(dat) {
-  if ( nrow(dat) == 0 |
-       nrow(dat[gt != "0/0"]) == 0 |
-       nrow(dat[gt != "1/1"]) == 0 |
-       nrow(dat[gt != "0/1"]) == 0 )
-    stop(paste("No SNPs passed filters"))
+  if ( is.null(dat) || nrow(dat) == 0 || is.null(dat$gt) ||
+       nrow(dat[gt == "0/0", ]) == 0 ||
+       nrow(dat[gt == "1/1", ]) == 0 ||
+       nrow(dat[gt == "0/1", ]) == 0)
+    stop(paste("Either no SNPs passed filters or no genotypes were called."))
 }
 
 #' Return expected contamination fraction

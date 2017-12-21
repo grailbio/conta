@@ -5,7 +5,7 @@
 \title{Run conta source detection}
 \usage{
 conta_source(base, out_file, batch_samples = NA, subfolder = "",
-  threshold = NA, blackswan, cores = 8)
+  threshold = NA, blackswan = 0.05, cores = 8)
 }
 \arguments{
 \item{base}{character base directory with a batch of conta results}
@@ -20,7 +20,7 @@ conta_source(base, out_file, batch_samples = NA, subfolder = "",
 
 \item{blackswan}{blackswan term for maximum likelihood estimation}
 
-\item{core}{number of cores to use for calculations}
+\item{cores}{number of cores to use for calculations}
 }
 \value{
 none

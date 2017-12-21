@@ -17,6 +17,8 @@ intersect_snps(tsv_filename, out_tsv_filename, vcf_filename,
 
 \item{vcf_filename}{string dbsnp VCF file name to be intersected}
 
+\item{non_dbSNP}{allow non dbSNP positions to be included}
+
 \item{DEBUG}{boolean whether to print out messages}
 }
 \value{

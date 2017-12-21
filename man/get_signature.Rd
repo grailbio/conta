@@ -4,10 +4,12 @@
 \alias{get_signature}
 \title{Get signature for a given set of SNPs from a conta vfn or gt file}
 \usage{
-get_signature(conta_dt)
+get_signature(conta_dt, signature_SNPs)
 }
 \arguments{
 \item{conta_dt}{targeted vfn data table}
+
+\item{signature_SNPs}{table containing rsid, ref and alt of signature SNPs}
 }
 \value{
 data.table with conta genotypes
