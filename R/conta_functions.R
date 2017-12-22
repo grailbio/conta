@@ -27,8 +27,15 @@ fail_test <- function(dat) {
   if ( is.null(dat) || nrow(dat) == 0 || is.null(dat$gt) ||
        nrow(dat[gt == "0/0", ]) == 0 ||
        nrow(dat[gt == "1/1", ]) == 0 ||
-       nrow(dat[gt == "0/1", ]) == 0)
-    stop(paste("Either no SNPs passed filters or no genotypes were called."))
+       nrow(dat[gt == "0/1", ]) == 0) {
+    msg <- "Either no SNPs passed filters or no genotypes were called."
+    if (interactive()) {
+      stop(msg)
+    } else {
+      message(msg)
+      quit(save = "no", status = 2, runLast = FALSE)
+    }
+  }
 }
 
 #' Return expected contamination fraction
