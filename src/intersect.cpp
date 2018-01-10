@@ -43,11 +43,28 @@ class VcfRecord {
     num_chr = numericChr(chr);
 
     int cafStart = info.find("CAF=");
+
     if (cafStart != -1) {
       int cafEnd = info.find(',', cafStart);
       // Since we skipped multi-allelic it is guaranteed there is only one MAF.
-      CAF = atof(info.substr(cafStart+4, cafEnd-cafStart-4).c_str());
+      if (cafEnd != -1) {
+        CAF = atof(info.substr(cafStart+4, cafEnd-cafStart-4).c_str());
+      } else {
+        CAF = atof(info.substr(cafStart+4).c_str());
+      }
       MAF = 1 - CAF;
+    } else {
+      int afStart = info.find("AF=");
+
+      if (afStart == -1) {
+        int afEnd = info.find(',', afStart);
+        // Since we skipped multi-allelic it is guaranteed there is only one MAF.
+        if (afEnd != -1) {
+          MAF = atof(info.substr(afStart, afEnd).c_str());
+        } else {
+          MAF = atof(info.substr(afStart).c_str());
+        }
+      }
     }
 
     // Set whether this is an indel or multi-allelic SNP.

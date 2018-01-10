@@ -49,14 +49,14 @@ conta_main <- function(tsv_file, sample, save_dir, bin_file = NA, cnv_file = NA,
   dat <- sim_conta(dat, sim_level)
 
   # Original depth by chr
-  plot_depth_by_chr(dat, save_dir, sample, ext_plot = "depth.png")
+  plot_depth_by_chr(dat, save_dir, sample, min_depth, ext_plot = "depth.png")
 
   # Add in more useful fields and filter based on depth, maf and other alleles
   dat <- annotate_and_filter(dat, min_depth = min_depth, max_depth = max_depth,
                              out_frac = outlier_frac)
 
   # Depth by chr after filters
-  plot_depth_by_chr(dat, save_dir, sample, ext_plot = "filtered.depth.png")
+  plot_depth_by_chr(dat, save_dir, sample, min_depth, ext_plot = "filtered.depth.png")
 
   # Fail if there is no data, or one of the genotypes is never observed
   fail_test(dat)

@@ -43,7 +43,13 @@ calculate_error_model <- function(dat, save.dir = NA, sample = NA,
     for (j in bases) {
       subs <- paste(i, j, sep = ">")
       EE[subs, ]$denom <- sum(EE[EE$ref == i, ]$reads)
-      EE[subs, ]$er <- ifelse(EE[subs, ]$reads == 0, NA,
+
+      # If no errors are observed, set error rate as NA if there are less than
+      # 1000 reference observations, otherwise set is as 1 / observations.
+      # If any number of errors are observed, set it as errors / observations.
+      EE[subs, ]$er <- ifelse(EE[subs, ]$reads == 0,
+                              ifelse(EE[subs, ]$denom < 1000, NA,
+                                     1 / EE[subs, ]$denom),
                               EE[subs, ]$reads / EE[subs, ]$denom)
     }
   }

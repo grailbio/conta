@@ -144,15 +144,18 @@ plot_lr_per_bin <- function(dat, save_dir, sample,
 #' @param dat data.table with likelihood information per locus
 #' @param save_dir folder to write out the results
 #' @param sample sample name to put in filename and plot title
+#' @param min_depth minimum depth to visualize
 #' @param ext_plot extension for the figure output
 #' @return none
 #'
 #' @export
-plot_depth_by_chr <- function(dat, save_dir, sample, ext_plot = "depth.png") {
+plot_depth_by_chr <- function(dat, save_dir, sample, min_depth,
+                              ext_plot = "depth.png") {
 
+  dat <- dat[depth >= min_depth, ]
   png(file.path(save_dir, paste(sample, ext_plot, sep = ".")),
       width = 1280, height = 720)
-  p <- ggplot(dat, aes(pos, depth, colour = chrom)) + geom_point(pch = "x")
+  p <- ggplot(dat, aes(pos, depth, colour = chrom))
   p <- p + geom_line(linetype = "dashed") + facet_wrap(~chrom, nrow = 6)
   p <- p + ylab("Depth")
   p <- p + theme(axis.text = element_text(size = 14),

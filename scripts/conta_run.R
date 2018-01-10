@@ -70,7 +70,7 @@ main <- function() {
     # File is already interesected, skip it
     message(paste("Skipping intersection since ", maf_file, "already exists"))
   } else {
-    conta::intersect_snps(opt$tsv_file, maf_file, opt$dbSNP_file, FALSE)
+    conta::intersect_snps(opt$tsv_file, maf_file, opt$dbSNP_file, TRUE)
   }
 
   # Run conta
