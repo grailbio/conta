@@ -42,6 +42,12 @@ conta_main <- function(tsv_file, sample, save_dir, bin_file = NA, cnv_file = NA,
   # Create output folder if it doesn't exist
   dir.create(save_dir, showWarnings = FALSE)
 
+  # Write out a default TSV result file in case we exit early from fail_test
+  empty_result <- empty_result(sample)
+  out_file <- file.path(save_dir, paste(sample, "conta.tsv", sep = "."))
+  write.table(empty_result, file = out_file, sep = "\t", row.names = FALSE,
+              quote = FALSE)
+
   # Prep snp counts
   dat <- read_and_prep(tsv_file)
 
@@ -120,7 +126,6 @@ conta_main <- function(tsv_file, sample, save_dir, bin_file = NA, cnv_file = NA,
                                  row.names = rownames(EE))), digits = 7))
 
   # Write conta results to file
-  out_file <- file.path(save_dir, paste(sample, "conta.tsv", sep = "."))
   write.table(max_result, file = out_file, sep = "\t", row.names = FALSE,
               quote = FALSE)
 

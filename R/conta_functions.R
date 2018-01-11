@@ -18,6 +18,22 @@ get_initial_range <- function() {
            5e-3, 1e-2, 2e-2, 5e-2, 1e-1, 2e-1, 3e-1, 4e-1, 5e-1))
 }
 
+#' Return an empty results table to output when quitting early
+#'
+#' @export
+empty_result <- function(sample) {
+  vals <- list(conta_version = as.character(packageVersion("conta")), sample = sample)
+  na_names <- c("conta_call", "cf", "sum_log_lr", "avg_log_lr", "snps", "depth",
+                "pos_lr_all", "pos_lr_x", "pos_lr_chr_cv", "y_count", "pregnancy",
+                "excluded_regions", "error_rate",
+                "T>A", "G>A", "C>A", "A>T", "G>T", "C>T",
+                "A>G", "T>G", "C>G", "A>C", "T>C", "G>C")
+  na_vals <- rep(NA_character_, length(na_names))
+  names(na_vals) <- na_names
+  empty_result <- do.call(data.table, c(vals, na_vals))
+  return(empty_result)
+}
+
 #' Fail if certain conditions are not met
 #'
 #' @param dat data.table with SNP counts and genotypes

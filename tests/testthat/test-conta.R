@@ -15,6 +15,9 @@ test_that("conta test wgs run with cna and bincounts file", {
   expect_true(result[, conta_call])
   expect_equal(result[, cf], 0.2, tolerance = 5e-2)
   expect_equal(result[, y_count], 0.0021, tolerance = 1e-4)
+
+  # Check result columns are the same as that for empty results
+  expect_equal(colnames(result), colnames(empty_result("wgs")))
 })
 
 test_that("conta test targeted run", {
