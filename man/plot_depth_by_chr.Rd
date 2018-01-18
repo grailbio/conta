@@ -4,7 +4,7 @@
 \alias{plot_depth_by_chr}
 \title{Plot depth by chromosome}
 \usage{
-plot_depth_by_chr(dat, save_dir, sample, ext_plot = "depth.png")
+plot_depth_by_chr(dat, save_dir, sample, min_depth, ext_plot = "depth.png")
 }
 \arguments{
 \item{dat}{data.table with likelihood information per locus}
@@ -12,6 +12,8 @@ plot_depth_by_chr(dat, save_dir, sample, ext_plot = "depth.png")
 \item{save_dir}{folder to write out the results}
 
 \item{sample}{sample name to put in filename and plot title}
+
+\item{min_depth}{minimum depth to visualize}
 
 \item{ext_plot}{extension for the figure output}
 }
