@@ -14,6 +14,7 @@
 #' @export
 read_data_table <- function(file, header = TRUE, sep = "\t",
                             stop_if_missing = FALSE, ...) {
+
   if (startsWith(file, "s3://")) {
     if (s3_file_exists(file)) {
       if (endsWith(file, ".gz")) {
@@ -166,47 +167,50 @@ annotate_and_filter <- function(dat, het_limit = 0.25, min_other_ratio = 0.15,
   dat <- add_chunks(dat)
 }
 
-#' Get the fraction of bases covered by at least 1 read on Y chr.
+#' Get the stats for a given chromosome from long biometrics file, including:
+#'  - Mapq60 read count
+#'  - Normalized mapq60 read count (normalized by total reads for this sample)
+#'  - Fraction of bases covered by at least 1 read
 #'
-#' Input is a bedtools output where the first column shows the chromosome,
-#' and each row stores statistics for a bin of certain size (e.g. 100,000 bp).
-#' 7th column in this file represents the percentage of bases on this bin
-#' covered by at least 1 read.
+#' @param biometrics_file input tsv file name
+#' @param chr_name name of the chromosome to be counted
 #'
-#' @param bin_file input tsv file name
-#' @return Y chr counts
+#' @return list of chromosome metrics
 #'
 #' @export
-count_ychr <- function(bin_file) {
-  if (is.na(bin_file) | bin_file == "") return(NA)
-  bins <- read_data_table(bin_file, header = FALSE)
-  return(ifelse(is.null(bins), NA, bins[V1 == "chrY", mean(V7)]))
-}
+chr_stats <- function(biometrics_file, chr_name) {
 
-#' Get the final stein score from CNV qc file
-#'
-#' @param cnv_file input tsv file name
-#' @return Cnv z-score
-#'
-#' @export
-get_final_stein <- function(cnv_file) {
-  if (is.na(cnv_file) | cnv_file == "") return(NA)
-  cnv <- read_data_table(cnv_file, header = T, sep = "\t", stop_if_missing = F)
-  return(ifelse(is.null(cnv), NA,
-                as.numeric(cnv[keys == "final_stein", ]$values)))
-}
+  # Read file
+  k1 <- read_data_table(biometrics_file, sep = "\t")
 
-#' Get the final mapd score from CNV qc file
-#'
-#' @param cnv_file input tsv file name
-#' @return Cnv z-score
-#'
-#' @export
-get_final_mapd <- function(cnv_file) {
-  if (is.na(cnv_file) | cnv_file == "") return(NA)
-  cnv <- read_data_table(cnv_file)
-  return(ifelse(is.null(cnv), NA,
-                as.numeric(cnv[keys == "final_mapd", ]$values)))
+  # Return null values in list if file does not exist
+  if (is.null(k1)) {
+    return(list( count = NA, normalized_count = NA, fraction_covered = NA))
+  }
+
+  # Calculate total reads
+  mapq60_reads <- k1[(key == "mapq60_count") &
+                       (metric_key == "fragment_counts")]$value
+
+  # Cast metrics of interest to long tables
+  m11 <- k1[metric_key == "fraction_chr_covered", ]
+  d11 <- dcast(m11, group_id ~ key, value.var = "value")
+  m12 <- k1[metric_key == "mapq60_fragment_counts_per_chr"]
+  d12 <- dcast(m12, group_id ~ key, value.var = "value")
+
+  # Normalize counts
+  d12$normalized_count <- as.numeric(d12$count) / as.numeric(mapq60_reads)
+
+  # Return list with NA elements if the specified chr does not exist
+  if (nrow(d12[ chr == chr_name ]) == 0) {
+    return(list( count = NA, normalized_count = NA, fraction_covered = NA))
+  }
+
+  # Return a list of values
+  return(list( count = as.numeric(d12[chr == chr_name, count]),
+               normalized_count = d12[chr == chr_name, normalized_count],
+               fraction_covered = as.numeric(d11[chr == chr_name,
+                                                 fraction_covered])))
 }
 
 #' Read a vcf file as a data table

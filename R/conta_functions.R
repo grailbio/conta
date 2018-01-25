@@ -22,9 +22,11 @@ get_initial_range <- function() {
 #'
 #' @export
 empty_result <- function(sample) {
-  vals <- list(conta_version = as.character(packageVersion("conta")), sample = sample)
+  vals <- list(conta_version = as.character(packageVersion("conta")),
+               sample = sample)
   na_names <- c("conta_call", "cf", "sum_log_lr", "avg_log_lr", "snps", "depth",
-                "pos_lr_all", "pos_lr_x", "pos_lr_chr_cv", "y_count", "pregnancy",
+                "pos_lr_all", "pos_lr_x", "pos_lr_chr_cv", "y_count",
+                "y_norm_count", "y_frac", "pregnancy",
                 "excluded_regions", "error_rate",
                 "T>A", "G>A", "C>A", "A>T", "G>T", "C>T",
                 "A>G", "T>G", "C>G", "A>C", "T>C", "G>C")

@@ -13,10 +13,8 @@ main <- function() {
   option_list <- list(
     make_option(c("-i", "--tsv_file"), type = "character", default = NULL,
                 help = "input tsv file with SNP counts", metavar = "character"),
-    make_option(c("-b", "--bin_file"), type = "character", default = NA,
-                help = "bin tsv file from bedtools", metavar = "character"),
-    make_option(c("-c", "--cnv_file"), type = "character", default = NA,
-                help = "CNV QC file with CNV calls", metavar = "character"),
+    make_option(c("-b", "--biometrics_file"), type = "character", default = "",
+                help = "bio-metrics file", metavar = "character"),
     make_option(c("-d", "--dbSNP_file"), type = "character", default = NULL,
                 help = "input vcf file from dbSNP", metavar = "character"),
     make_option(c("-s", "--sample"), type = "character", default = "test",
@@ -75,8 +73,8 @@ main <- function() {
 
   # Run conta
   conta::conta_main(tsv_file = maf_file, sample = opt$sample,
-                    save_dir = opt$save_dir, bin_file = opt$bin_file,
-                    cnv_file = opt$cnv_file, lr_th = opt$lr_th,
+                    save_dir = opt$save_dir, metrics_file = opt$biometrics_file,
+                    lr_th = opt$lr_th,
                     sim_level = opt$sim_level, baseline = opt$baseline,
                     min_depth = opt$min_depth, max_depth = opt$max_depth,
                     loh_cutoff = opt$loh_cutoff,

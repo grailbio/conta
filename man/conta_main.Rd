@@ -4,32 +4,30 @@
 \alias{conta_main}
 \title{Run conta.}
 \usage{
-conta_main(tsv_file, sample, save_dir, bin_file = NA, cnv_file = NA,
-  lr_th = 0.05, sim_level = 0, baseline = NA, min_depth = 5,
-  max_depth = 10000, loh_cutoff = 0.01, loh_delta_cutoff = 0.05,
-  min_maf = 0.25, cf_correction = 0, min_cf = 0.00025, blackswan = 0.05,
+conta_main(tsv_file, sample, save_dir, metrics_file = "", lr_th = 0.05,
+  sim_level = 0, baseline = NA, min_depth = 5, max_depth = 10000,
+  loh_cutoff = 0.01, loh_delta_cutoff = 0.05, min_maf = 0.25,
+  cf_correction = 0, min_cf = 0.00025, blackswan = 0.05,
   outlier_frac = 0.01, cores = 2)
 }
 \arguments{
-\item{tsv_file}{character input tsv file name}
+\item{tsv_file}{input tsv file name}
 
-\item{sample}{character name of experiment (basename of file usually)}
+\item{sample}{name of experiment (basename of file usually)}
 
-\item{save_dir}{character folder where the output will go to}
+\item{save_dir}{folder where the output will go to}
 
-\item{bin_file}{character input bin file name}
+\item{metrics_file}{input tsv metrics file in long format}
 
-\item{cnv_file}{character input cnv file name}
-
-\item{lr_th}{numeric min avg. likelihood ratio per SNP to make a call, this
+\item{lr_th}{min avg. likelihood ratio per SNP to make a call, this
 number is highly dependent on the data type used and should be optimized
 by the user based on a sensitivity - specificity trade-off.}
 
-\item{sim_level}{numeric if non-zero, a mix of this level will
+\item{sim_level}{if non-zero, a mix of this level will
 be added to the current sample. The contaminant will be randomly
 generated from minor allele frequencies of the SNPs in the population.}
 
-\item{baseline}{data.table noise model}
+\item{baseline}{noise model}
 
 \item{min_depth}{minimum depth for a SNP to be considered by conta}
 

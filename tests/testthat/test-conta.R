@@ -1,20 +1,34 @@
 context("test conta")
 
-test_that("conta test wgs run with cna and bincounts file", {
+test_that("conta test wgs run with biometrics file", {
 
   expect_true(file.exists(wgs_tsv))
-  expect_true(file.exists(bin_file))
-  expect_true(file.exists(cna_file))
+  expect_true(file.exists(male_metrics_file))
+  expect_true(file.exists(female_metrics_file))
 
-  # run conta on dummy sample
-  conta_main(wgs_tsv, "wgs", out_dir_wgs, bin_file, cna_file, cores = 4)
+  # run conta on dummy sample with female metrics
+  conta_main(wgs_tsv, "wgs", out_dir_wgs, female_metrics_file, cores = 4)
   conta_out <- file.path(out_dir_wgs, "wgs.conta.tsv")
   expect_true(file.exists(conta_out))
   result <- read_data_table(conta_out)
   expect_true(result[, .N] == 1)
   expect_true(result[, conta_call])
   expect_equal(result[, cf], 0.2, tolerance = 5e-2)
-  expect_equal(result[, y_count], 0.0021, tolerance = 1e-4)
+  expect_equal(result[, y_frac], 0.0016, tolerance = 1e-4)
+  expect_equal(result[, y_count], 21802, tolerance = 0)
+  expect_equal(result[, y_norm_count], 0.00004, tolerance = 1e-5)
+
+  # run conta on dummy sample with male metrics
+  conta_main(wgs_tsv, "wgs", out_dir_wgs, male_metrics_file, cores = 4)
+  conta_out <- file.path(out_dir_wgs, "wgs.conta.tsv")
+  expect_true(file.exists(conta_out))
+  result <- read_data_table(conta_out)
+  expect_true(result[, .N] == 1)
+  expect_true(result[, conta_call])
+  expect_equal(result[, cf], 0.2, tolerance = 5e-2)
+  expect_equal(result[, y_frac], 0.2508, tolerance = 1e-3)
+  expect_equal(result[, y_count], 1717521, tolerance = 0)
+  expect_equal(result[, y_norm_count], 0.00181, tolerance = 1e-5)
 
   # Check result columns are the same as that for empty results
   expect_equal(colnames(result), colnames(empty_result("wgs")))

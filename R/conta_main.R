@@ -3,18 +3,17 @@
 #' Reads a given counts file, processes it and calculates
 #' contamination likelihood for a set of ranges.
 #'
-#' @param tsv_file character input tsv file name
-#' @param bin_file character input bin file name
-#' @param cnv_file character input cnv file name
-#' @param sample character name of experiment (basename of file usually)
-#' @param save_dir character folder where the output will go to
-#' @param lr_th numeric min avg. likelihood ratio per SNP to make a call, this
+#' @param tsv_file input tsv file name
+#' @param metrics_file input tsv metrics file in long format
+#' @param sample name of experiment (basename of file usually)
+#' @param save_dir folder where the output will go to
+#' @param lr_th min avg. likelihood ratio per SNP to make a call, this
 #'     number is highly dependent on the data type used and should be optimized
 #'     by the user based on a sensitivity - specificity trade-off.
-#' @param sim_level numeric if non-zero, a mix of this level will
+#' @param sim_level if non-zero, a mix of this level will
 #'     be added to the current sample. The contaminant will be randomly
 #'     generated from minor allele frequencies of the SNPs in the population.
-#' @param baseline data.table noise model
+#' @param baseline noise model
 #' @param min_depth minimum depth for a SNP to be considered by conta
 #' @param max_depth maximum depth for a SNP to be considered by conta
 #' @param loh_cutoff minimum maximum likelihood to call a region as LOH
@@ -29,7 +28,7 @@
 #' @return none
 #'
 #' @export
-conta_main <- function(tsv_file, sample, save_dir, bin_file = NA, cnv_file = NA,
+conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
                       lr_th = 0.05, sim_level = 0, baseline = NA, min_depth = 5,
                       max_depth = 10000, loh_cutoff = 0.01,
                       loh_delta_cutoff = 0.05, min_maf = 0.25,
@@ -62,7 +61,8 @@ conta_main <- function(tsv_file, sample, save_dir, bin_file = NA, cnv_file = NA,
                              out_frac = outlier_frac)
 
   # Depth by chr after filters
-  plot_depth_by_chr(dat, save_dir, sample, min_depth, ext_plot = "filtered.depth.png")
+  plot_depth_by_chr(dat, save_dir, sample, min_depth,
+                    ext_plot = "filtered.depth.png")
 
   # Fail if there is no data, or one of the genotypes is never observed
   fail_test(dat)
@@ -98,27 +98,26 @@ conta_main <- function(tsv_file, sample, save_dir, bin_file = NA, cnv_file = NA,
                                 sample, loh = TRUE, blackswan, min_cf,
                                 cf_correction, outlier_frac = outlier_frac)
 
-  # Read Y chr counts from bin file
-  y_count <- count_ychr(bin_file)
-
-  # Read z-scores from cna QC file
-  final_stein <- get_final_stein(cnv_file)
-  final_mapd <- get_final_mapd(cnv_file)
+  # Calculate chr Y counts from metrics file if provided
+  chrY_stats <- chr_stats(metrics_file, "chrY")
+  y_frac <- chrY_stats$fraction_covered
 
   # A male pregnancy is a female host with lower likelihood on X chr
   # and Y chr count above expected (expected for female is ~0.002). We do not
   # currently call a female pregnancy.
-  female_host <- !is.na(y_count) & y_count < 0.2
-  male_contamination <- result$conta_call & !is.na(y_count) & y_count >= 0.005
+  female_host <- y_frac < 0.2
+  male_contamination <- result$conta_call && y_frac >= 0.005
   pregnancy <- ifelse(!female_host | !male_contamination, NA,
-                      ifelse(result$pos_lr_x <= result$pos_lr_all / 2,
+                      ifelse(result$pos_lr_x <= (0.7 * result$pos_lr_all),
                              TRUE, FALSE))
 
   # Results to be written
   max_result <- data.table(conta_version = packageVersion("conta"),
                            sample = sample,
                            format(result, digits = 5),
-                           y_count = round(y_count, 4),
+                           y_count = round(chrY_stats$count, 4),
+                           y_norm_count = round(chrY_stats$normalized_count, 6),
+                           y_frac = round(y_frac, 4),
                            pregnancy = pregnancy,
                            excluded_regions = bin_stats[loh == TRUE, .N],
                            error_rate = round(mean(EE$er), 7),

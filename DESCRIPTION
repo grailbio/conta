@@ -1,6 +1,6 @@
 Package: conta
 Title: Detect cross-contamination
-Version: 0.4.3
+Version: 0.5.0
 Authors@R: as.person(c(
     "Onur Sakarya <osakarya@grailbio.com> [aut, cre]", 
     "TaeHyung Simon Kim <tkim@grailbio.com> [aut]"
@@ -21,7 +21,8 @@ Imports:
     data.table,
     parallel,
     ggplot2,
-    grails3r
+    grails3r,
+    reshape2
 Depends: R (>= 3.3.1)
 License: What license is it under?
 Encoding: UTF-8
