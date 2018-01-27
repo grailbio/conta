@@ -42,7 +42,13 @@ calculate_error_model <- function(dat, save.dir = NA, sample = NA,
   for (i in bases) {
     for (j in bases) {
       subs <- paste(i, j, sep = ">")
-      EE[subs, ]$denom <- sum(EE[EE$ref == i, ]$reads)
+
+      # Since SNP alleles are masked, error rates are underestimated.
+      # For example C>A error rate is calculated only from C>T and
+      # C>G SNPs. This can be remedied by discounting two thirds of denominator.
+      # Non-SNP alleles (maf = 0), should not receive this correction.
+      denom_factor <- 2/3 * dat[, mean(maf > 0)] + dat[, mean(maf == 0)]
+      EE[subs, ]$denom <- round(denom_factor * sum(EE[EE$ref == i, ]$reads))
 
       # If no errors are observed, set error rate as NA if there are less than
       # 1000 reference observations, otherwise set is as 1 / observations.

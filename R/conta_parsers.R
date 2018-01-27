@@ -181,10 +181,10 @@ annotate_and_filter <- function(dat, het_limit = 0.25, min_other_ratio = 0.15,
 chr_stats <- function(biometrics_file, chr_name) {
 
   # Read file
-  k1 <- read_data_table(biometrics_file, sep = "\t")
-
-  # Return null values in list if file does not exist
-  if (is.null(k1)) {
+  if (file.exists(biometrics_file)) {
+    k1 <- read_data_table(biometrics_file, sep = "\t")
+  }
+  else {
     return(list( count = NA, normalized_count = NA, fraction_covered = NA))
   }
 

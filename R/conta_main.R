@@ -29,7 +29,7 @@
 #'
 #' @export
 conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
-                      lr_th = 0.05, sim_level = 0, baseline = NA, min_depth = 5,
+                      lr_th = 0.04, sim_level = 0, baseline = NA, min_depth = 5,
                       max_depth = 10000, loh_cutoff = 0.01,
                       loh_delta_cutoff = 0.05, min_maf = 0.25,
                       cf_correction = 0, min_cf = 0.00025,
@@ -56,16 +56,16 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
   # Original depth by chr
   plot_depth_by_chr(dat, save_dir, sample, min_depth, ext_plot = "depth.png")
 
-  # Add in more useful fields and filter based on depth, maf and other alleles
+  # Add in more useful fields and filter based on depth and outlier fractions
   dat <- annotate_and_filter(dat, min_depth = min_depth, max_depth = max_depth,
                              out_frac = outlier_frac)
+
+  # Fail if there is no data, or one of the genotypes is never observed
+  fail_test(dat)
 
   # Depth by chr after filters
   plot_depth_by_chr(dat, save_dir, sample, min_depth,
                     ext_plot = "filtered.depth.png")
-
-  # Fail if there is no data, or one of the genotypes is never observed
-  fail_test(dat)
 
   # Calculate substitution rates per base and add them to SNP data table
   EE <- calculate_error_model(dat, save_dir, sample)
