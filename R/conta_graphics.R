@@ -152,18 +152,23 @@ plot_lr_per_bin <- function(dat, save_dir, sample,
 plot_depth_by_chr <- function(dat, save_dir, sample, min_depth,
                               ext_plot = "depth.png") {
 
-  dat <- dat[depth >= min_depth, ]
   png(file.path(save_dir, paste(sample, ext_plot, sep = ".")),
       width = 1280, height = 720)
-  p <- ggplot(dat, aes(pos, depth, colour = chrom))
-  p <- p + geom_line(linetype = "dashed") + facet_wrap(~chrom, nrow = 6)
-  p <- p + ylab("Depth")
-  p <- p + theme(axis.text = element_text(size = 14),
-                 axis.text.x = element_blank(),
-                 axis.title = element_text(size = 14),
-                 strip.text = element_text(size = 14),
-                 legend.position = "none")
-  print(p)
+
+  if (dat[, .N] > 0 && dat[depth >= min_depth, .N] > 0) {
+    dat <- dat[depth >= min_depth, ]
+
+    p <- ggplot(dat, aes(pos, depth, colour = chrom))
+    p <- p + geom_line(linetype = "dashed") + facet_wrap(~chrom, nrow = 6)
+    p <- p + ylab("Depth")
+    p <- p + theme(axis.text = element_text(size = 14),
+                   axis.text.x = element_blank(),
+                   axis.title = element_text(size = 14),
+                   strip.text = element_text(size = 14),
+                   legend.position = "none")
+    print(p)
+  }
+
   msg.trap <- capture.output(suppressMessages(dev.off()))
 }
 
