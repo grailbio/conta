@@ -1,3 +1,7 @@
+# Copyright 2018 GRAIL, Inc. All rights reserved.
+# Use of this source code is governed by the Apache 2.0
+# license that can be found in the LICENSE file.
+
 #' Read a data.table from given path
 #'
 #' Check if file name starts with s3 or not, use appropriate function to read.
@@ -16,17 +20,27 @@ read_data_table <- function(file, header = TRUE, sep = "\t",
                             stop_if_missing = FALSE, ...) {
 
   if (startsWith(file, "s3://")) {
-    if (s3_file_exists(file)) {
-      if (endsWith(file, ".gz")) {
-        #TODO
-        stop(paste("Reading zipped file from s3 not supported.", file))
+    if (require(grails3r)) {
+      if (s3_file_exists(file)) {
+        if (endsWith(file, ".gz")) {
+          stop(paste("Reading zipped file from s3 not supported.", file))
       } else {
         return(read_from_s3(file, fread, header = header,
                           stringsAsFactors = FALSE, sep = sep, ...))
       }
-    }
-  }
-  else {
+    }} else {
+        # Use aws.s3 package to read if grails3r is not found
+        creds <- aws.signature::locate_credentials()
+        if (as.logical(do.call(aws.s3::head_object, c(file, creds)))) {
+          if (endsWith(file, ".gz")) {
+            stop(paste("Reading zipped file from s3 not supported.", file))
+            } else {
+              return(s3read_using(fread, object = file, header = header,
+                                  stringsAsFactors = FALSE, sep = sep, ...))
+              }
+          }
+        }
+    } else {
     if (file.exists(file)) {
       if (endsWith(file, ".gz")) {
         return(fread(sprintf("zcat %s", file), header = header,
@@ -47,8 +61,6 @@ read_data_table <- function(file, header = TRUE, sep = "\t",
 }
 
 #' Read a counts tsv file and prep it
-#'
-#' Supports reading file from s3 (to a temp file which is later removed)
 #'
 #' @param file tsv file containing SNP info for the sample
 #' @return data.table containing counts and metrics per SNP
@@ -223,7 +235,10 @@ chr_stats <- function(biometrics_file, chr_name) {
 #' @export
 read_vcf_dt <- function(vcf_file, n = 100000) {
   if (startsWith(vcf_file, "s3://")) {
-    lines <- read_from_s3(vcf_file, readLines, n)
+    if (require(grails3r))
+      lines <- grails3r::read_from_s3(vcf_file, readLines, n = n)
+    else
+      lines <- aws.s3::s3read_using(readLines, object = vcf_file, n = n)
   } else {
     lines <- readLines(vcf_file, n)
   }

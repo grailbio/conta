@@ -11,11 +11,11 @@ conta_main(tsv_file, sample, save_dir, metrics_file = "", lr_th = 0.04,
   outlier_frac = 0.01, cores = 2)
 }
 \arguments{
-\item{tsv_file}{input tsv file name}
+\item{tsv_file}{input tsv file}
 
-\item{sample}{name of experiment (basename of file usually)}
+\item{sample}{experiment name (basename for outputs)}
 
-\item{save_dir}{folder where the output will go to}
+\item{save_dir}{output folder}
 
 \item{metrics_file}{input tsv metrics file in long format}
 
@@ -23,17 +23,17 @@ conta_main(tsv_file, sample, save_dir, metrics_file = "", lr_th = 0.04,
 number is highly dependent on the data type used and should be optimized
 by the user based on a sensitivity - specificity trade-off.}
 
-\item{sim_level}{if non-zero, a mix of this level will
+\item{sim_level}{if non-zero, a contaminant at this level will
 be added to the current sample. The contaminant will be randomly
 generated from minor allele frequencies of the SNPs in the population.}
 
 \item{baseline}{noise model}
 
-\item{min_depth}{minimum depth for a SNP to be considered by conta}
+\item{min_depth}{minimum depth for a SNP to be considered}
 
-\item{max_depth}{maximum depth for a SNP to be considered by conta}
+\item{max_depth}{maximum depth for a SNP to be considered}
 
-\item{loh_cutoff}{minimum maximum likelihood to call a region as LOH}
+\item{loh_cutoff}{minimum likelihood to call a region as LOH}
 
 \item{loh_delta_cutoff}{minimum delta (het deviation) to call a region as LOH}
 
@@ -41,7 +41,7 @@ generated from minor allele frequencies of the SNPs in the population.}
 
 \item{cf_correction}{cf correction calculated from empirical data}
 
-\item{min_cf}{minimum cf to call}
+\item{min_cf}{minimum contamination fraction to call}
 
 \item{blackswan}{blackswan term for maximum likelihood estimation}
 

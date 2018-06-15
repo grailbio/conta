@@ -1,3 +1,7 @@
+# Copyright 2018 GRAIL, Inc. All rights reserved.
+# Use of this source code is governed by the Apache 2.0
+# license that can be found in the LICENSE file.
+
 #' @useDynLib conta
 #' @importFrom Rcpp sourceCpp
 #' @import data.table parallel ggplot2 grails3r
@@ -176,4 +180,109 @@ simulate_loh_conta <- function(n, min_maf, dp_min, dp_max, er_min, er_max,
                       1 - 2 * maf * (1 - maf)))
 
   return(data.table(depth = dp, minor_count = ad, maf = maf, er = er, cp = cp))
+}
+
+#' Load conta files
+#'
+#' For a given record, mt and snps, read vfn or gt file, and return it.
+#'
+#' @param conta_loc location of conta vfn or gt file
+#' @param snps targeted dbsnp data.table
+#' @return data.table with conta genotypes
+#'
+#' @export
+load_conta_file <- function(conta_loc, snps = NULL) {
+
+  if ((!is.null(snps)) & !is.na(conta_loc) &
+      (file.exists(conta_loc) ||
+       (require(grails3r) && s3_file_exists(conta_loc)) ||
+       as.logical(do.call(aws.s3::head_object,
+                          c(file, locate_credentials()))))) {
+
+    # Read targeted genotypes and rsid from vfn file format
+    conta_loc_dt <- read_data_table(conta_loc, sep = ",", showProgress = FALSE)
+
+    # Add rsid if missing.
+    if (!is.null(conta_loc_dt))
+      conta_loc_dt[, rsid := snps$ID]
+
+  } else if (!is.na(conta_loc) &
+             (file.exists(conta_loc) ||
+              (require(grails3r) && s3_file_exists(conta_loc)) ||
+              as.logical(do.call(aws.s3::head_object,
+                                 c(file, locate_credentials()))))) {
+
+    # Read conta genotypes and rsid from gt file format
+    conta_loc_dt <- read_data_table(conta_loc, showProgress = FALSE)
+
+    # Vf is the variant allele frequency, needs to be set of wgs files
+    conta_loc_dt[, vf := vr / dp]
+
+  }
+  else {
+
+    conta_loc_dt <- NULL
+
+  }
+
+  return(conta_loc_dt)
+}
+
+#' Calculate concordance between two samples' genotypes
+#'
+#' @param dt1 genotype set 1
+#' @param dt2 genotype set 2
+#' @param min_maf minimum population frequency to include a SNP
+#'
+#' @export
+genotype_concordance <- function(dt1, dt2, min_maf = 0.25) {
+
+  # If maf is specified (only targeted conta results have it), filter them
+  maf_field1 <- which(colnames(dt1) %in% "maf")
+  if (length(maf_field1) > 0)
+    dt1 <- dt1[maf >= min_maf, ]
+
+  # Merge the two data tables to put each SNP in a single row
+  m1 <- merge(dt1, dt2, by = "rsid")
+
+  # Calculate genotype concordance which is the fraction of matching genotypes
+  return(m1[, mean(gt.x == gt.y, na.rm = TRUE)])
+}
+
+#' Get folders under a specified s3 directory
+#'
+#' Returns the set of folders under a given s3 path. get_bucket_df normally
+#' returns all folders and files recursively, this method parses get_bucket_df
+#' output to return only folders directly under the specified dir.
+#'
+#' @param s3_path to display the contents
+#' @export
+get_s3_folders <- function(s3_path) {
+
+  # Stop if this is not an s3 path
+  if (!startsWith(s3_path, "s3://"))
+    stop("get_s3_ls() requires a valid s3 path")
+
+  # Retireve bucket text
+  bucket_text <- strsplit(s3_path, "/")[[1]][3]
+
+  # Retrieve prefix text
+  pre_text <- paste(strsplit(s3_path, "/")[[1]][c(-1, -2, -3)],
+                    sep = "/", collapse = "/")
+
+  # Get all files (and folders) under specified bucket/prefix
+  bc_all_files <- aws.s3::get_bucket_df(bucket = bucket_text,
+                                        prefix = pre_text, max = Inf)
+
+  # Number of folders under prefix
+  pl <- length(strsplit(pre_text, "/")[[1]])
+
+  # Get all paths directly under prefix (omit files and folder in deeper levels)
+  paths <- unique(sapply(strsplit(bc_all_files$Key, "/"),
+                  function(x) {
+                    if (length(x) > (pl + 1)) x[[pl + 1]]
+                    }))
+
+  # Add a slash in the end before returning to denote a folder
+  return(paste(unlist(paths), "/", sep = ""))
 }

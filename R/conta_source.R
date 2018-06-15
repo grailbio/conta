@@ -1,3 +1,6 @@
+# Copyright 2018 GRAIL, Inc. All rights reserved.
+# Use of this source code is governed by the Apache 2.0
+# license that can be found in the LICENSE file.
 
 #' Run conta source detection
 #'
@@ -11,8 +14,8 @@
 #' the genotype of the contaminant as the contamination probability
 #' is compared against the original maximum likelihood that is obtained by
 #' using the MAF as the prior. If this likelihood is higher, then the sample
-#' is reported as with the highest likelihood. 2nd and 3rd highest scoring
-#' source candidates are also reported.
+#' with the highest likelihood is reported as the candidate source of
+#' contamination. Second and third highest candidates are also reported.
 #'
 #' @param base character base directory with a batch of conta results
 #' @param out_file character output file
@@ -37,7 +40,11 @@ conta_source <- function(base, out_file, batch_samples = NA,
 
   # s3_ls reads both files and paths under a folder, we only need folders
   if (startsWith(base, "s3")) {
-    files <- s3_ls(base)$path
+    if (require(grails3r)) {
+      files <- s3_ls(base)$path
+    } else {
+      files <- get_s3_folders(base)
+    }
     paths <- files[endsWith(files, "/")]
   } else {
     paths <- paste(list.dirs(base, recursive = FALSE, full.names = FALSE),
@@ -122,7 +129,7 @@ conta_source <- function(base, out_file, batch_samples = NA,
 
       # Find the best score, its sample as well as second and third scores
       # and their samples.
-      # TODO: implement ranked list rather than best, second, third approach
+      # TODO: ranked list rather than best, second, third approach
       best <- max(c(scores, 0), na.rm = TRUE)
       best_loc <- which(best == scores)[1]
       second <- max(c(scores[-best_loc], 0), na.rm = TRUE)
@@ -155,8 +162,13 @@ conta_source <- function(base, out_file, batch_samples = NA,
   out <- format(out, digits = 3)
 
   if (startsWith(base, "s3")) {
-    write_to_s3(out, out_file, write.table, sep = "\t", row.names = FALSE,
+    if (require(grails3r)) {
+      write_to_s3(out, out_file, write.table, sep = "\t", row.names = FALSE,
                 col.names = TRUE, quote = FALSE)
+    } else {
+      s3write_using(out, FUN = write.table, object = out_file, sep = "\t",
+                    row.names = FALSE)
+    }
   } else {
     write.table(out, out_file, sep = "\t", row.names = FALSE, col.names = TRUE,
                 quote = FALSE)

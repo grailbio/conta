@@ -1,5 +1,9 @@
 #!/usr/bin/Rscript
 
+# Copyright 2018 GRAIL, Inc. All rights reserved.
+# Use of this source code is governed by the Apache 2.0
+# license that can be found in the LICENSE file.
+
 suppressMessages(library(conta))
 suppressMessages(library(optparse))
 
@@ -27,7 +31,7 @@ main <- function() {
 
   if (is.null(opt$base) | is.null(opt$out)) {
     print_help(opt_parser)
-    stop("Both base folder and output fil must be supplied.\n", call. = FALSE)
+    stop("Both base folder and output file must be supplied.\n", call. = FALSE)
   }
   # Run conta
   conta::conta_source(opt$base, opt$out,

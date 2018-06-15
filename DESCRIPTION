@@ -1,30 +1,30 @@
 Package: conta
 Title: Detect cross-contamination
-Version: 0.6
+Version: 0.6.2
 Authors@R: as.person(c(
     "Onur Sakarya <osakarya@grailbio.com> [aut, cre]", 
     "TaeHyung Simon Kim <tkim@grailbio.com> [aut]"
   ))
-Description: Detect contamination from whole genome sequencing data. 
-    Input data comes in the format of tsv files which is a pileup from SNPs, 
-    and contains the MAF value for each SNP. Otherwise MAF is generated through
-    a merge with dbsnp vcf file. The contamination module builds a baseline 
-    profile and calculates the likelihood on each SNP for different 
-    contamination levels. The contamination level that maximizes the 
-    sum of log likelihood ratios (against 0 contamination) is reported as the 
-    level of contamination along with the confidence in the value which comes 
-    in sum of log lr and average log lr per SNP. Other metrics and graphics 
-    are also reported to support a contamination call.
+Description: Detect contamination from sequencing data. 
+    Input data comes in the format of pileup tsv files. Population minor allele
+    frequency (MAF) is added through a merge with provided dbSNP vcf file. 
+    The contamination module builds a baseline error profile across non-SNP
+    alleles and uses this information to calculate the likelihood of each SNP
+    to be contaminated. The contamination level that maximizes the likelihood
+    across all SNPs is reported as the candidate contamination level, along with
+    a call that is made based on the threshold provided, and other related
+    metrics and graphics. Chromosomal regions with loss of heterozygosity (LOH)
+    are not used for contamination analysis.
 Imports:
-    dplyr,
-    Rcpp,
     data.table,
-    parallel,
+    dplyr,
     ggplot2,
-    grails3r,
+    hexbin,
+    parallel,
+    Rcpp,
     reshape2
 Depends: R (>= 3.3.1)
-License: What license is it under?
+License: Apache License (== 2.0) | file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1

@@ -1,5 +1,9 @@
 #!/usr/bin/Rscript
 
+# Copyright 2018 GRAIL, Inc. All rights reserved.
+# Use of this source code is governed by the Apache 2.0
+# license that can be found in the LICENSE file.
+
 suppressMessages(library(conta))
 suppressMessages(library(optparse))
 
@@ -19,7 +23,7 @@ main <- function() {
                 help = "input vcf file from dbSNP", metavar = "character"),
     make_option(c("-s", "--sample"), type = "character", default = "test",
                 help = "sample name to prefix out", metavar = "character"),
-    make_option(c("-l", "--lr_th"), type = "numeric", default = 0.003,
+    make_option(c("-l", "--lr_th"), type = "numeric", default = 0.01,
                 help = "Likelihood ratio threshold", metavar = "numeric"),
     make_option(c("-m", "--sim_level"), type = "numeric", default = 0,
                 help = "Add simulated cf. 0 means none.", metavar = "numeric"),
@@ -29,7 +33,7 @@ main <- function() {
                 help = "Maximum depth for a SNP.", metavar = "numeric"),
     make_option(c("-z", "--min_cf"), type = "numeric", default = 0.00025,
                 help = "Minimum cf to call.", metavar = "numeric"),
-    make_option(c("-q", "--min_maf"), type = "numeric", default = 0.25,
+    make_option(c("-q", "--min_maf"), type = "numeric", default = 0.1,
                 help = "Minimum maf for a SNP.", metavar = "numeric"),
     make_option(c("-o", "--save_dir"), type = "character", default = "out",
                 help = "output folder", metavar = "character"),
@@ -43,7 +47,7 @@ main <- function() {
                 help = "loh delta (deviation) cutoff", metavar = "numeric"),
     make_option(c("-w", "--blackswan"), type = "numeric", default = 0.05,
                 help = "black swan term for MLE", metavar = "numeric"),
-    make_option(c("-v", "--outlier_frac"), type = "numeric", default = 0.02,
+    make_option(c("-v", "--outlier_frac"), type = "numeric", default = 0.01,
                 help = "remove outlier SNPs", metavar = "numeric"),
     make_option(c("-x", "--cf_correction"), type = "numeric", default = 0.00086,
                 help = "conta fraction correction", metavar = "numeric"),

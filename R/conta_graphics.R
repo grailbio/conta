@@ -1,3 +1,6 @@
+# Copyright 2018 GRAIL, Inc. All rights reserved.
+# Use of this source code is governed by the Apache 2.0
+# license that can be found in the LICENSE file.
 
 #' Plot log likelihoods and mark the top score
 #'
@@ -79,7 +82,7 @@ plot_vfn_cp <- function(dat, save_dir, sample, min_maf) {
   png(file.path(save_dir, paste(sample, "vfn.cp.png", sep = ".")),
       width = 1280, height = 720)
   p <- ggplot(dat[ gt != "0/1" & vfn != 0, ], aes(y = vfn, x = cp))
-  p <- p + geom_point(shape = ".") + geom_density2d(aes(y = vfn, x = cp))
+  p <- p + geom_point(shape = ".") + geom_hex()
   p <- p + scale_x_log10( breaks = c(0, 0.001, 0.01, 0.1, 0.4, 1),
                           limits = c(min_maf ^ 2, 1))
   p <- p + scale_y_log10( breaks = c(0, 0.001, 0.01, 0.1, 0.4, 1),

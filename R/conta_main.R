@@ -1,26 +1,30 @@
+# Copyright 2018 GRAIL, Inc. All rights reserved.
+# Use of this source code is governed by the Apache 2.0
+# license that can be found in the LICENSE file.
+
 #' Run conta.
 #'
 #' Reads a given counts file, processes it and calculates
 #' contamination likelihood for a set of ranges.
 #'
-#' @param tsv_file input tsv file name
+#' @param tsv_file input tsv file
 #' @param metrics_file input tsv metrics file in long format
-#' @param sample name of experiment (basename of file usually)
-#' @param save_dir folder where the output will go to
+#' @param sample experiment name (basename for outputs)
+#' @param save_dir output folder
 #' @param lr_th min avg. likelihood ratio per SNP to make a call, this
 #'     number is highly dependent on the data type used and should be optimized
 #'     by the user based on a sensitivity - specificity trade-off.
-#' @param sim_level if non-zero, a mix of this level will
+#' @param sim_level if non-zero, a contaminant at this level will
 #'     be added to the current sample. The contaminant will be randomly
 #'     generated from minor allele frequencies of the SNPs in the population.
 #' @param baseline noise model
-#' @param min_depth minimum depth for a SNP to be considered by conta
-#' @param max_depth maximum depth for a SNP to be considered by conta
-#' @param loh_cutoff minimum maximum likelihood to call a region as LOH
+#' @param min_depth minimum depth for a SNP to be considered
+#' @param max_depth maximum depth for a SNP to be considered
+#' @param loh_cutoff minimum likelihood to call a region as LOH
 #' @param loh_delta_cutoff minimum delta (het deviation) to call a region as LOH
 #' @param cf_correction cf correction calculated from empirical data
 #' @param min_maf minimum minor allele frequency to include a SNP
-#' @param min_cf minimum cf to call
+#' @param min_cf minimum contamination fraction to call
 #' @param blackswan blackswan term for maximum likelihood estimation
 #' @param outlier_frac fraction of outlier SNPs (based on depth) to remove
 #' @param cores number of cores to be used for parallelization
@@ -29,9 +33,9 @@
 #'
 #' @export
 conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
-                      lr_th = 0.04, sim_level = 0, baseline = NA, min_depth = 5,
+                      lr_th = 0.01, sim_level = 0, baseline = NA, min_depth = 5,
                       max_depth = 10000, loh_cutoff = 0.01,
-                      loh_delta_cutoff = 0.05, min_maf = 0.25,
+                      loh_delta_cutoff = 0.05, min_maf = 0.1,
                       cf_correction = 0, min_cf = 0.00025,
                       blackswan = 0.05, outlier_frac = 0.01, cores = 2) {
 

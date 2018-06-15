@@ -1,4 +1,9 @@
+# Copyright 2018 GRAIL, Inc. All rights reserved.
+# Use of this source code is governed by the Apache 2.0
+# license that can be found in the LICENSE file.
+
 # Global variables used by tests (helper-* files are loaded by testthat)
+
 data_dir <- "test_data"
 out_dir <- "test_output"
 out_dir_wgs <- "test_output/wgs"

@@ -1,3 +1,7 @@
+# Copyright 2018 GRAIL, Inc. All rights reserved.
+# Use of this source code is governed by the Apache 2.0
+# license that can be found in the LICENSE file.
+
 context("test sample swap")
 
 test_that("conta sample swap detection run", {
@@ -10,9 +14,9 @@ test_that("conta sample swap detection run", {
   expect_true(file.exists(swap_test_file_3))
 
   # Load the genotype files
-  dt1 <- load_conta_file(swap_test_file_1, targeted = FALSE)
-  dt2 <- load_conta_file(swap_test_file_2, targeted = FALSE)
-  dt3 <- load_conta_file(swap_test_file_3, targeted = FALSE)
+  dt1 <- load_conta_file(swap_test_file_1)
+  dt2 <- load_conta_file(swap_test_file_2)
+  dt3 <- load_conta_file(swap_test_file_3)
 
   # Test the data tables contain expected data
   expect_equal(nrow(dt1), 9999)
