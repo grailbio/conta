@@ -2,16 +2,14 @@
 % Please edit documentation in R/conta_functions.R
 \name{load_conta_file}
 \alias{load_conta_file}
-\title{Load conta files if necessary}
+\title{Load conta files}
 \usage{
-load_conta_file(conta_loc, snps = NULL, targeted = TRUE)
+load_conta_file(conta_loc, snps = NULL)
 }
 \arguments{
 \item{conta_loc}{location of conta vfn or gt file}
 
 \item{snps}{targeted dbsnp data.table}
-
-\item{targeted}{whether to retrieve vfn or gt file}
 }
 \value{
 data.table with conta genotypes

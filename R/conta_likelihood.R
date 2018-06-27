@@ -16,6 +16,7 @@
 #'
 #' @return numeric log likelihood ratio
 #'
+#' @importFrom stats dbinom
 #' @export
 log_lr <- function(cp, depth, cf, mu, ad, blackswan = 0.01) {
 
@@ -53,6 +54,7 @@ log_lr <- function(cp, depth, cf, mu, ad, blackswan = 0.01) {
 #' @return numeric avg. log-likelihood ratio for the given cf or a more detailed
 #'   result if the save_dir and sample name are specified.
 #'
+#' @importFrom stats quantile weighted.mean sd
 #' @export
 conta_lr <- function(cf, dat, EE, save_dir = NA, sample = NA,
                      loh = FALSE, blackswan, out_frac = 0.01, min_maf = 0.25) {
@@ -132,6 +134,7 @@ conta_lr <- function(cf, dat, EE, save_dir = NA, sample = NA,
 #'
 #' @return data.table of likelihoods and related metrics
 #'
+#' @importFrom stats optimize
 #' @export
 optimize_likelihood <- function(dat, EE, lr_th, save_dir = NA, sample = NA,
                                 loh = FALSE, blackswan, min_cf, cf_correction,
@@ -183,6 +186,7 @@ optimize_likelihood <- function(dat, EE, lr_th, save_dir = NA, sample = NA,
 #'
 #' @return likelihood ratio from the source
 #'
+#' @importFrom stats weighted.mean
 #' @export
 get_source_lr <- function(gt1, gt2, cf, blackswan) {
 

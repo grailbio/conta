@@ -25,7 +25,7 @@ main <- function() {
 
   empty_result <- empty_result(opt$sample)
   out_file <- file.path(opt$save_dir, paste(opt$sample, "conta.tsv", sep = "."))
-  write.table(empty_result, file = out_file, sep = "\t", row.names = FALSE,
+  utils::write.table(empty_result, file = out_file, sep = "\t", row.names = FALSE,
               quote = FALSE)
 }
 

@@ -12,6 +12,7 @@
 #'
 #' @return data.frame with error model
 #'
+#' @importFrom utils write.table
 #' @export
 calculate_error_model <- function(dat, save.dir = NA, sample = NA,
                                   default_error_rate = 1e-6) {

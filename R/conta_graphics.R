@@ -16,6 +16,9 @@
 #'
 #' @return none
 #'
+#' @importFrom grDevices dev.off png
+#' @importFrom graphics abline plot
+#' @importFrom utils capture.output
 #' @export
 plot_max_likelihood <- function(cf_range, grid_lr, opt_val, save_dir, sample) {
 
@@ -47,6 +50,8 @@ plot_max_likelihood <- function(cf_range, grid_lr, opt_val, save_dir, sample) {
 #'
 #' @return none
 #'
+#' @importFrom grDevices dev.off png
+#' @importFrom utils write.table
 #' @export
 plot_lr <- function(save_dir, sample, dat, per_chr,
                     ext_chr_table = "per_chr.tsv",
@@ -77,6 +82,8 @@ plot_lr <- function(save_dir, sample, dat, per_chr,
 #' @param min_maf minimum allele frequency used to filter SNPs
 #' @return none
 #'
+#' @importFrom grDevices dev.off png
+#' @importFrom utils capture.output
 #' @export
 plot_vfn_cp <- function(dat, save_dir, sample, min_maf) {
   png(file.path(save_dir, paste(sample, "vfn.cp.png", sep = ".")),
@@ -108,6 +115,9 @@ plot_vfn_cp <- function(dat, save_dir, sample, min_maf) {
 #' @param ext_plot extension for the figure output
 #' @return none
 #'
+#' @importFrom grDevices dev.off png
+#' @importFrom utils capture.output
+#' @importFrom utils write.table
 #' @export
 plot_lr_per_bin <- function(dat, save_dir, sample,
                             ext_table = "per_bin.tsv",
@@ -151,6 +161,8 @@ plot_lr_per_bin <- function(dat, save_dir, sample,
 #' @param ext_plot extension for the figure output
 #' @return none
 #'
+#' @importFrom grDevices dev.off png
+#' @importFrom utils capture.output
 #' @export
 plot_depth_by_chr <- function(dat, save_dir, sample, min_depth,
                               ext_plot = "depth.png") {
@@ -185,6 +197,9 @@ plot_depth_by_chr <- function(dat, save_dir, sample, min_depth,
 #' @param seed random seed
 #' @return none
 #'
+#' @importFrom grDevices dev.off png
+#' @importFrom graphics plot
+#' @importFrom utils capture.output
 #' @export
 plot_minor_ratio <- function(dat, save_dir, sample, ext_plot = "vr.png",
                              maxp = 20000, seed = 1) {

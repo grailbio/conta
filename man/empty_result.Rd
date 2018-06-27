@@ -6,6 +6,9 @@
 \usage{
 empty_result(sample)
 }
+\arguments{
+\item{sample}{sample name}
+}
 \description{
 Return an empty results table to output when quitting early
 }

@@ -4,9 +4,9 @@
 \alias{conta_main}
 \title{Run conta.}
 \usage{
-conta_main(tsv_file, sample, save_dir, metrics_file = "", lr_th = 0.04,
+conta_main(tsv_file, sample, save_dir, metrics_file = "", lr_th = 0.01,
   sim_level = 0, baseline = NA, min_depth = 5, max_depth = 10000,
-  loh_cutoff = 0.01, loh_delta_cutoff = 0.05, min_maf = 0.25,
+  loh_cutoff = 0.01, loh_delta_cutoff = 0.05, min_maf = 0.1,
   cf_correction = 0, min_cf = 0.00025, blackswan = 0.05,
   outlier_frac = 0.01, cores = 2)
 }

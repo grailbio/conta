@@ -102,6 +102,7 @@ avg_lr_cont <- function(dat, alpha, blackswan) {
 #' @param alpha contamination level
 #' @param er error rate
 #'
+#' @importFrom stats dbinom
 #' @export
 p_loh <- function(ad, depth, maf, delta = 0, alpha = 0, er = 3e-4) {
   (1 - maf) * (1 - maf) * dbinom(ad, depth, er + alpha) +
@@ -143,6 +144,7 @@ p_cont <- function(ad, depth, maf, er, alpha, cp) {
 #' @param min_snps minimum number of snps required to evaluate a region for loh
 #' @return data.table containing stats per bin
 #'
+#' @importFrom utils write.table
 #' @export
 get_per_bin_loh <- function(dat, save_dir, sample, cutoff, blackswan,
                             min_loh = 0.05, min_snps = 10) {
@@ -213,6 +215,7 @@ get_per_bin_loh <- function(dat, save_dir, sample, cutoff, blackswan,
 #' @param blackswan blackswan term sets a limit on probability for each event
 #' @return maxima and its objective
 #'
+#' @importFrom stats optimize
 #' @export
 optimize_after_grid <- function(dat_chunk, LR_func, blackswan) {
 

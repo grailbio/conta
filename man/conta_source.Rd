@@ -37,6 +37,6 @@ For each genotype comparison, maximum likelihood that is obtained by using
 the genotype of the contaminant as the contamination probability
 is compared against the original maximum likelihood that is obtained by
 using the MAF as the prior. If this likelihood is higher, then the sample
-is reported as with the highest likelihood. 2nd and 3rd highest scoring
-source candidates are also reported.
+with the highest likelihood is reported as the candidate source of
+contamination. Second and third highest candidates are also reported.
 }

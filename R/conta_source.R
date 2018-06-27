@@ -27,6 +27,7 @@
 #'
 #' @return none
 #'
+#' @importFrom utils write.table
 #' @export
 conta_source <- function(base, out_file, batch_samples = NA,
                          subfolder = "", threshold = NA, blackswan = 0.05,

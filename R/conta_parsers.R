@@ -135,6 +135,7 @@ ratio_and_counts <- function(dat) {
 #'     remove any outliers that also tend to generate unexpected noise.
 #' @return data.frame containing counts and metrics per SNP
 #'
+#' @importFrom stats quantile
 #' @export
 annotate_and_filter <- function(dat, het_limit = 0.25, min_other_ratio = 0.15,
                                 min_depth = 5, max_depth = 10000,

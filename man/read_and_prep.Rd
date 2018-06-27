@@ -13,5 +13,5 @@ read_and_prep(file)
 data.table containing counts and metrics per SNP
 }
 \description{
-Supports reading file from s3 (to a temp file which is later removed)
+Read a counts tsv file and prep it
 }

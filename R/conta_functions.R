@@ -23,7 +23,8 @@ get_initial_range <- function() {
 }
 
 #' Return an empty results table to output when quitting early
-#'
+#' @param sample sample name
+#' @importFrom utils packageVersion
 #' @export
 empty_result <- function(sample) {
   vals <- list(conta_version = as.character(packageVersion("conta")),
@@ -88,6 +89,7 @@ get_exp_cf <- function(cf) {
 #'
 #' @return data.frame containing counts and metrics per SNP
 #'
+#' @importFrom stats rpois runif
 #' @export
 sim_conta <- function(wgs, cf, seed = 1359) {
 

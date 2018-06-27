@@ -31,6 +31,8 @@
 #'
 #' @return none
 #'
+#' @importFrom utils packageVersion
+#' @importFrom utils write.table
 #' @export
 conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
                       lr_th = 0.01, sim_level = 0, baseline = NA, min_depth = 5,
