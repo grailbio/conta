@@ -41,7 +41,7 @@ conta_source <- function(base, out_file, batch_samples = NA,
 
   # s3_ls reads both files and paths under a folder, we only need folders
   if (startsWith(base, "s3")) {
-    if (requireNamespace(grails3r)) {
+    if (requireNamespace("grails3r")) {
       files <- grails3r::s3_ls(base)$path
     } else {
       files <- get_s3_folders(base)
@@ -163,7 +163,7 @@ conta_source <- function(base, out_file, batch_samples = NA,
   out <- format(out, digits = 3)
 
   if (startsWith(base, "s3")) {
-    if (requireNamespace(grails3r)) {
+    if (requireNamespace("grails3r")) {
       grails3r::write_to_s3(out, out_file, write.table, sep = "\t", row.names = FALSE,
                             col.names = TRUE, quote = FALSE)
     } else {

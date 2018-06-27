@@ -20,7 +20,7 @@ read_data_table <- function(file, header = TRUE, sep = "\t",
                             stop_if_missing = FALSE, ...) {
 
   if (startsWith(file, "s3://")) {
-    if (requireNamespace(grails3r)) {
+    if (requireNamespace("grails3r")) {
       if (grails3r::s3_file_exists(file)) {
         if (endsWith(file, ".gz")) {
           stop(paste("Reading zipped file from s3 not supported.", file))
@@ -236,7 +236,7 @@ chr_stats <- function(biometrics_file, chr_name) {
 #' @export
 read_vcf_dt <- function(vcf_file, n = 100000) {
   if (startsWith(vcf_file, "s3://")) {
-    if (requireNamespace(grails3r))
+    if (requireNamespace("grails3r"))
       lines <- grails3r::read_from_s3(vcf_file, readLines, n = n)
     else
       lines <- aws.s3::s3read_using(readLines, object = vcf_file, n = n)

@@ -197,7 +197,7 @@ load_conta_file <- function(conta_loc, snps = NULL) {
 
   if ((!is.null(snps)) & !is.na(conta_loc) &
       (file.exists(conta_loc) ||
-       (requireNamespace(grails3r) && grails3r::s3_file_exists(conta_loc)) ||
+       (requireNamespace("grails3r") && grails3r::s3_file_exists(conta_loc)) ||
        as.logical(do.call(aws.s3::head_object,
                           c(file, locate_credentials()))))) {
 
@@ -210,7 +210,7 @@ load_conta_file <- function(conta_loc, snps = NULL) {
 
   } else if (!is.na(conta_loc) &
              (file.exists(conta_loc) ||
-              (requireNamespace(grails3r) && grails3r::s3_file_exists(conta_loc)) ||
+              (requireNamespace("grails3r") && grails3r::s3_file_exists(conta_loc)) ||
               as.logical(do.call(aws.s3::head_object,
                                  c(file, locate_credentials()))))) {
 
