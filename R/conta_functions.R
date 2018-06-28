@@ -199,7 +199,7 @@ load_conta_file <- function(conta_loc, snps = NULL) {
       (file.exists(conta_loc) ||
        (requireNamespace("grails3r") && grails3r::s3_file_exists(conta_loc)) ||
        as.logical(do.call(aws.s3::head_object,
-                          c(file, locate_credentials()))))) {
+                          c(file, aws.signature::locate_credentials()))))) {
 
     # Read targeted genotypes and rsid from vfn file format
     conta_loc_dt <- read_data_table(conta_loc, sep = ",", showProgress = FALSE)
