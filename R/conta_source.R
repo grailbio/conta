@@ -100,8 +100,8 @@ conta_source <- function(base, out_file, batch_samples = NA,
 
     res <- lres[[i]]
 
-    # find source only if it was called contaminated
-    if (res$conta_call) {
+    # find source regardless of whether it is called contaminated or not
+    if (TRUE) {
       # contamination fraction
       cf <- res$cf
 
@@ -109,58 +109,63 @@ conta_source <- function(base, out_file, batch_samples = NA,
       avg_maf_lr <- res$avg_log_lr
 
       # read the genotypes and variant reads for this sample
-      # we only need hom alleles for source detection
+      # we only need hom alleles for host sample
       gt1 <- lgt[[i]][gt != "0/1"]
 
       # calculate source likelihood scores for each of the other samples
       scores <- mclapply(c(1:length(lres)), function(j) {
 
+        # Keep the hets for candidate source
         gt2 <- lgt[[j]]
 
         conc <- get_genotype_concordance(gt1, gt2)
 
+        # If no concordance or same sample return NA
         if (is.na(conc) | conc >= 0.95) {
           return(NA)
         }
 
+        # Calculate likelihood ratio using genotypes as prior
         avg_gt_lr <- get_source_lr(gt1, gt2, cf, blackswan)
+
         return(avg_gt_lr)
         })
+
+      # Combine and sort the scores
       scores <- unlist(scores)
+      score_df <- data.frame(score = scores, name = names)
+      score_df <- score_df[order(score_df$score, decreasing = TRUE), ]
+      score_df[is.na(score_df$score), ]$name <- NA
 
-      # Find the best score, its sample as well as second and third scores
-      # and their samples.
-      # TODO: ranked list rather than best, second, third approach
-      best <- max(c(scores, 0), na.rm = TRUE)
-      best_loc <- which(best == scores)[1]
-      second <- max(c(scores[-best_loc], 0), na.rm = TRUE)
-      second_loc <- ifelse(second < best,
-                           which(second == scores)[1],
-                           which(second == scores)[2])
-      third <- max(c(scores[-c(best_loc, second_loc)], 0), na.rm = TRUE)
-      third_loc <- ifelse(third < best,
-                              ifelse(third < second,
-                                     which(third == scores)[1],
-                                     which(third == scores)[2]),
-                              which(third == scores)[3])
+      # Create base output frame
+      call_thr <- 1.1 * avg_maf_lr
+      out_this <- data.frame(name = names[i],
+                             cf = cf,
+                             source_call = !is.na(score_df[1, ]$score) &&
+                               score_df[1, ]$score > call_thr,
+                             avg_maf_lr = avg_maf_lr,
+                             best_conf = score_df[1, ]$score,
+                             best_sample = score_df[1, ]$name)
 
-      # add the calls to output
-      # call if the result is at least 10% better than original
-      call_mt <- 1.1
-      out <- rbind(out, data.frame(name = names[i],
-                                   cf = cf,
-                                   source_call = best > (call_mt * avg_maf_lr),
-                                   avg_maf_lr = avg_maf_lr,
-                                   best_conf = best - avg_maf_lr,
-                                   best_sample = names[best_loc],
-                                   second_conf = second - avg_maf_lr,
-                                   second_sample = names[second_loc],
-                                   third_conf = third - avg_maf_lr,
-                                   third_sample = names[third_loc]))
+      # Add second best result if there is a second result
+      if (nrow(score_df) >= 2) {
+        out_this$second_conf <- score_df[2, ]$score
+        out_this$second_sample <- score_df[2, ]$name
+      }
+
+      # Add third best result if there is a third result
+      if (nrow(score_df) >= 2) {
+        out_this$third_conf <- score_df[3, ]$score
+        out_this$third_sample <- score_df[3, ]$name
+      }
+
+      # Merge this sample's result with overall results
+      out <- rbind(out, out_this)
+
     }
   }
 
-  out <- format(out, digits = 3)
+  out <- format(out, digits = 3, trim = TRUE)
 
   if (startsWith(base, "s3")) {
     if (requireNamespace("grails3r")) {

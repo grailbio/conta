@@ -120,7 +120,7 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
   # Results to be written
   max_result <- data.table(conta_version = packageVersion("conta"),
                            sample = sample,
-                           format(result, digits = 5),
+                           format(result, digits = 5, trim = TRUE),
                            y_count = round(chrY_stats$count, 4),
                            y_norm_count = round(chrY_stats$normalized_count, 6),
                            y_frac = round(y_frac, 4),
@@ -137,12 +137,12 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
   # Write genotypes and possible contaminant reads
   gt_sum <- rbind(dat[, .(rsid, cp, dp = depth, er, gt, vr)])
   out_file_gt <- file.path(save_dir, paste(sample, "gt.tsv", sep = "."))
-  write.table(format(gt_sum, digits = 6), file = out_file_gt, sep = "\t",
+  write.table(format(gt_sum, digits = 6, trim = TRUE), file = out_file_gt, sep = "\t",
               col.names = TRUE, row.names = FALSE, quote = FALSE)
 
   # Write genotypes and possible contaminant reads
   gt_sum_loh <- rbind(dat_loh[, .(rsid, cp, dp = depth, er, gt, vr)])
   out_file_gt_loh <- file.path(save_dir, paste(sample, "gt.loh.tsv", sep = "."))
-  write.table(format(gt_sum_loh, digits = 6), file = out_file_gt_loh,
+  write.table(format(gt_sum_loh, digits = 6, trim = TRUE), file = out_file_gt_loh,
               sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 }

@@ -5,14 +5,26 @@
 # Global variables used by tests (helper-* files are loaded by testthat)
 
 data_dir <- "test_data"
+in_dir_source <- paste(data_dir, "source_test", sep = "/")
+in_dir_source_single <- paste(data_dir, "source_test_single", sep = "/")
+in_dir_source_double <- paste(data_dir, "source_test_double", sep = "/")
 out_dir <- "test_output"
 out_dir_wgs <- "test_output/wgs"
 out_dir_targeted <- "test_output/targeted"
 out_dir_sim <- "test_sim"
+out_dir_source <- "test_source"
+out_source <- paste(out_dir_source, "source.tsv", sep = "/")
+out_dir_source_single <- "test_source_single"
+out_source_single <- paste(out_dir_source_single, "source.tsv", sep = "/")
+out_dir_source_double <- "test_source_double"
+out_source_double <- paste(out_dir_source_double, "source.tsv", sep = "/")
 
 # Remove existing test output directories
 unlink(out_dir, recursive = TRUE)
 unlink(out_dir_sim, recursive = TRUE)
+unlink(out_dir_source, recursive = TRUE)
+unlink(out_dir_source_single, recursive = TRUE)
+unlink(out_dir_source_double, recursive = TRUE)
 
 # Create them again
 dir.create(out_dir, showWarnings = FALSE)
@@ -27,6 +39,7 @@ maf_file <- sprintf("%s/test.maf.tsv", out_dir)
 maf_file2 <- sprintf("%s/test.maf2.tsv", out_dir)
 maf_file3 <- sprintf("%s/test.maf3.tsv", out_dir)
 dbSNP_file <- sprintf("%s/test.dbsnp.vcf", data_dir)
+dbSNP_file_art <- sprintf("%s/dbSNP_art_subset.vcf", data_dir)
 sim_file <- sprintf("%s/test.regular.maf.tsv", data_dir)
 
 error_tsv <- sprintf("%s/test.error.tsv", data_dir)

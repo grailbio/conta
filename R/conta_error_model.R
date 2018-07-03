@@ -75,7 +75,7 @@ calculate_error_model <- function(dat, save.dir = NA, sample = NA,
   # Write error model to file if save.dir and sample are specified
   if (!is.na(save.dir) && !is.na(sample)) {
     error.file <- file.path(save.dir, paste(sample, "error.tsv", sep = "."))
-    write.table(format(EE, digits = 5), file = error.file,
+    write.table(format(EE, digits = 5, trim = TRUE), file = error.file,
                 sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
   }
 

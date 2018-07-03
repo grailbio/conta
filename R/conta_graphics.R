@@ -61,7 +61,8 @@ plot_lr <- function(save_dir, sample, dat, per_chr,
 
   # Write per_chr results to file
   per_chr_file <- file.path(save_dir, paste(sample, ext_chr_table, sep = "."))
-  write.table(format(per_chr, digits = 4), file = paste(per_chr_file),
+  write.table(format(per_chr, digits = 4, trim = TRUE),
+              file = paste(per_chr_file),
               sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 
   # Plot sorted log-likelihoods to see whether there are one or two platoes
@@ -133,7 +134,8 @@ plot_lr_per_bin <- function(dat, save_dir, sample,
                  by = .(chrom, chunk)]
 
   per_bin_file <- file.path(save_dir, paste(sample, ext_table, sep = "."))
-  write.table(format(per_bin, digits = 4), file = paste(per_bin_file),
+  write.table(format(per_bin, digits = 4, trim = TRUE),
+              file = paste(per_bin_file),
               sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 
   png(file.path(save_dir, paste(sample, ext_plot, sep = ".")),
