@@ -113,6 +113,7 @@ conta_source <- function(base, out_file, batch_samples = NA,
       gt1 <- lgt[[i]][gt != "0/1"]
 
       # calculate source likelihood scores for each of the other samples
+      # TODO: Report number of SNPs used for source call
       scores <- mclapply(c(1:length(lres)), function(j) {
 
         # Keep the hets for candidate source
@@ -137,12 +138,21 @@ conta_source <- function(base, out_file, batch_samples = NA,
       score_df <- score_df[order(score_df$score, decreasing = TRUE), ]
       score_df[is.na(score_df$score), ]$name <- NA
 
-      # Create base output frame
+      # Make a source contamination call
+      # Requirements are:
+      # 1) A top scoring contaminant exists (non-NA result)
+      # 2) Conta made a contamination call (without the use of sources)
+      # 3) Contamination fraction is larger than zero
+      # 4) Source score exceeds the original conta score by a specified fraction
       call_thr <- 1.1 * avg_maf_lr
+      source_call <- !is.na(score_df[1, ]$score) &&
+        res$conta_call && cf > 0 &&
+        score_df[1, ]$score > call_thr
+
+      # Create base output frame
       out_this <- data.frame(name = names[i],
                              cf = cf,
-                             source_call = !is.na(score_df[1, ]$score) &&
-                               score_df[1, ]$score > call_thr,
+                             source_call = source_call,
                              avg_maf_lr = avg_maf_lr,
                              best_conf = score_df[1, ]$score,
                              best_sample = score_df[1, ]$name)
