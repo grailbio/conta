@@ -4,10 +4,12 @@
 \alias{read_and_prep}
 \title{Read a counts tsv file and prep it}
 \usage{
-read_and_prep(file)
+read_and_prep(file, file_rev = NA)
 }
 \arguments{
 \item{file}{tsv file containing SNP info for the sample}
+
+\item{file_rev}{tsv file containing SNP counts for reverse strand}
 }
 \value{
 data.table containing counts and metrics per SNP

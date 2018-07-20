@@ -17,10 +17,14 @@ main <- function() {
   option_list <- list(
     make_option(c("-i", "--tsv_file"), type = "character", default = NULL,
                 help = "input tsv file with SNP counts", metavar = "character"),
+    make_option(c("-a", "--tsv_rev_file"), type = "character", default = NULL,
+                help = "input with minus strand counts", metavar = "character"),
     make_option(c("-b", "--biometrics_file"), type = "character", default = "",
                 help = "bio-metrics file", metavar = "character"),
     make_option(c("-d", "--dbSNP_file"), type = "character", default = NULL,
                 help = "input vcf file from dbSNP", metavar = "character"),
+    make_option(c("-c", "--dbSNP_rev_file"), type = "character", default = NULL,
+                help = "input vcf file from rev dbSNP", metavar = "character"),
     make_option(c("-s", "--sample"), type = "character", default = "test",
                 help = "sample name to prefix out", metavar = "character"),
     make_option(c("-l", "--lr_th"), type = "numeric", default = 0.01,
@@ -52,7 +56,9 @@ main <- function() {
     make_option(c("-x", "--cf_correction"), type = "numeric", default = 0.00086,
                 help = "conta fraction correction", metavar = "numeric"),
     make_option(c("-u", "--cores"), type = "numeric", default = 2,
-                help = "cpu cores", metavar = "numeric"))
+                help = "cpu cores", metavar = "numeric"),
+    make_option(c("-y", "--non_dbSNP"), type = "logical", default = FALSE,
+                help = "Include non-dbSNP for error rate", metavar = "logical"))
 
   opt_parser <- OptionParser(option_list = option_list);
   opt <- parse_args(opt_parser);
@@ -72,11 +78,28 @@ main <- function() {
     # File is already interesected, skip it
     message(paste("Skipping intersection since ", maf_file, "already exists"))
   } else {
-    conta::intersect_snps(opt$tsv_file, maf_file, opt$dbSNP_file, TRUE)
+    conta::intersect_snps(opt$tsv_file, maf_file, opt$dbSNP_file, opt$non_dbSNP)
+  }
+
+  # Intersect counts with minus strand counts if provided
+  if (!is.null(opt$tsv_rev_file)) {
+    maf_file2 <- paste(opt$save_dir, "/", opt$sample, ".maf2.tsv", sep = "")
+
+    if (file.exists(maf_file2)) {
+      # File is already interesected, skip it
+      message(paste("Skipping intersection since ",
+                    maf_file2, "already exists"))
+    } else {
+      conta::intersect_snps(opt$tsv_rev_file, maf_file2,
+                            opt$dbSNP_rev_file, opt$non_dbSNP)
+    }
+  } else {
+    maf_file2 <- NA
   }
 
   # Run conta
-  conta::conta_main(tsv_file = maf_file, sample = opt$sample,
+  conta::conta_main(tsv_file = maf_file, tsv_rev_file = maf_file2,
+                    sample = opt$sample,
                     save_dir = opt$save_dir, metrics_file = opt$biometrics_file,
                     lr_th = opt$lr_th,
                     sim_level = opt$sim_level, baseline = opt$baseline,
@@ -88,8 +111,11 @@ main <- function() {
                     outlier_frac = opt$outlier_frac, cores = opt$cores)
 
   # Remove maf file
-  if (opt$remove_maf_file)
-    file.remove(maf_file)
+  if (opt$remove_maf_file) {
+      file.remove(maf_file)
+    if (!is.na(maf_file2))
+      file.remove(maf_file2)
+  }
 
   proc.time() - start_time
 }

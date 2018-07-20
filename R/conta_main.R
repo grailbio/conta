@@ -27,6 +27,8 @@
 #' @param min_cf minimum contamination fraction to call
 #' @param blackswan blackswan term for maximum likelihood estimation
 #' @param outlier_frac fraction of outlier SNPs (based on depth) to remove
+#' @param tsv_rev_file input tsv file for reverse strand reads, if this option
+#'     is provided then first tsv_file is considered as positive strand reads
 #' @param cores number of cores to be used for parallelization
 #'
 #' @return none
@@ -35,11 +37,11 @@
 #' @importFrom utils write.table
 #' @export
 conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
-                      lr_th = 0.01, sim_level = 0, baseline = NA, min_depth = 5,
-                      max_depth = 10000, loh_cutoff = 0.01,
-                      loh_delta_cutoff = 0.05, min_maf = 0.1,
-                      cf_correction = 0, min_cf = 0.00025,
-                      blackswan = 0.05, outlier_frac = 0.01, cores = 2) {
+                       lr_th = 0.01, sim_level = 0, baseline = NA,
+                       min_depth = 5, max_depth = 10000, loh_cutoff = 0.01,
+                       loh_delta_cutoff = 0.05, min_maf = 0.1,
+                       cf_correction = 0, min_cf = 0.00025, blackswan = 0.05,
+                       outlier_frac = 0.01, tsv_rev_file = NA, cores = 2) {
 
   options("digits" = 8)
   options("mc.cores" = cores)
@@ -54,7 +56,7 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
               quote = FALSE)
 
   # Prep snp counts
-  dat <- read_and_prep(tsv_file)
+  dat <- read_and_prep(tsv_file, tsv_rev_file)
 
   # Simulate contamination if sim_level is non-0
   dat <- sim_conta(dat, sim_level)

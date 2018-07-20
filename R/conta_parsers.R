@@ -63,15 +63,27 @@ read_data_table <- function(file, header = TRUE, sep = "\t",
 #' Read a counts tsv file and prep it
 #'
 #' @param file tsv file containing SNP info for the sample
+#' @param file_rev tsv file containing SNP counts for reverse strand
 #' @return data.table containing counts and metrics per SNP
 #'
 #' @export
-read_and_prep <- function(file) {
+read_and_prep <- function(file, file_rev = NA) {
 
   dat <- read_data_table(file, stop_if_missing = TRUE)
 
+  # If reverse strand counts are provided, merge it with the first
+  # set of counts which is supposed to come from the positive strand
+  if (!is.na(file_rev)) {
+    dat2 <- read_data_table(file_rev, stop_if_missing = TRUE)
+    dat <- combine_counts(dat, dat2)
+  }
+
+  # Return if data.table is empty
+  if (nrow(dat) == 0)
+    return(dat)
+
   # Find minor allele
-  dat[, c("a1", "a2") := tstrsplit(alleles, "/", fixed = TRUE)]
+  dat[, c("a1", "a2") := data.table::tstrsplit(alleles, "/", fixed = TRUE)]
   dat$minor <- ifelse(dat$a1 == dat$major, dat$a2, dat$a1)
   dat[, c("a1", "a2") := NULL]
 
@@ -79,6 +91,30 @@ read_and_prep <- function(file) {
   dat <- ratio_and_counts(dat)
 
   return(dat)
+}
+
+#' Combine two count data tables
+#'
+#' @param dat data.table counts from first file
+#' @param dat2 data.table counts from second file
+#' @return data.table containing merged counts
+#'
+#' @export
+combine_counts <- function(dat, dat2) {
+
+  dat <- suppressWarnings(set_numeric_chrs(dat))
+  dat2 <- suppressWarnings(set_numeric_chrs(dat2))
+
+  data.table::setkey(dat, chromInt, pos, ref, major, alleles, rsid, maf, chrom)
+  data.table::setkey(dat2, chromInt, pos, ref, major, alleles, rsid, maf, chrom)
+  datm <- merge(dat, dat2, sort = TRUE, all = TRUE)
+  datm$A <- rowSums(datm[, c("A.x", "A.y")], na.rm = TRUE)
+  datm$T <- rowSums(datm[, c("T.x", "T.y")], na.rm = TRUE)
+  datm$G <- rowSums(datm[, c("G.x", "G.y")], na.rm = TRUE)
+  datm$C <- rowSums(datm[, c("C.x", "C.y")], na.rm = TRUE)
+  datm$N <- rowSums(datm[, c("N.x", "N.y")], na.rm = TRUE)
+  return(datm[, -c("A.x", "A.y", "T.x", "T.y", "G.x", "G.y",
+                    "C.x", "C.y", "N.x", "N.y", "chromInt")])
 }
 
 #' Add in basic counts and ratios
@@ -140,6 +176,10 @@ ratio_and_counts <- function(dat) {
 annotate_and_filter <- function(dat, het_limit = 0.25, min_other_ratio = 0.15,
                                 min_depth = 5, max_depth = 10000,
                                 out_frac = 0) {
+
+  # Return if data.table is empty
+  if (nrow(dat) == 0)
+    return(dat)
 
   # Remove non-ATGC alleles
   dat <- dat[major %in% c(get_bases(), "N")]

@@ -288,3 +288,27 @@ get_s3_folders <- function(s3_path) {
   # Add a slash in the end before returning to denote a folder
   return(paste(unlist(paths), "/", sep = ""))
 }
+
+#' Set numeric equivalent of chromosomes for sorting purposes
+#'
+#' @section TODO: Handle chromosomes outside X, Y and M/MT
+#'
+#' @param dat data.table to add numeric chromosome
+#' @export
+set_numeric_chrs <- function(dat) {
+
+  suppressMessages(require(dplyr))
+
+  datt <- dat %>%
+    mutate(
+      chromInt = substring(chrom, 4)) %>%
+    mutate(
+      chromInt = case_when(
+        chromInt == "X" ~ 23,
+        chromInt == "Y" ~ 24,
+        chromInt == "M" ~ 25,
+        chromInt == "MT" ~ 25,
+        TRUE ~ as.numeric(chromInt))
+    )
+  return(data.table(datt))
+}

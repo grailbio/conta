@@ -90,7 +90,8 @@ plot_vfn_cp <- function(dat, save_dir, sample, min_maf) {
   png(file.path(save_dir, paste(sample, "vfn.cp.png", sep = ".")),
       width = 1280, height = 720)
   p <- ggplot(dat[ gt != "0/1" & vfn != 0, ], aes(y = vfn, x = cp))
-  p <- p + geom_point(shape = ".") + geom_hex()
+  p <- p + geom_point(shape = ".")
+  p <- p + stat_density_2d(aes(fill = ..level..), geom = "polygon")
   p <- p + scale_x_log10( breaks = c(0, 0.001, 0.01, 0.1, 0.4, 1),
                           limits = c(min_maf ^ 2, 1))
   p <- p + scale_y_log10( breaks = c(0, 0.001, 0.01, 0.1, 0.4, 1),
@@ -176,7 +177,7 @@ plot_depth_by_chr <- function(dat, save_dir, sample, min_depth,
     dat <- dat[depth >= min_depth, ]
 
     p <- ggplot(dat, aes(pos, depth, colour = chrom))
-    p <- p + geom_line(linetype = "dashed") + facet_wrap(~chrom, nrow = 6)
+    p <- p + geom_bar(stat = "identity") + facet_wrap(~chrom, nrow = 6)
     p <- p + ylab("Depth")
     p <- p + theme(axis.text = element_text(size = 14),
                    axis.text.x = element_blank(),
