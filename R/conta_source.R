@@ -88,11 +88,11 @@ conta_source <- function(base, out_file, batch_samples = NA,
                     cf = numeric(),
                     source_call = logical(),
                     avg_maf_lr = numeric(),
-                    best_conf = numeric(),
+                    best_gt_lr = numeric(),
                     best_sample = character(),
-                    second_conf = numeric(),
+                    second_gt_lr = numeric(),
                     second_sample = character(),
-                    third_conf = numeric(),
+                    third_gt_lr = numeric(),
                     third_sample = character())
 
   # for each conta result file
@@ -154,18 +154,18 @@ conta_source <- function(base, out_file, batch_samples = NA,
                              cf = cf,
                              source_call = source_call,
                              avg_maf_lr = avg_maf_lr,
-                             best_conf = score_df[1, ]$score,
+                             best_gt_lr = max(score_df[1, ]$score, 0),
                              best_sample = score_df[1, ]$name)
 
       # Add second best result if there is a second result
       if (nrow(score_df) >= 2) {
-        out_this$second_conf <- score_df[2, ]$score
+        out_this$second_gt_lr <- max(score_df[2, ]$score, 0)
         out_this$second_sample <- score_df[2, ]$name
       }
 
       # Add third best result if there is a third result
       if (nrow(score_df) >= 2) {
-        out_this$third_conf <- score_df[3, ]$score
+        out_this$third_gt_lr <- max(score_df[3, ]$score, 0)
         out_this$third_sample <- score_df[3, ]$name
       }
 

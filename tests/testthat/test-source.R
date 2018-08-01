@@ -33,13 +33,13 @@ test_that("conta source detection run",  {
   expect_equal(sum(result[2:7, best_sample] == "170410_cfdna_100T_34795B_1"), 6)
 
   call_mt <- 1.1
-  expect_true(result[1, best_conf] < call_mt * result[1, avg_maf_lr])
-  expect_true(result[2, best_conf] > call_mt * result[2, avg_maf_lr])
-  expect_true(result[3, best_conf] > call_mt * result[3, avg_maf_lr])
-  expect_true(result[4, best_conf] > call_mt * result[4, avg_maf_lr])
-  expect_true(result[5, best_conf] > call_mt * result[5, avg_maf_lr])
-  expect_true(result[6, best_conf] > call_mt * result[6, avg_maf_lr])
-  expect_true(result[7, best_conf] > call_mt * result[7, avg_maf_lr])
+  expect_true(result[1, best_gt_lr] < call_mt * result[1, avg_maf_lr])
+  expect_true(result[2, best_gt_lr] > call_mt * result[2, avg_maf_lr])
+  expect_true(result[3, best_gt_lr] > call_mt * result[3, avg_maf_lr])
+  expect_true(result[4, best_gt_lr] > call_mt * result[4, avg_maf_lr])
+  expect_true(result[5, best_gt_lr] > call_mt * result[5, avg_maf_lr])
+  expect_true(result[6, best_gt_lr] > call_mt * result[6, avg_maf_lr])
+  expect_true(result[7, best_gt_lr] > call_mt * result[7, avg_maf_lr])
 })
 
 test_that("conta source detection run single",  {
@@ -68,7 +68,7 @@ test_that("conta source detection run single",  {
   expect_true(result[, .N] == 1)
   expect_false(result[1, source_call])
   expect_true(is.na(result[1, best_sample]))
-  expect_true(is.na(result[1, best_conf]))
+  expect_true(is.na(result[1, best_gt_lr]))
 })
 
 test_that("conta source detection run double",  {
@@ -99,6 +99,6 @@ test_that("conta source detection run double",  {
   expect_true(result[2, source_call])
   expect_true(result[2, best_sample] == "170410_cfdna_100T_34795B_1")
   call_mt <- 1.1
-  expect_true(result[1, best_conf] < call_mt * result[1, avg_maf_lr])
-  expect_true(result[2, best_conf] > call_mt * result[2, avg_maf_lr])
+  expect_true(result[1, best_gt_lr] < call_mt * result[1, avg_maf_lr])
+  expect_true(result[2, best_gt_lr] > call_mt * result[2, avg_maf_lr])
 })
