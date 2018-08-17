@@ -2,7 +2,7 @@
 % Please edit documentation in R/conta_functions.R
 \name{simulate_loh_conta}
 \alias{simulate_loh_conta}
-\title{Simulate loh and/or contamination}
+\title{Simulate LOH and/or contamination}
 \usage{
 simulate_loh_conta(n, min_maf, dp_min, dp_max, er_min, er_max, delta, alpha,
   seed = 1359)
@@ -20,7 +20,7 @@ simulate_loh_conta(n, min_maf, dp_min, dp_max, er_min, er_max, delta, alpha,
 
 \item{er_max}{maximum error rate to simulate}
 
-\item{delta}{loh deviation from heterozygosity}
+\item{delta}{LOH deviation from heterozygosity}
 
 \item{alpha}{contamination level}
 

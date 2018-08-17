@@ -23,6 +23,8 @@
 #' @param subfolder subfolder name if conta results are in a subfolder
 #' @param threshold re-call conta based on a new threshold
 #' @param blackswan blackswan term for maximum likelihood estimation
+#' @param outlier_frac fraction of outliers to remove
+#' @param source_threshold difference between MAF llr and genotype llr to call
 #' @param cores number of cores to use for calculations
 #'
 #' @return none
@@ -30,7 +32,8 @@
 #' @importFrom utils write.table
 #' @export
 conta_source <- function(base, out_file, batch_samples = NA,
-                         subfolder = "", threshold = NA, blackswan = 0.05,
+                         subfolder = "", threshold = NA, blackswan = 1,
+                         outlier_frac = 0.002, source_threshold = 0.005,
                          cores = 8) {
 
   options("digits" = 5)
@@ -68,8 +71,8 @@ conta_source <- function(base, out_file, batch_samples = NA,
   }
   names <- basename(paths)
 
-  lres <- mclapply(paste(base, paths, subfolder, names, ".conta.tsv", sep = ""),
-                 read_data_table)
+  lres <- parallel::mclapply(paste(base, paths, subfolder, names, ".conta.tsv",
+                                   sep = ""), read_data_table)
 
   # Re-call if necessary
   if (!is.na(threshold)) {
@@ -80,8 +83,8 @@ conta_source <- function(base, out_file, batch_samples = NA,
   }
 
   # Keep only the same batch smples if batch files variable is specified
-  lgt <- mclapply(paste(base, paths, subfolder, names, ".gt.loh.tsv", sep = ""),
-                read_data_table)
+  lgt <- parallel::mclapply(paste(base, paths, subfolder, names, ".gt.loh.tsv",
+                                  sep = ""), read_data_table)
 
   # Define a data.frame for the output, one line for contaminated sample
   out <- data.frame(name = character(),
@@ -102,7 +105,7 @@ conta_source <- function(base, out_file, batch_samples = NA,
 
     # find source regardless of whether it is called contaminated or not
     if (TRUE) {
-      # contamination fraction
+      # contamination fraction, only test for originally discovered fraction
       cf <- res$cf
 
       # avg likelihood ratio obtained by using population frequencies
@@ -114,7 +117,7 @@ conta_source <- function(base, out_file, batch_samples = NA,
 
       # calculate source likelihood scores for each of the other samples
       # TODO: Report number of SNPs used for source call
-      scores <- mclapply(c(1:length(lres)), function(j) {
+      scores <- parallel::mclapply(c(1:length(lres)), function(j) {
 
         # Keep the hets for candidate source
         gt2 <- lgt[[j]]
@@ -127,9 +130,7 @@ conta_source <- function(base, out_file, batch_samples = NA,
         }
 
         # Calculate likelihood ratio using genotypes as prior
-        avg_gt_lr <- get_source_lr(gt1, gt2, cf, blackswan)
-
-        return(avg_gt_lr)
+        return(get_source_llr(gt1, gt2, cf, blackswan, outlier_frac))
         })
 
       # Combine and sort the scores
@@ -144,7 +145,7 @@ conta_source <- function(base, out_file, batch_samples = NA,
       # 2) Conta made a contamination call (without the use of sources)
       # 3) Contamination fraction is larger than zero
       # 4) Source score exceeds the original conta score by a specified fraction
-      call_thr <- 1.1 * avg_maf_lr
+      call_thr <- avg_maf_lr + source_threshold
       source_call <- !is.na(score_df[1, ]$score) &&
         res$conta_call && cf > 0 &&
         score_df[1, ]$score > call_thr
@@ -179,8 +180,8 @@ conta_source <- function(base, out_file, batch_samples = NA,
 
   if (startsWith(base, "s3")) {
     if (requireNamespace("grails3r")) {
-      grails3r::write_to_s3(out, out_file, write.table, sep = "\t", row.names = FALSE,
-                            col.names = TRUE, quote = FALSE)
+      grails3r::write_to_s3(out, out_file, write.table, sep = "\t",
+                            row.names = FALSE, col.names = TRUE, quote = FALSE)
     } else {
       s3write_using(out, FUN = write.table, object = out_file, sep = "\t",
                     row.names = FALSE)

@@ -63,18 +63,20 @@ fail_test <- function(dat) {
 
 #' Return expected contamination fraction
 #'
-#' Average ratio of heterozygotes for informative (contaminant) SNPs between
+#' Average ratio of heterozygotes to homzoygotes for contaminant SNPs between
 #' 100 individual samples was determined to be 80%. For these SNPs, only one
 #' allele (half the fraction) contributes to the contamination. For the
 #' remaining 20% of SNPs which are homozygotes, both alleles contribute to the
-#' contamination.
+#' contamination. This 80% number is an approximation and may be changed based
+#' on prior information.
 #'
 #' @param cf numeric contamination fraction
+#' @param het_rate ratio of heterozygote to homozygote contaminated alleles
 #' @return expected contamination fraction
 #'
 #' @export
-get_exp_cf <- function(cf) {
-  return(0.8 * cf / 2 + 0.2 * cf)
+get_exp_cf <- function(cf, het_rate = 0.8) {
+  return(het_rate * (cf / 2) + (1 - het_rate) * cf)
 }
 
 #' Simulate contamination
@@ -121,7 +123,7 @@ sim_conta <- function(wgs, cf, seed = 1359) {
   return(wgs)
 }
 
-#' Simulate loh and/or contamination
+#' Simulate LOH and/or contamination
 #'
 #' This simulation returns a simple data structure with metrics required to
 #' test LOH functions. It works by simulating 4 chromosomes (2 for host, and
@@ -134,7 +136,7 @@ sim_conta <- function(wgs, cf, seed = 1359) {
 #' @param dp_max max depth to simulate
 #' @param er_min minimum error rate to simulate
 #' @param er_max maximum error rate to simulate
-#' @param delta loh deviation from heterozygosity
+#' @param delta LOH deviation from heterozygosity
 #' @param alpha contamination level
 #' @param seed numeric set seed for simulation
 #'
@@ -143,8 +145,11 @@ sim_conta <- function(wgs, cf, seed = 1359) {
 #' @export
 simulate_loh_conta <- function(n, min_maf, dp_min, dp_max, er_min, er_max,
                                delta, alpha, seed = 1359) {
-
   set.seed(seed)
+
+  # Add maf check
+  if (min_maf > 0.5)
+    min_maf <- 0.5
 
   # Simulate maf for each SNP (at range 25 to 75%)
   maf <- runif(n, min = min_maf, max = 1 - min_maf)
@@ -155,33 +160,39 @@ simulate_loh_conta <- function(n, min_maf, dp_min, dp_max, er_min, er_max,
   # Simulate depth for each SNP randomly around specified target
   dp <- rpois(n, runif(n, dp_min, dp_max))
 
-  # Simulate alleles for each chromosome
+  # Simulate alleles for host
   a1 <- ifelse(runif(n) > maf, 1, 0)
   a2 <- ifelse(runif(n) > maf, 1, 0)
 
-  # Simulate contamination in case necessary
+  # Simulate alleles for contaminant
   a3 <- ifelse(runif(n) > maf, 1, 0)
   a4 <- ifelse(runif(n) > maf, 1, 0)
 
-  # Draw allelic depths based on parameters
-  # Allele 1 and Allele 2 contribute 50% unless there is LOH, in that case
-  # Allele 1 contributes a proportion of specified by delta (loh coefficient)
-  ad1 <- rpois(n, a1 * dp * (0.5 - delta) * (1 - alpha) * abs(a1 - er))
-  ad2 <- rpois(n, a2 * dp * (0.5 + delta) * (1 - alpha) * abs(a2 - er))
+  # Simulate depth for host
+  dp1 <- rpois(n, dp * (1 - alpha) * (0.5 - delta / 2))
+  dp2 <- rpois(n, dp * (1 - alpha) * (0.5 + delta / 2))
 
-  # Allele 3 and 4 contributes only if there is contamination (alpha)
-  ad3 <- rpois(n, a3 * dp * alpha * abs(a3 - er))
-  ad4 <- rpois(n, a4 * dp * alpha * abs(a4 - er))
+  # Simulate depth for contaminant
+  dp3 <- rpois(n, dp * alpha / 2)
+  dp4 <- rpois(n, dp * alpha / 2)
+
+  # Draw minor allele depths for host
+  ad1 <- rpois(n, dp1 * abs(a1 - er))
+  ad1_b <- rpois(n, dp1 * (1 - abs(a1 - er)))
+  ad2 <- rpois(n, dp2 * abs(a2 - er))
+  ad2_b <- rpois(n, dp2 * (1 - abs(a2 - er)))
+
+  # Draw minor allele depths for contaminant
+  ad3 <- rpois(n, dp3 * abs(a3 - er))
+  ad3_b <- rpois(n, dp3 * (1 - abs(a3 - er)))
+  ad4 <- rpois(n, dp4 * abs(a4 - er))
+  ad4_b <- rpois(n, dp4 * (1 - abs(a4 - er)))
 
   # Sum the ads
   ad <- ad1 + ad2 + ad3 + ad4
+  dp <- ad + ad1_b + ad2_b + ad3_b + ad4_b
 
-  # Set contamination probs based on maf
-  cp <- ifelse(a1 == 1 & a2 == 1, 1 - maf ^ 2,
-               ifelse(a1 == 0 & a2 == 0, 1 - (1 - maf) ^ 2,
-                      1 - 2 * maf * (1 - maf)))
-
-  return(data.table(depth = dp, minor_count = ad, maf = maf, er = er, cp = cp))
+  return(data.table(depth = dp, minor_count = ad, maf = maf, er = er))
 }
 
 #' Load conta files
@@ -210,7 +221,8 @@ load_conta_file <- function(conta_loc, snps = NULL) {
 
   } else if (!is.na(conta_loc) &
              (file.exists(conta_loc) ||
-              (requireNamespace("grails3r") && grails3r::s3_file_exists(conta_loc)) ||
+              (requireNamespace("grails3r") &&
+               grails3r::s3_file_exists(conta_loc)) ||
               as.logical(do.call(aws.s3::head_object,
                                  c(file, locate_credentials()))))) {
 
@@ -301,14 +313,14 @@ set_numeric_chrs <- function(dat) {
 
   datt <- dat %>%
     mutate(
-      chromInt = substring(chrom, 4)) %>%
+      chrom_int = substring(chrom, 4)) %>%
     mutate(
-      chromInt = case_when(
-        chromInt == "X" ~ 23,
-        chromInt == "Y" ~ 24,
-        chromInt == "M" ~ 25,
-        chromInt == "MT" ~ 25,
-        TRUE ~ as.numeric(chromInt))
+      chrom_int = case_when(
+        chrom_int == "X" ~ 23,
+        chrom_int == "Y" ~ 24,
+        chrom_int == "M" ~ 25,
+        chrom_int == "MT" ~ 25,
+        TRUE ~ as.numeric(chrom_int))
     )
   return(data.table(datt))
 }

@@ -46,7 +46,6 @@ plot_max_likelihood <- function(cf_range, grid_lr, opt_val, save_dir, sample) {
 #' @param ext_chr_table extension for per chr output table
 #' @param ext_loh_table extension for loh output table
 #' @param ext_loh_plot extension for loh plot
-#' @param min_maf minimum allele frequency used to filter SNPs
 #'
 #' @return none
 #'
@@ -56,8 +55,7 @@ plot_max_likelihood <- function(cf_range, grid_lr, opt_val, save_dir, sample) {
 plot_lr <- function(save_dir, sample, dat, per_chr,
                     ext_chr_table = "per_chr.tsv",
                     ext_loh_table = "per_bin.tsv",
-                    ext_loh_plot = "bin.lr.png",
-                    min_maf = 0.25) {
+                    ext_loh_plot = "bin.lr.png") {
 
   # Write per_chr results to file
   per_chr_file <- file.path(save_dir, paste(sample, ext_chr_table, sep = "."))
@@ -66,7 +64,7 @@ plot_lr <- function(save_dir, sample, dat, per_chr,
               sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 
   # Plot sorted log-likelihoods to see whether there are one or two platoes
-  plot_vfn_cp(dat, save_dir, sample, min_maf)
+  plot_vfn_cp(dat, save_dir, sample)
 
   # Generate plots per bin
   plot_lr_per_bin(dat, save_dir, sample,
@@ -80,20 +78,34 @@ plot_lr <- function(save_dir, sample, dat, per_chr,
 #' @param dat data.table with likelihood information per locus
 #' @param save_dir folder to write out the results
 #' @param sample sample name to put in filename and plot title
-#' @param min_maf minimum allele frequency used to filter SNPs
+#' @param min_maf_plot minimum allele frequency used to filter SNPs
+#' @param max_snps max number of SNPs to plot
+#' @param seed random seed
+#'
 #' @return none
 #'
 #' @importFrom grDevices dev.off png
 #' @importFrom utils capture.output
 #' @export
-plot_vfn_cp <- function(dat, save_dir, sample, min_maf) {
+plot_vfn_cp <- function(dat, save_dir, sample, min_maf_plot = 0.01,
+                        max_snps = 10000, seed = 1359) {
+
   png(file.path(save_dir, paste(sample, "vfn.cp.png", sep = ".")),
       width = 1280, height = 720)
-  p <- ggplot(dat[ gt != "0/1" & vfn != 0, ], aes(y = vfn, x = cp))
-  p <- p + geom_point(shape = ".")
+
+  # Set dat as a subset of dat if it exceeds a pre-determined size
+  if (nrow(dat) > max_snps) {
+    set.seed(seed)
+    dat <- dat[sort(sample(1:nrow(dat), max_snps)), ]
+  }
+
+  subd <- dat[ gt != "0/1" & vfn != 0, ]
+
+  p <- ggplot(subd, aes(y = vfn, x = cp))
   p <- p + stat_density_2d(aes(fill = ..level..), geom = "polygon")
+  p <- p + geom_point(shape = ".")
   p <- p + scale_x_log10( breaks = c(0, 0.001, 0.01, 0.1, 0.4, 1),
-                          limits = c(min_maf ^ 2, 1))
+                          limits = c(min_maf_plot ^ 2, 1))
   p <- p + scale_y_log10( breaks = c(0, 0.001, 0.01, 0.1, 0.4, 1),
                           limits = c(0.00001, 1))
   p <- p + xlab("Contamination Probability")
@@ -162,19 +174,29 @@ plot_lr_per_bin <- function(dat, save_dir, sample,
 #' @param sample sample name to put in filename and plot title
 #' @param min_depth minimum depth to visualize
 #' @param ext_plot extension for the figure output
+#' @param max_snps limit to specified number of SNPs for faster plotting
+#' @param seed random seed
+#'
 #' @return none
 #'
 #' @importFrom grDevices dev.off png
 #' @importFrom utils capture.output
 #' @export
 plot_depth_by_chr <- function(dat, save_dir, sample, min_depth,
-                              ext_plot = "depth.png") {
+                              ext_plot = "depth.png", max_snps = 10000,
+                              seed = 1359) {
 
   png(file.path(save_dir, paste(sample, ext_plot, sep = ".")),
       width = 1280, height = 720)
 
   if (dat[, .N] > 0 && dat[depth >= min_depth, .N] > 0) {
     dat <- dat[depth >= min_depth, ]
+
+    # Set dat as a subset of dat if it exceeds a pre-determined size
+    if (nrow(dat) > max_snps) {
+      set.seed(seed)
+      dat <- dat[sort(sample(1:nrow(dat), max_snps)), ]
+    }
 
     p <- ggplot(dat, aes(pos, depth, colour = chrom))
     p <- p + geom_bar(stat = "identity") + facet_wrap(~chrom, nrow = 6)
@@ -193,10 +215,11 @@ plot_depth_by_chr <- function(dat, save_dir, sample, min_depth,
 #' Plot minor allele ratio sorted by chromosomes
 #'
 #' @param dat data.table with snp allele ratio information per locus
+#' @param dat_loh data.table with snp allele ratio information with LOH removed
 #' @param save_dir folder to write out the results
 #' @param sample sample name to put in filename and plot title
 #' @param ext_plot extension for the figure output
-#' @param maxp maximum number of points to plot
+#' @param max_snps maximum number of points to plot
 #' @param seed random seed
 #' @return none
 #'
@@ -204,21 +227,33 @@ plot_depth_by_chr <- function(dat, save_dir, sample, min_depth,
 #' @importFrom graphics plot
 #' @importFrom utils capture.output
 #' @export
-plot_minor_ratio <- function(dat, save_dir, sample, ext_plot = "vr.png",
-                             maxp = 20000, seed = 1) {
+plot_minor_ratio <- function(dat, dat_loh = NULL,
+                             save_dir, sample, ext_plot = "vr.png",
+                             max_snps = 20000, seed = 1) {
 
-  # Set plot_dat as a subset of dat if it exceeds a pre-determined size
-  plot_dat <- dat
-  if (nrow(dat) > maxp) {
+  # Set dat as a subset of dat if it exceeds a pre-determined size
+  if (nrow(dat) > max_snps) {
     set.seed(seed)
-    plot_dat <- dat[sort(sample(1:nrow(dat), maxp)), ]
+    dat <- dat[sort(sample(1:nrow(dat), max_snps)), ]
+  }
+
+  # Find SNPs removed due to LOH and color them differently in the plot
+  dat$loh <- FALSE
+  if (!is.null(dat_loh)) {
+    dat_loh_dummy <- dat_loh[, c("rsid")]
+    dat_loh_dummy$loh_present <- TRUE
+    dat <- dplyr::left_join(x = dat, y = dat_loh_dummy, by = "rsid")
+    if (!is.null(dat$loh_present)) {
+      dat$loh <- ifelse(is.na(dat$loh_present), TRUE, dat$loh)
+    }
   }
 
   png(file.path(save_dir, paste(sample, ext_plot, sep = ".")),
       width = 1280, height = 720)
-  plot_cols <- ifelse(plot_dat$gt == "0/1", "green",
-                ifelse(plot_dat$gt == "1/1", "red", "blue"))
-  plot(plot_dat[, minor_ratio], col = plot_cols,
+  plot_cols <- ifelse(dat$loh, "orange",
+                      ifelse(dat$gt == "0/1", "green",
+                             ifelse(dat$gt == "1/1", "red", "blue")))
+  plot(dat$minor_ratio, col = plot_cols,
        ylab = "Observed Minor Allele Frequency", xlab = "Sorted positions",
        cex.main = 1.25, cex.lab = 1.25, cex.axis = 1.25)
   msg.trap <- capture.output(suppressMessages(dev.off()))

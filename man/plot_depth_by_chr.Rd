@@ -4,7 +4,8 @@
 \alias{plot_depth_by_chr}
 \title{Plot depth by chromosome}
 \usage{
-plot_depth_by_chr(dat, save_dir, sample, min_depth, ext_plot = "depth.png")
+plot_depth_by_chr(dat, save_dir, sample, min_depth, ext_plot = "depth.png",
+  max_snps = 10000, seed = 1359)
 }
 \arguments{
 \item{dat}{data.table with likelihood information per locus}
@@ -16,6 +17,10 @@ plot_depth_by_chr(dat, save_dir, sample, min_depth, ext_plot = "depth.png")
 \item{min_depth}{minimum depth to visualize}
 
 \item{ext_plot}{extension for the figure output}
+
+\item{max_snps}{limit to specified number of SNPs for faster plotting}
+
+\item{seed}{random seed}
 }
 \value{
 none

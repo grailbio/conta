@@ -20,8 +20,11 @@
 #' @param baseline noise model
 #' @param min_depth minimum depth for a SNP to be considered
 #' @param max_depth maximum depth for a SNP to be considered
-#' @param loh_cutoff minimum likelihood to call a region as LOH
+#' @param loh_lr_cutoff minimum likelihood ratio to call a region as LOH
 #' @param loh_delta_cutoff minimum delta (het deviation) to call a region as LOH
+#' @param loh_min_snps minimum number of SNPs in a region to consider LOH
+#' @param loh_max_snps maxmimum number of SNPs in a region to use for LOH, if
+#'     there are more SNPs, they are subsampled to this number
 #' @param cf_correction cf correction calculated from empirical data
 #' @param min_maf minimum minor allele frequency to include a SNP
 #' @param min_cf minimum contamination fraction to call
@@ -30,6 +33,8 @@
 #' @param tsv_rev_file input tsv file for reverse strand reads, if this option
 #'     is provided then first tsv_file is considered as positive strand reads
 #' @param cores number of cores to be used for parallelization
+#' @param subsample Either NA (use all SNPs) or number of SNPs to subsample to
+#' @param seed random seed
 #'
 #' @return none
 #'
@@ -37,11 +42,13 @@
 #' @importFrom utils write.table
 #' @export
 conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
-                       lr_th = 0.01, sim_level = 0, baseline = NA,
-                       min_depth = 5, max_depth = 10000, loh_cutoff = 0.01,
-                       loh_delta_cutoff = 0.05, min_maf = 0.1,
-                       cf_correction = 0, min_cf = 0.00025, blackswan = 0.05,
-                       outlier_frac = 0.01, tsv_rev_file = NA, cores = 2) {
+                       lr_th = 0.001, sim_level = 0, baseline = NA,
+                       min_depth = 10, max_depth = 10000, loh_lr_cutoff = 0.01,
+                       loh_delta_cutoff = 0.3, loh_min_snps = 20,
+                       loh_max_snps = 200, min_maf = 0.01, subsample = NA,
+                       cf_correction = 0, min_cf = 0.0001, blackswan = 1,
+                       outlier_frac = 0.002, tsv_rev_file = NA,
+                       cores = 2, seed = 1234) {
 
   options("digits" = 8)
   options("mc.cores" = cores)
@@ -57,6 +64,12 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
 
   # Prep snp counts
   dat <- read_and_prep(tsv_file, tsv_rev_file)
+
+  # Set dat as a subset of dat if it exceeds a pre-determined size
+  if (!is.na(subsample) & nrow(dat) > subsample) {
+    set.seed(seed)
+    dat <- dat[sort(sample(1:nrow(dat), subsample)), ]
+  }
 
   # Simulate contamination if sim_level is non-0
   dat <- sim_conta(dat, sim_level)
@@ -85,30 +98,33 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
   # Fail if there is no data, or one of the genotypes is never observed
   fail_test(dat)
 
-  # Plot minor allele ratio
-  plot_minor_ratio(dat, save_dir, sample)
-
-  # Obtain results and plot lr without loh filter applied yet
-  result <- optimize_likelihood(dat[gt != "0/1"], EE, lr_th, save_dir, sample,
+  # Obtain results and plot lr without LOH filter applied yet
+  result <- optimize_likelihood(dat, lr_th, save_dir, sample,
                                 loh = FALSE, blackswan, min_cf, cf_correction,
                                 outlier_frac = outlier_frac)
 
-  # Remove LOH regions
-  bin_stats <- get_per_bin_loh(dat, save_dir, sample, loh_cutoff,
-                               blackswan, min_loh = loh_delta_cutoff)
+  # Remove loss of heterozygosity regions
+  bin_stats <- get_per_bin_loh(dat, save_dir, sample, min_lr = loh_lr_cutoff,
+                               blackswan = blackswan,
+                               min_loh = loh_delta_cutoff,
+                               min_snps = loh_min_snps,
+                               max_snps = loh_max_snps)
   dat_loh <- exclude_high_loh_regions(dat, bin_stats)
+
+  # Plot minor allele ratio plot (.vr) with LOH
+  plot_minor_ratio(dat, dat_loh, save_dir, sample)
 
   # Fail if there is no data, or one of the genotypes is never observed
   fail_test(dat_loh)
 
   # Calculate likelihood, max likelihood, and whether to call it
-  result <- optimize_likelihood(dat_loh[gt != "0/1"], EE, lr_th, save_dir,
+  result <- optimize_likelihood(dat_loh, lr_th, save_dir,
                                 sample, loh = TRUE, blackswan, min_cf,
                                 cf_correction, outlier_frac = outlier_frac)
 
   # Calculate chr Y counts from metrics file if provided
-  chrY_stats <- chr_stats(metrics_file, "chrY")
-  y_frac <- chrY_stats$fraction_covered
+  chr_y_stats <- chr_stats(metrics_file, "chrY")
+  y_frac <- chr_y_stats$fraction_covered
 
   # A male pregnancy is a female host with lower likelihood on X chr
   # and Y chr count above expected (expected for female is ~0.002). We do not
@@ -123,8 +139,8 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
   max_result <- data.table(conta_version = packageVersion("conta"),
                            sample = sample,
                            format(result, digits = 5, trim = TRUE),
-                           y_count = round(chrY_stats$count, 4),
-                           y_norm_count = round(chrY_stats$normalized_count, 6),
+                           y_count = round(chr_y_stats$count, 4),
+                           y_norm_count = round(chr_y_stats$normalized_count, 6),
                            y_frac = round(y_frac, 4),
                            pregnancy = pregnancy,
                            excluded_regions = bin_stats[loh == TRUE, .N],
@@ -137,14 +153,17 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
               quote = FALSE)
 
   # Write genotypes and possible contaminant reads
-  gt_sum <- rbind(dat[, .(rsid, cp, dp = depth, er, gt, vr)])
+  gt_sum <- rbind(dat[, .(rsid, chr = chrom, pos, ref, minor, cp,
+                          dp = depth, er, gt, vr)])
   out_file_gt <- file.path(save_dir, paste(sample, "gt.tsv", sep = "."))
-  write.table(format(gt_sum, digits = 6, trim = TRUE), file = out_file_gt, sep = "\t",
-              col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(format(gt_sum, digits = 6, trim = TRUE), file = out_file_gt,
+              sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 
   # Write genotypes and possible contaminant reads
-  gt_sum_loh <- rbind(dat_loh[, .(rsid, cp, dp = depth, er, gt, vr)])
+  gt_sum_loh <- rbind(dat_loh[, .(rsid, chr = chrom, pos, ref, minor, cp,
+                                  dp = depth, er, gt, vr)])
   out_file_gt_loh <- file.path(save_dir, paste(sample, "gt.loh.tsv", sep = "."))
-  write.table(format(gt_sum_loh, digits = 6, trim = TRUE), file = out_file_gt_loh,
-              sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  write.table(format(gt_sum_loh, digits = 6, trim = TRUE),
+              file = out_file_gt_loh, sep = "\t", col.names = TRUE,
+              row.names = FALSE, quote = FALSE)
 }

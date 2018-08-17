@@ -4,11 +4,12 @@
 \alias{conta_main}
 \title{Run conta.}
 \usage{
-conta_main(tsv_file, sample, save_dir, metrics_file = "", lr_th = 0.01,
-  sim_level = 0, baseline = NA, min_depth = 5, max_depth = 10000,
-  loh_cutoff = 0.01, loh_delta_cutoff = 0.05, min_maf = 0.1,
-  cf_correction = 0, min_cf = 0.00025, blackswan = 0.05,
-  outlier_frac = 0.01, tsv_rev_file = NA, cores = 2)
+conta_main(tsv_file, sample, save_dir, metrics_file = "", lr_th = 0.001,
+  sim_level = 0, baseline = NA, min_depth = 10, max_depth = 10000,
+  loh_lr_cutoff = 0.01, loh_delta_cutoff = 0.3, loh_min_snps = 20,
+  loh_max_snps = 200, min_maf = 0.01, subsample = NA, cf_correction = 0,
+  min_cf = 1e-04, blackswan = 1, outlier_frac = 0.002,
+  tsv_rev_file = NA, cores = 2, seed = 1234)
 }
 \arguments{
 \item{tsv_file}{input tsv file}
@@ -33,11 +34,18 @@ generated from minor allele frequencies of the SNPs in the population.}
 
 \item{max_depth}{maximum depth for a SNP to be considered}
 
-\item{loh_cutoff}{minimum likelihood to call a region as LOH}
+\item{loh_lr_cutoff}{minimum likelihood ratio to call a region as LOH}
 
 \item{loh_delta_cutoff}{minimum delta (het deviation) to call a region as LOH}
 
+\item{loh_min_snps}{minimum number of SNPs in a region to consider LOH}
+
+\item{loh_max_snps}{maxmimum number of SNPs in a region to use for LOH, if
+there are more SNPs, they are subsampled to this number}
+
 \item{min_maf}{minimum minor allele frequency to include a SNP}
+
+\item{subsample}{Either NA (use all SNPs) or number of SNPs to subsample to}
 
 \item{cf_correction}{cf correction calculated from empirical data}
 
@@ -51,6 +59,8 @@ generated from minor allele frequencies of the SNPs in the population.}
 is provided then first tsv_file is considered as positive strand reads}
 
 \item{cores}{number of cores to be used for parallelization}
+
+\item{seed}{random seed}
 }
 \value{
 none

@@ -4,8 +4,8 @@
 \alias{get_per_bin_loh}
 \title{Calculate per bin (large chromosomal segments) stats}
 \usage{
-get_per_bin_loh(dat, save_dir, sample, cutoff, blackswan, min_loh = 0.05,
-  min_snps = 10)
+get_per_bin_loh(dat, save_dir, sample, min_lr, blackswan, min_loh = 0.15,
+  min_snps = 20, max_snps = 200, seed = 1359)
 }
 \arguments{
 \item{dat}{data.table containing counts and metrics per SNP}
@@ -14,13 +14,19 @@ get_per_bin_loh(dat, save_dir, sample, cutoff, blackswan, min_loh = 0.05,
 
 \item{sample}{sample name}
 
-\item{cutoff}{threshold to call loh}
+\item{min_lr}{likelihood ratio threshold to call LOH}
 
 \item{blackswan}{blackswan term sets a limit on probability for each event}
 
-\item{min_loh}{to worry about, if loh is less than this fraction, it is ok}
+\item{min_loh}{to worry about affecting contamination results,
+if LOH is less than this fraction do not call}
 
-\item{min_snps}{minimum number of snps required to evaluate a region for loh}
+\item{min_snps}{minimum number of snps required to evaluate a region for LOH}
+
+\item{max_snps}{max snps to evaluate in a region, if greater number of
+SNPs are present, subsample to this many SNPs.}
+
+\item{seed}{random seed}
 }
 \value{
 data.table containing stats per bin

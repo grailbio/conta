@@ -5,7 +5,8 @@
 \title{Run conta source detection}
 \usage{
 conta_source(base, out_file, batch_samples = NA, subfolder = "",
-  threshold = NA, blackswan = 0.05, cores = 8)
+  threshold = NA, blackswan = 1, outlier_frac = 0.002,
+  source_threshold = 0.005, cores = 8)
 }
 \arguments{
 \item{base}{character base directory with a batch of conta results}
@@ -19,6 +20,10 @@ conta_source(base, out_file, batch_samples = NA, subfolder = "",
 \item{threshold}{re-call conta based on a new threshold}
 
 \item{blackswan}{blackswan term for maximum likelihood estimation}
+
+\item{outlier_frac}{fraction of outliers to remove}
+
+\item{source_threshold}{difference between MAF llr and genotype llr to call}
 
 \item{cores}{number of cores to use for calculations}
 }

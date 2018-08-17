@@ -1,6 +1,6 @@
 Package: conta
 Title: Detect cross-contamination
-Version: 0.8.1
+Version: 0.8.4
 Authors@R: as.person(c(
     "Onur Sakarya <osakarya@grailbio.com> [aut, cre]", 
     "TaeHyung Simon Kim <tkim@grailbio.com> [aut]"
@@ -22,7 +22,8 @@ Imports:
     hexbin,
     parallel,
     Rcpp,
-    reshape2
+    reshape2,
+    pROC
 Depends: R (>= 3.3.1)
 License: Apache License (== 2.0) | file LICENSE
 Encoding: UTF-8

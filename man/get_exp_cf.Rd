@@ -4,18 +4,21 @@
 \alias{get_exp_cf}
 \title{Return expected contamination fraction}
 \usage{
-get_exp_cf(cf)
+get_exp_cf(cf, het_rate = 0.8)
 }
 \arguments{
 \item{cf}{numeric contamination fraction}
+
+\item{het_rate}{ratio of heterozygote to homozygote contaminated alleles}
 }
 \value{
 expected contamination fraction
 }
 \description{
-Average ratio of heterozygotes for informative (contaminant) SNPs between
+Average ratio of heterozygotes to homzoygotes for contaminant SNPs between
 100 individual samples was determined to be 80%. For these SNPs, only one
 allele (half the fraction) contributes to the contamination. For the
 remaining 20% of SNPs which are homozygotes, both alleles contribute to the
-contamination.
+contamination. This 80% number is an approximation and may be changed based
+on prior information.
 }

@@ -4,10 +4,12 @@
 \alias{add_chunks}
 \title{Partition each chromosome to bins and tag each SNP with its bin}
 \usage{
-add_chunks(dat)
+add_chunks(dat, max_portions = 10)
 }
 \arguments{
 \item{dat}{data.table containing SNPs}
+
+\item{max_portions}{number of portions to split each chromosome}
 }
 \value{
 data.table containing SNPs with tagged chunks

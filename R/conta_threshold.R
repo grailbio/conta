@@ -20,7 +20,7 @@
 #'                   Defaults to 3 MADs
 #' @return Data frame of simulation data with samples flagged as
 #'         outliers removed.
-#' @import dplyr
+#' @importFrom dplyr filter
 #' @export
 filter_data <- function(sim_data,
                         extreme_level = 1.5,
@@ -31,7 +31,8 @@ filter_data <- function(sim_data,
   }
   # Drop any samples with super high avg llr with 0 simulated contamination,
   # largely to remove positive controls
-  outliers <- dplyr::filter(sim_data, conta_level == 0, avg_log_lr > extreme_level) %>%
+  outliers <- dplyr::filter(sim_data, conta_level == 0,
+                            avg_log_lr > extreme_level) %>%
               dplyr::select(sample) %>%
               unique()
   outlier_samples <- outliers$sample
@@ -52,7 +53,8 @@ filter_data <- function(sim_data,
   sim_median <- median(no_conta$avg_log_lr)
   sim_mad <- mad(no_conta$avg_log_lr)
 
-  mad_filtered <- dplyr::filter(no_conta, avg_log_lr > sim_median + mad_thresh * sim_mad) %>%
+  mad_filtered <- dplyr::filter(no_conta, avg_log_lr > sim_median +
+                                  mad_thresh * sim_mad) %>%
                   dplyr::select(sample) %>%
                   unique()
   mad_samples <- mad_filtered$sample
@@ -74,7 +76,6 @@ filter_data <- function(sim_data,
 #'
 #' @param sim_data Simulation data as read in by `read_sim_data()`
 #' @return ggplot object of the plot
-#' @import ggplot2
 #' @export
 plot_avg_llr_by_conta <- function(sim_data) {
   g <- ggplot(sim_data) +
@@ -95,6 +96,7 @@ plot_avg_llr_by_conta <- function(sim_data) {
 #' @param specs Vector of specificity values
 #' @param senss Vector of sensitivity values
 #' @return Dataframe with 3 columns: specificty, sensitivity, and threshold
+#' @importFrom pROC roc
 #' @export
 thresholds_by_sens_spec <- function(roc,
                                     specs = c(0.9, 0.95, 0.99, 1.0),
@@ -104,7 +106,7 @@ thresholds_by_sens_spec <- function(roc,
                         threshold = numeric())
   # For each given specificty, find the smallest value that is greater
   # than or equal to the given value
-  for(spec in specs) {
+  for (spec in specs) {
     index <- min(which(roc$specificities >= spec))
     results <- rbind(results,
                      data.frame(
@@ -115,7 +117,7 @@ thresholds_by_sens_spec <- function(roc,
 
   # For each given sensitivity, find the smallest value that is greater
   # then or equal to the given value
-  for(sens in senss) {
+  for (sens in senss) {
     index <- max(which(roc$sensitivities >= sens))
     results <- rbind(results,
                      data.frame(
@@ -135,7 +137,8 @@ thresholds_by_sens_spec <- function(roc,
 #' @param target_specs Vector of target specificity values
 #' @return Data frame with four columns: conta_level, specificity,
 #'         sensitivity, and threshold
-#' @import pROC
+#' @importFrom pROC roc
+#' @importFrom dplyr filter
 #' @export
 sens_spec_by_level <- function(sim_data, target_specs = c(0.99)) {
   all_data <- data.frame(conta_level = numeric(),
@@ -160,12 +163,13 @@ sens_spec_by_level <- function(sim_data, target_specs = c(0.99)) {
       next
     }
 
-    # Get the cases and controls for this conta level and construct the roc object
+    # Get the cases and controls for this conta level and construct the roc obj
     this_conta_data <- filter(sim_data, conta_level %in% c(0, this_level))
     this_roc <- pROC::roc(this_conta_data$true_label,
                           this_conta_data$avg_log_lr)
 
-    this_data <- thresholds_by_sens_spec(this_roc, specs = target_specs, senss = c())
+    this_data <- thresholds_by_sens_spec(this_roc, specs = target_specs,
+                                         senss = c())
     this_data$conta_level <- this_level
 
     all_data <- rbind(all_data, this_data)
@@ -184,9 +188,8 @@ sens_spec_by_level <- function(sim_data, target_specs = c(0.99)) {
 #' @param sim_data Simulation data as read in by `read_sim_data()`
 #' @param annotate_specs Vector of specificity values to draw vertical lines at
 #' @return ggplot object containing the ROC plot
-#' @import dplyr
-#' @import ggplot2
-#' @import pROC
+#' @importFrom dplyr filter
+#' @importFrom pROC roc
 #' @export
 make_roc_plot_by_conta_level <- function(sim_data, annotate_specs = NULL) {
   rocs <- list()
@@ -211,7 +214,7 @@ make_roc_plot_by_conta_level <- function(sim_data, annotate_specs = NULL) {
   names(rocs) <- conta_levels
   gg <- ggroc(rocs) +
         theme(axis.text = element_text(size = 12, color = "Black")) +
-        guides(color = guide_legend(title="Contamination level"))
+        guides(color = guide_legend(title = "Contamination level"))
   if (!is.null(annotate_specs)) {
         gg <- gg + geom_vline(xintercept = annotate_specs,
                               color = "black",
@@ -239,13 +242,14 @@ make_roc_plot_by_conta_level <- function(sim_data, annotate_specs = NULL) {
 fit_sens_by_conta_level <- function(sens_by_level,
                                     target_sens = 0.95) {
   sens_by_level <- dplyr::mutate(sens_by_level,
-                                 log_cl.sq = log(conta_level)^2,
+                                 log_cl.sq = log(conta_level) ^ 2,
                                  log_cl.cb = log(conta_level) ^ 3)
   sens_lm <- lm(sensitivity ~ log(conta_level) + log_cl.sq + log_cl.cb,
                 data = sens_by_level)
 
   prediction_levels <- unique(sens_by_level$conta_level)
-  predicted_sens <- predict(sens_lm, newdata = sens_by_level, interval = "predict")
+  predicted_sens <- predict(sens_lm, newdata = sens_by_level,
+                            interval = "predict")
 
   sens_idx <- which(predicted_sens > target_sens)[1]
   lod <- prediction_levels[sens_idx]

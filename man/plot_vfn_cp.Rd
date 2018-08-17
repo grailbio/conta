@@ -4,7 +4,8 @@
 \alias{plot_vfn_cp}
 \title{Plot sorted log likelihoods}
 \usage{
-plot_vfn_cp(dat, save_dir, sample, min_maf)
+plot_vfn_cp(dat, save_dir, sample, min_maf_plot = 0.01, max_snps = 10000,
+  seed = 1359)
 }
 \arguments{
 \item{dat}{data.table with likelihood information per locus}
@@ -13,7 +14,11 @@ plot_vfn_cp(dat, save_dir, sample, min_maf)
 
 \item{sample}{sample name to put in filename and plot title}
 
-\item{min_maf}{minimum allele frequency used to filter SNPs}
+\item{min_maf_plot}{minimum allele frequency used to filter SNPs}
+
+\item{max_snps}{max number of SNPs to plot}
+
+\item{seed}{random seed}
 }
 \value{
 none

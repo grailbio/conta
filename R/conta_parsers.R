@@ -105,8 +105,8 @@ combine_counts <- function(dat, dat2) {
   dat <- suppressWarnings(set_numeric_chrs(dat))
   dat2 <- suppressWarnings(set_numeric_chrs(dat2))
 
-  data.table::setkey(dat, chromInt, pos, ref, major, alleles, rsid, maf, chrom)
-  data.table::setkey(dat2, chromInt, pos, ref, major, alleles, rsid, maf, chrom)
+  data.table::setkey(dat, chrom_int, pos, ref, major, alleles, rsid, maf, chrom)
+  data.table::setkey(dat2, chrom_int, pos, ref, major, alleles, rsid, maf, chrom)
   datm <- merge(dat, dat2, sort = TRUE, all = TRUE)
   datm$A <- rowSums(datm[, c("A.x", "A.y")], na.rm = TRUE)
   datm$T <- rowSums(datm[, c("T.x", "T.y")], na.rm = TRUE)
@@ -114,7 +114,7 @@ combine_counts <- function(dat, dat2) {
   datm$C <- rowSums(datm[, c("C.x", "C.y")], na.rm = TRUE)
   datm$N <- rowSums(datm[, c("N.x", "N.y")], na.rm = TRUE)
   return(datm[, -c("A.x", "A.y", "T.x", "T.y", "G.x", "G.y",
-                    "C.x", "C.y", "N.x", "N.y", "chromInt")])
+                    "C.x", "C.y", "N.x", "N.y", "chrom_int")])
 }
 
 #' Add in basic counts and ratios
@@ -319,14 +319,15 @@ parse_field <- function(info, field) {
 #' Partition each chromosome to bins and tag each SNP with its bin
 #'
 #' @param dat data.table containing SNPs
+#' @param max_portions number of portions to split each chromosome
 #' @return data.table containing SNPs with tagged chunks
 #'
 #' @export
-add_chunks <- function(dat) {
+add_chunks <- function(dat, max_portions = 10) {
 
   if (nrow(dat) == 0) return(data.table())
 
-  portions <- 10 # partions per chr
+  portions <- max_portions # partions per chr
   dat[, chunk := 0]
   for (j in dat[, unique(chrom)]) {
     bin_size <- ceiling(as.numeric(dat[chrom == j, .(.N / portions)]))
