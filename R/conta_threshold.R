@@ -5,7 +5,7 @@
 #' Filter outlier samples from conta simulations
 #'
 #' Filters out samples with extreme avg log llr without any simulated
-#' contamination, and the top X% of samples to set thresholds more
+#' contamination, and the top X percent of samples to set thresholds more
 #' aggresively.
 #'
 #' @param sim_data Simulation data as read in by `read_sim_data()`
@@ -14,7 +14,7 @@
 #'                      only observed in contaimination positive controls.
 #' @param filter_quantile Quantile level above which samples will be filtered
 #'                        to set more aggressive thresholds. Defaults to 0.98,
-#'                        throwing out the top 2% of samples.
+#'                        throwing out the top 2 percent of samples.
 #' @param mad_thresh Filter out samples that are this many MADs away from the
 #'                   median, applied after the extreme level and quantile filters.
 #'                   Defaults to 3 MADs
@@ -237,7 +237,7 @@ make_roc_plot_by_conta_level <- function(sim_data, annotate_specs = NULL) {
 #' @return A list with two elements: model and lod, where `model` is the
 #'         fit object returned by `lm()` and `lod` is the estimated LoD
 #'         for the given target sensitivity.
-#' @import dplyr
+#' @importFrom dplyr mutate
 #' @export
 fit_sens_by_conta_level <- function(sens_by_level,
                                     target_sens = 0.95) {

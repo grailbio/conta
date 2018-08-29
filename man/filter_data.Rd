@@ -16,7 +16,7 @@ only observed in contaimination positive controls.}
 
 \item{filter_quantile}{Quantile level above which samples will be filtered
 to set more aggressive thresholds. Defaults to 0.98,
-throwing out the top 2% of samples.}
+throwing out the top 2 percent of samples.}
 
 \item{mad_thresh}{Filter out samples that are this many MADs away from the
 median, applied after the extreme level and quantile filters.
@@ -28,6 +28,6 @@ Data frame of simulation data with samples flagged as
 }
 \description{
 Filters out samples with extreme avg log llr without any simulated
-contamination, and the top X% of samples to set thresholds more
+contamination, and the top X percent of samples to set thresholds more
 aggresively.
 }

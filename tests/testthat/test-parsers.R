@@ -8,7 +8,8 @@ test_that("conta test run with no simulation on clean sample", {
   samples <- paste0("sample", 1:10, "_", rep(c(0, 0.1, 0.5), each = 10))
   avg_log_lr <- rnorm(30)
   test_data <- data.frame(sample = samples,
-                          avg_log_lr = avg_log_lr)
+                          avg_log_lr = avg_log_lr,
+                          stringsAsFactors = FALSE)
   write.table(test_data,
               "test_sim.tsv",
               sep = "\t",
