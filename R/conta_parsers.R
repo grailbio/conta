@@ -336,3 +336,42 @@ add_chunks <- function(dat) {
 
   return(dat)
 }
+
+#' Read simulation results from provided path
+#'
+#' Reads conta simulation results from a local or S3 path. Checks
+#' that the required columns are present and properly formatted,
+#' and returns the simulation data as a data frame.
+#'
+#' @param file file name to read
+#' @return data.table
+#'
+#' @export
+read_sim_results <- function(file) {
+  raw_data <- read_data_table(file,
+                              stop_if_missing = TRUE)
+
+  req_cols <- c("sample", "avg_log_lr")
+
+  diff <- setdiff(req_cols, colnames(raw_data))
+  if (length(diff) != 0) {
+    stop(paste0("ERROR: Simulation results file is missing required columns.\n",
+                "file: ", file, "\nmissing cols: ", diff))
+  }
+
+  sample_splits <- strsplit(raw_data$sample, "_")
+
+  sample_names <- sapply(sample_splits,
+                         function(x) x[[1]])
+  conta_level <- sapply(sample_splits,
+                        function(x) as.numeric(x[[2]]))
+  if (any(is.na(conta_level))) {
+    stop(paste0("ERROR: Expect simulation `sample` column to be of the form ",
+                "{sample_id}_{conta_level}"))
+  }
+
+  raw_data$sample <- sample_names
+  raw_data$conta_level <- conta_level
+
+  return(raw_data)
+}
