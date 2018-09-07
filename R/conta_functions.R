@@ -244,17 +244,11 @@ load_conta_file <- function(conta_loc, snps = NULL) {
 
 #' Calculate concordance between two samples' genotypes
 #'
-#' @param dt1 genotype set 1
-#' @param dt2 genotype set 2
-#' @param min_maf minimum population frequency to include a SNP
+#' @param dt1 data.table of genotype set 1
+#' @param dt2 data.table of genotype set 2
 #'
 #' @export
-genotype_concordance <- function(dt1, dt2, min_maf = 0.25) {
-
-  # If maf is specified (only targeted conta results have it), filter them
-  maf_field1 <- which(colnames(dt1) %in% "maf")
-  if (length(maf_field1) > 0)
-    dt1 <- dt1[maf >= min_maf, ]
+genotype_concordance <- function(dt1, dt2) {
 
   # Merge the two data tables to put each SNP in a single row
   m1 <- merge(dt1, dt2, by = "rsid")

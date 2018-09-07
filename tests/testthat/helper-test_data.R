@@ -34,30 +34,33 @@ dir.create(out_dir_wgs, showWarnings = FALSE)
 dir.create(out_dir_targeted, showWarnings = FALSE)
 dir.create(out_dir_strand, showWarnings = FALSE)
 
-# Input files
-tsv_file <- sprintf("%s/test.tsv", data_dir)
-pileup_file <- sprintf("%s/test.pileup", data_dir)
+# Conta input files
+wgs_tsv <- sprintf("%s/test.wgs.maf.tsv", data_dir)
 male_metrics_file <- sprintf("%s/test.male.bio-metrics.txt", data_dir)
 female_metrics_file <- sprintf("%s/test.female.bio-metrics.txt", data_dir)
+targeted_tsv <- sprintf("%s/test.targeted.maf.tsv", data_dir)
+# Error input files
+error_tsv <- sprintf("%s/test.error.tsv", data_dir)
+supp_tsv <- sprintf("%s/test.supp.maf.tsv", data_dir)
+# Intersect input files
 maf_file <- sprintf("%s/test.maf.tsv", out_dir)
 maf_file2 <- sprintf("%s/test.maf2.tsv", out_dir)
 maf_file3 <- sprintf("%s/test.maf3.tsv", out_dir)
+tsv_file <- sprintf("%s/test.tsv", data_dir)
 dbSNP_file <- sprintf("%s/test.dbsnp.vcf", data_dir)
-dbSNP_file_art <- sprintf("%s/dbSNP_art_subset.vcf", data_dir)
-sim_file <- sprintf("%s/test.regular.maf.tsv", data_dir)
-error_tsv <- sprintf("%s/test.error.tsv", data_dir)
-supp_tsv <- sprintf("%s/test.supp.maf.tsv", data_dir)
-wgs_tsv <- sprintf("%s/test.wgs.maf.tsv", data_dir)
-targeted_tsv <- sprintf("%s/test.targeted.maf.tsv", data_dir)
-baseline <- sprintf("%s/test.posterior.txt", data_dir)
-spam_for_strand <- sprintf("%s/test_strand_for.tsv", data_dir)
+pileup_file <- sprintf("%s/test.pileup", data_dir)
 spam_for_maf <- sprintf("%s/test_strand_for.maf.tsv", out_dir_strand)
+# Simulation input files
+sim_file <- sprintf("%s/test.regular.maf.tsv", data_dir)
+# Source input files
+dbSNP_file_art <- sprintf("%s/dbSNP_art_subset.vcf", data_dir)
+# Strand input files
+spam_for_strand <- sprintf("%s/test_strand_for.tsv", data_dir)
 spam_rev_strand <- sprintf("%s/test_strand_rev.tsv", data_dir)
 spam_rev_maf <- sprintf("%s/test_strand_rev.maf.tsv", out_dir_strand)
-for_dbSNP_file <- sprintf("%s/test_strand_dbsnp_pos.tm.vcf", data_dir)
 rev_dbSNP_file <- sprintf("%s/test_strand_dbsnp_neg.tm.vcf", data_dir)
-
-# swap files
-swap_test_file_1 <- sprintf("%s/test.sample1_wgs.gt.tsv", data_dir)
-swap_test_file_2 <- sprintf("%s/test.sample1_wbc.gt.tsv", data_dir)
-swap_test_file_3 <- sprintf("%s/test.sample2_wbc.gt.tsv", data_dir)
+for_dbSNP_file <- sprintf("%s/test_strand_dbsnp_pos.tm.vcf", data_dir)
+# Swap input files
+swap_sim_file_1 <- sprintf("%s/test.sim1.gt.tsv", data_dir)
+swap_sim_file_2 <- sprintf("%s/test.sim2.gt.tsv", data_dir)
+swap_sim_file_3 <- sprintf("%s/test.sim3.gt.tsv", data_dir)
