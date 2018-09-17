@@ -4,14 +4,12 @@
 \alias{genotype_concordance}
 \title{Calculate concordance between two samples' genotypes}
 \usage{
-genotype_concordance(dt1, dt2, min_maf = 0.25)
+genotype_concordance(dt1, dt2)
 }
 \arguments{
-\item{dt1}{genotype set 1}
+\item{dt1}{data.table of genotype set 1}
 
-\item{dt2}{genotype set 2}
-
-\item{min_maf}{minimum population frequency to include a SNP}
+\item{dt2}{data.table of genotype set 2}
 }
 \description{
 Calculate concordance between two samples' genotypes
