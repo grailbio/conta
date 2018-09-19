@@ -5,7 +5,6 @@
 #' @useDynLib conta
 #' @importFrom Rcpp sourceCpp
 #' @import data.table parallel ggplot2
-#' @export
 NULL
 
 #' Return nucleotide bases
