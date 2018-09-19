@@ -58,3 +58,44 @@ test_that("error model correctly calculates error rate with supp positions", {
   expect_equal(EE[ref == "T" & subs == "G", er], avg_error, tolerance = tol)
   expect_equal(EE[ref == "T" & subs == "C", er], avg_error, tolerance = tol)
 })
+
+test_that("error model correctly calculates tri-base context", {
+
+  conta::intersect_snps(context_tsv, context_out_tsv, dbSNP_file, FALSE,
+                        test_genome)
+  expect_true(file.exists(context_out_tsv))
+
+  conta::conta_main(tsv_file = context_out_tsv, sample = "test",
+    save_dir = out_dir_context, context_mode = TRUE, min_maf = 0,
+    outlier_frac = 0, min_depth = 1)
+
+  # Read the error out file
+  error_out_file <- paste0(out_dir_context, "/test.error.tsv")
+  EE <- read_data_table(error_out_file)
+
+  # SNP:0 should not be counted because it is a het. GCC > GAC
+  expect_true(EE[ref == "GCC" & subs == "GAC", reads] == 0)
+  expect_true(EE[ref == "GCC" & subs == "GAC", denom] == 0)
+  expect_true(EE[ref == "GAC" & subs == "GCC", reads] == 0)
+  expect_true(EE[ref == "GAC" & subs == "GCC", denom] == 0)
+
+  # SNP-1: CCT > CAT error should not be counted because it is the SNP allele
+  # and SNP alles are supposed to be masked from error rate calculation
+  expect_true(EE[ref == "CCT" & subs == "CAT", reads] == 0)
+  expect_true(EE[ref == "CCT" & subs == "CAT", denom] == 30)
+
+  # SNP-2: GAA > GGA error should be counted
+  expect_true(EE[ref == "GAA" & subs == "GGA", reads] == 1)
+  expect_true(EE[ref == "GAA" & subs == "GGA", denom] == 31)
+
+  # SNP-3: ACG > ATG error should not be counted.
+  # ACG > AAG error should be counted.
+  expect_true(EE[ref == "ACG" & subs == "ATG", reads] == 0)
+  expect_true(EE[ref == "ACG" & subs == "AAG", reads] == 1)
+  expect_true(EE[ref == "ACG" & subs == "ATG", denom] == 7)
+
+  # ATG > ACG error and denom should not be counted.
+  expect_true(EE[ref == "ATG" & subs == "ACG", reads] == 0)
+  expect_true(EE[ref == "ATG" & subs == "ACG", denom] == 0)
+
+})

@@ -4,12 +4,14 @@
 \alias{add_error_rates}
 \title{Add error rates for each base based on ref/ref and alt/alt error rates}
 \usage{
-add_error_rates(dat, EE)
+add_error_rates(dat, EE, context_mode = FALSE)
 }
 \arguments{
 \item{dat}{data.table containing counts and metrics per SNP}
 
 \item{EE}{data.frame errror model}
+
+\item{context_mode}{}
 }
 \value{
 data.frame with error model

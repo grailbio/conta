@@ -101,21 +101,25 @@ plot_vfn_cp <- function(dat, save_dir, sample, min_maf_plot = 0.01,
 
   subd <- dat[ gt != "0/1" & vfn != 0, ]
 
-  p <- ggplot(subd, aes(y = vfn, x = cp))
-  p <- p + stat_density_2d(aes(fill = ..level..), geom = "polygon")
-  p <- p + geom_point(shape = ".")
-  p <- p + scale_x_log10( breaks = c(0, 0.001, 0.01, 0.1, 0.4, 1),
-                          limits = c(min_maf_plot ^ 2, 1))
-  p <- p + scale_y_log10( breaks = c(0, 0.001, 0.01, 0.1, 0.4, 1),
-                          limits = c(0.00001, 1))
-  p <- p + xlab("Contamination Probability")
-  p <- p + ylab("Contaminant Allele Frequency")
-  p <- p + scale_fill_gradient("Count", low = "white", high = "blue")
-  p <- p + theme(axis.text = element_text(size = 14),
-                 axis.text.x = element_text(size = 14),
-                 axis.title = element_text(size = 14),
-                 legend.text = element_text( size = 14))
-  print(p)
+  if (nrow(subd) <= 1) {
+    plot.new()
+  } else {
+    p <- ggplot(subd, aes(y = vfn, x = cp))
+    p <- p + stat_density_2d(aes(fill = ..level..), geom = "polygon")
+    p <- p + geom_point(shape = ".")
+    p <- p + scale_x_log10( breaks = c(0, 0.001, 0.01, 0.1, 0.4, 1),
+                            limits = c(min_maf_plot ^ 2, 1))
+    p <- p + scale_y_log10( breaks = c(0, 0.001, 0.01, 0.1, 0.4, 1),
+                            limits = c(0.00001, 1))
+    p <- p + xlab("Contamination Probability")
+    p <- p + ylab("Contaminant Allele Frequency")
+    p <- p + scale_fill_gradient("Count", low = "white", high = "blue")
+    p <- p + theme(axis.text = element_text(size = 14),
+                   axis.text.x = element_text(size = 14),
+                   axis.title = element_text(size = 14),
+                   legend.text = element_text( size = 14))
+    print(p)
+  }
   msg.trap <- capture.output(suppressWarnings(dev.off()))
 }
 

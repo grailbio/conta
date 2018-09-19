@@ -34,6 +34,7 @@
 #'     is provided then first tsv_file is considered as positive strand reads
 #' @param cores number of cores to be used for parallelization
 #' @param subsample Either NA (use all SNPs) or number of SNPs to subsample to
+#' @param context_mode whether to run with errors calculated in 3-base context
 #' @param seed random seed
 #'
 #' @return none
@@ -45,10 +46,10 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
                        lr_th = 0.001, sim_level = 0, baseline = NA,
                        min_depth = 10, max_depth = 10000, loh_lr_cutoff = 0.01,
                        loh_delta_cutoff = 0.3, loh_min_snps = 20,
-                       loh_max_snps = 200, min_maf = 0.01, subsample = NA,
+                       loh_max_snps = 1000, min_maf = 0.01, subsample = NA,
                        cf_correction = 0, min_cf = 0.0001, blackswan = 1,
                        outlier_frac = 0.002, tsv_rev_file = NA,
-                       cores = 2, seed = 1234) {
+                       cores = 2, context_mode = FALSE, seed = 1234) {
 
   options("digits" = 8)
   options("mc.cores" = cores)
@@ -89,8 +90,9 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
                     ext_plot = "filtered.depth.png")
 
   # Calculate substitution rates per base and add them to SNP data table
-  EE <- calculate_error_model(dat, save_dir, sample)
-  dat <- add_error_rates(dat, EE)
+  EE <- calculate_error_model(dat, save_dir, sample,
+    context_mode = context_mode)
+  dat <- add_error_rates(dat, EE, context_mode)
 
   # Remove low maf positions (they were kept for error model calculations)
   dat <- dat[ maf > min_maf & maf < (1 - min_maf), ]
@@ -110,6 +112,14 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
                                min_snps = loh_min_snps,
                                max_snps = loh_max_snps)
   dat_loh <- exclude_high_loh_regions(dat, bin_stats)
+
+  # TODO: Re-calculate substitution rates after LOH exclusion
+  # Note this requires SNPs removed from analyses after LOH removal and
+  # re-calculation of error rates. Perhaps give up on visualization without
+  # LOH filters (because that step would be costly with all the SNPs)
+  #EE <- calculate_error_model(dat_loh, save_dir, sample,
+  #  context_mode = context_mode)
+  #dat <- add_error_rates(dat_loh, EE, context_mode)
 
   # Plot minor allele ratio plot (.vr) with LOH
   plot_minor_ratio(dat, dat_loh, save_dir, sample)
@@ -142,7 +152,7 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
                            y_count = round(chr_y_stats$count, 4),
                            y_norm_count = round(chr_y_stats$normalized_count, 6),
                            y_frac = round(y_frac, 4),
-                           pregnancy = pregnancy,
+                           pregnancy = NA,
                            excluded_regions = bin_stats[loh == TRUE, .N],
                            error_rate = round(mean(EE$er), 7),
                            round(t(data.frame(EE$er,
@@ -153,14 +163,14 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
               quote = FALSE)
 
   # Write genotypes and possible contaminant reads
-  gt_sum <- rbind(dat[, .(rsid, chr = chrom, pos, ref, minor, cp,
+  gt_sum <- rbind(dat[, .(rsid, chr = chrom, pos, et, maf, cp,
                           dp = depth, er, gt, vr)])
   out_file_gt <- file.path(save_dir, paste(sample, "gt.tsv", sep = "."))
   write.table(format(gt_sum, digits = 6, trim = TRUE), file = out_file_gt,
               sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 
   # Write genotypes and possible contaminant reads
-  gt_sum_loh <- rbind(dat_loh[, .(rsid, chr = chrom, pos, ref, minor, cp,
+  gt_sum_loh <- rbind(dat_loh[, .(rsid, chr = chrom, pos, et, maf, cp,
                                   dp = depth, er, gt, vr)])
   out_file_gt_loh <- file.path(save_dir, paste(sample, "gt.loh.tsv", sep = "."))
   write.table(format(gt_sum_loh, digits = 6, trim = TRUE),

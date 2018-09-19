@@ -8,7 +8,7 @@ In the process, remove multiple-allele SNPs if the option
 is turned on.}
 \usage{
 intersect_snps(tsv_filename, out_tsv_filename, vcf_filename,
-  non_dbSNP = FALSE, DEBUG = FALSE)
+  non_dbSNP = FALSE, genome_filename = "NA", DEBUG = FALSE)
 }
 \arguments{
 \item{tsv_filename}{string name of input TSV file}
@@ -18,6 +18,8 @@ intersect_snps(tsv_filename, out_tsv_filename, vcf_filename,
 \item{vcf_filename}{string dbsnp VCF file name to be intersected}
 
 \item{non_dbSNP}{allow non dbSNP positions to be included}
+
+\item{genome_filename}{string name of the genome.fa}
 
 \item{DEBUG}{boolean whether to print out messages}
 }

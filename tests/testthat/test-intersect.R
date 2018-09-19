@@ -2,7 +2,7 @@
 # Use of this source code is governed by the Apache 2.0
 # license that can be found in the LICENSE file.
 
-context("test tsv and vcf intersect")
+context("test conta intersect")
 
 test_that("Test intersection of tsv and dbSNP to generate tsv", {
 
@@ -30,7 +30,7 @@ test_that("Test intersection of pileup and dbSNP to generate tsv", {
   expect_true(maf$maf[3] == round(0.02276, 4))
 })
 
-test_that("Test intersection of pileup with dbSNP to supplementary positions", {
+test_that("Test intersection with supplementary positions", {
 
   conta::intersect_snps(pileup_file, maf_file3, dbSNP_file, TRUE)
 
@@ -44,4 +44,32 @@ test_that("Test intersection of pileup with dbSNP to supplementary positions", {
   expect_true(maf$maf[4] == 0)
   expect_true(maf$maf[5] == round(0.02276, 4))
   expect_true(maf$maf[6] == 0)
+})
+
+test_that("Test read genome", {
+
+  # Note these are 0-based positions, when intersect is running, it does proper
+  # conversion of 1-based to 0-based before calling this function.
+  seq <- get_genomic_seq(test_genome, "1", -1, 3, FALSE)
+  seq2 <- get_genomic_seq(test_genome, "1", 10, 5, FALSE)
+  seq3 <- get_genomic_seq(test_genome, "1", 0, 3, FALSE)
+  seq4 <- get_genomic_seq(test_genome, "1", 500, 3, FALSE)
+  expect_true(seq == "NNN")
+  expect_true(seq2 == "TCACC")
+  expect_true(seq3 == "GGG")
+  expect_true(seq4 == "NNN")
+})
+
+test_that("Test intersection with context positions", {
+
+  conta::intersect_snps(context_tsv, context_out_tsv, dbSNP_file, FALSE,
+                        test_genome)
+  expect_true(file.exists(context_out_tsv))
+
+  context <- read.table(context_out_tsv, header = TRUE, stringsAsFactors = FALSE)
+  expect_true(nrow(context) == 4)
+  expect_true(context$context[1] == "GCC")
+  expect_true(context$context[2] == "CCT")
+  expect_true(context$context[3] == "GAA")
+  expect_true(context$context[4] == "ATG")
 })

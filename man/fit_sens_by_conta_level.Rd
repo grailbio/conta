@@ -4,15 +4,15 @@
 \alias{fit_sens_by_conta_level}
 \title{Fit a linear model to predict sensitivity from contamination level}
 \usage{
-fit_sens_by_conta_level(sens_by_level, target_sens = 0.95)
+fit_sens_by_conta_level(sens_by_level, fname, target_sens = 0.95)
 }
 \arguments{
 \item{sens_by_level}{Data frame of sensitivities at a fixed specificity
 split out by contamination level.}
 
-\item{target_sens}{Target sensitivity level for LoD estimation}
-
 \item{fname}{Path to write the final plot}
+
+\item{target_sens}{Target sensitivity level for LoD estimation}
 }
 \value{
 A list with two elements: model and lod, where `model` is the

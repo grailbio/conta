@@ -4,8 +4,8 @@
 \alias{plot_vfn_cp}
 \title{Plot sorted log likelihoods}
 \usage{
-plot_vfn_cp(dat, save_dir, sample, min_maf_plot = 0.01,
-  max_snps = 10000, seed = 1359)
+plot_vfn_cp(dat, save_dir, sample, min_maf_plot = 0.01, max_snps = 10000,
+  seed = 1359)
 }
 \arguments{
 \item{dat}{data.table with likelihood information per locus}

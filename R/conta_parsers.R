@@ -113,8 +113,14 @@ combine_counts <- function(dat, dat2) {
   datm$G <- rowSums(datm[, c("G.x", "G.y")], na.rm = TRUE)
   datm$C <- rowSums(datm[, c("C.x", "C.y")], na.rm = TRUE)
   datm$N <- rowSums(datm[, c("N.x", "N.y")], na.rm = TRUE)
+
+  if (sum(colnames(datm) == "context.x") == 1) {
+    datm$context <- ifelse(!is.na(datm$context.x),
+                           datm$context.x, datm$context.y)
+    datm <- datm[, -c("context.x", "context.y")]
+  }
   return(datm[, -c("A.x", "A.y", "T.x", "T.y", "G.x", "G.y",
-                    "C.x", "C.y", "N.x", "N.y", "chrom_int")])
+                   "C.x", "C.y", "N.x", "N.y", "chrom_int")])
 }
 
 #' Add in basic counts and ratios
@@ -218,6 +224,9 @@ annotate_and_filter <- function(dat, het_limit = 0.25, min_other_ratio = 0.15,
 
   # Add chunks
   dat <- add_chunks(dat)
+
+  # Update context for SNPs with alternative homozygote genotypes
+  dat <- update_context(dat)
 }
 
 #' Get the stats for a given chromosome from long biometrics file, including:
@@ -334,6 +343,34 @@ add_chunks <- function(dat, max_portions = 10) {
     dat[chrom == j, chunk := .(ceiling(.I / bin_size))]
   }
   dat$chrom <- factor(dat$chrom, levels = unique(dat$chrom))
+
+  return(dat)
+}
+
+#' Update 3-base context for SNPs with alternative homozygote genotypes
+#'
+#' @param dat data.table containing SNPs
+#' @return data.table containing SNPs with tagged chunks
+#'
+#' @export
+update_context <- function(dat) {
+
+  # Return as is if context is not provided
+  if (is.null(dat$context))
+    return(dat)
+
+  # Take the middle base from minor allele if genotype is 1/1
+  dat$context <- paste(substr(dat$context, 1, 1),
+                       ifelse(dat$gt == "1/1", dat$minor, dat$major),
+                        substr(dat$context, 3, 3), sep = "")
+
+  # Take the middle base from minor allele if genotype is 1/1
+  dat$context_snp <- paste(substr(dat$context, 1, 1),
+                       ifelse(dat$gt == "1/1", dat$major, dat$minor),
+                        substr(dat$context, 3, 3), sep = "")
+
+  # Select positions without N base in the context
+  dat <- dat[which(!grepl(pattern = "N", dat$context)), ]
 
   return(dat)
 }

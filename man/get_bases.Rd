@@ -4,7 +4,10 @@
 \alias{get_bases}
 \title{Return nucleotide bases}
 \usage{
-get_bases()
+get_bases(context_mode = FALSE)
+}
+\arguments{
+\item{context_mode}{whether to get bases from 3-base context}
 }
 \description{
 Return nucleotide bases

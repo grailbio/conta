@@ -5,7 +5,7 @@
 \title{Calculate error model}
 \usage{
 calculate_error_model(dat, save.dir = NA, sample = NA,
-  default_error_rate = 1e-06)
+  default_error_rate = 1e-05, context_mode = FALSE)
 }
 \arguments{
 \item{dat}{data.frame containing counts and metrics per SNP and only hom
@@ -17,6 +17,8 @@ alleles (0/0 and 1/1). Het alleles should have already been removed.}
 
 \item{default_error_rate}{if absolutely no errors are observed in the data,
 use this number as the error rate}
+
+\item{context_mode}{whether to run in context mode}
 }
 \value{
 data.frame with error model

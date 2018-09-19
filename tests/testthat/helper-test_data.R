@@ -19,6 +19,7 @@ out_source_single <- paste(out_dir_source_single, "source.tsv", sep = "/")
 out_dir_source_double <- "test_source_double"
 out_source_double <- paste(out_dir_source_double, "source.tsv", sep = "/")
 out_dir_strand <- "test_strand"
+out_dir_context <- "test_output/context"
 
 # Remove existing test output directories
 unlink(out_dir, recursive = TRUE)
@@ -27,12 +28,14 @@ unlink(out_dir_source, recursive = TRUE)
 unlink(out_dir_source_single, recursive = TRUE)
 unlink(out_dir_source_double, recursive = TRUE)
 unlink(out_dir_strand, recursive = TRUE)
+unlink(out_dir_context, recursive = TRUE)
 
 # Create them again
 dir.create(out_dir, showWarnings = FALSE)
 dir.create(out_dir_wgs, showWarnings = FALSE)
 dir.create(out_dir_targeted, showWarnings = FALSE)
 dir.create(out_dir_strand, showWarnings = FALSE)
+dir.create(out_dir_context, showWarnings = FALSE)
 
 # Conta input files
 wgs_tsv <- sprintf("%s/test.wgs.maf.tsv", data_dir)
@@ -46,6 +49,9 @@ supp_tsv <- sprintf("%s/test.supp.maf.tsv", data_dir)
 maf_file <- sprintf("%s/test.maf.tsv", out_dir)
 maf_file2 <- sprintf("%s/test.maf2.tsv", out_dir)
 maf_file3 <- sprintf("%s/test.maf3.tsv", out_dir)
+context_tsv <- sprintf("%s/test.context.tsv", data_dir)
+context_out_tsv <- sprintf("%s/test.context.maf.tsv", out_dir)
+context_error_tsv <- sprintf("%s/test.error.tsv", out_dir_context)
 tsv_file <- sprintf("%s/test.tsv", data_dir)
 dbSNP_file <- sprintf("%s/test.dbsnp.vcf", data_dir)
 pileup_file <- sprintf("%s/test.pileup", data_dir)
@@ -64,3 +70,4 @@ for_dbSNP_file <- sprintf("%s/test_strand_dbsnp_pos.tm.vcf", data_dir)
 swap_sim_file_1 <- sprintf("%s/test.sim1.gt.tsv", data_dir)
 swap_sim_file_2 <- sprintf("%s/test.sim2.gt.tsv", data_dir)
 swap_sim_file_3 <- sprintf("%s/test.sim3.gt.tsv", data_dir)
+test_genome <- sprintf("%s/test.genome.fa", data_dir)

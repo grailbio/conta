@@ -16,9 +16,10 @@ main <- function() {
 
   option_list <- list(
     make_option(c("-i", "--tsv_file"), type = "character", default = NULL,
-                help = "input tsv file with SNP counts", metavar = "character"),
+                help = "input pileup file with counts on SNP positions",
+                metavar = "character"),
     make_option(c("-a", "--tsv_rev_file"), type = "character", default = NULL,
-                help = "input tsv file with reverse strand counts (optional),
+                help = "input pileup file with reverse strand counts (optional),
                 when provided, first input file is assumed to contain
                 forward (+) strand counts)", metavar = "character"),
     make_option(c("-b", "--biometrics_file"), type = "character", default = "",
@@ -54,7 +55,7 @@ main <- function() {
     make_option(c("", "--loh_min_snps"), type = "numeric", default = 20,
                 help = "minimum number of SNPs per chromosomal region",
                 metavar = "numeric"),
-    make_option(c("", "--loh_max_snps"), type = "numeric", default = 200,
+    make_option(c("", "--loh_max_snps"), type = "numeric", default = 1000,
                 help = "maximum number of SNPs per chromosomal region",
                 metavar = "numeric"),
     make_option(c("-w", "--blackswan"), type = "numeric", default = 1,
@@ -68,14 +69,18 @@ main <- function() {
     make_option(c("-u", "--cores"), type = "numeric", default = 2,
                 help = "cpu cores", metavar = "numeric"),
     make_option(c("-y", "--non_dbSNP"), type = "logical", default = FALSE,
-                help = "Include non-dbSNP for error rate", metavar = "logical"))
+                help = "Include non-dbSNP for error rate", metavar = "logical"),
+    make_option(c("", "--fasta"), type = "character", default = NA,
+                help = "input genome fasta file for nucleotide context capture,
+                        if provided, conta switches to analyzing errors
+                        in tri-nucleotide contexts", metavar = "character"))
 
   opt_parser <- OptionParser(option_list = option_list);
   opt <- parse_args(opt_parser);
 
   if (is.null(opt$tsv_file) | is.null(opt$dbSNP_file)) {
     print_help(opt_parser)
-    stop("At least input file and dbSNP must be supplied.\n", call. = FALSE)
+    stop("At least a pileup file and dbSNP must be supplied.\n", call. = FALSE)
   }
 
   # Create output dir if it doesn't exist
@@ -88,26 +93,30 @@ main <- function() {
     # File is already interesected, skip it
     message(paste("Skipping intersection since ", maf_file, "already exists"))
   } else {
-    conta::intersect_snps(opt$tsv_file, maf_file, opt$dbSNP_file, opt$non_dbSNP)
+    message(paste("Intersecting", maf_file, "with", opt$dbSNP_file))
+    conta::intersect_snps(opt$tsv_file, maf_file, opt$dbSNP_file, opt$non_dbSNP,
+                          opt$fasta)
   }
 
   # Intersect counts with minus strand counts if provided
-  if (!is.null(opt$tsv_rev_file)) {
-    maf_file2 <- paste(opt$save_dir, "/", opt$sample, ".maf2.tsv", sep = "")
+  if (!is.null(opt$tsv_rev_file) & !is.null(opt$dbSNP_rev_file)) {
+    maf_file2 <- paste(opt$save_dir, "/", opt$sample, ".maf.rev.tsv", sep = "")
 
     if (file.exists(maf_file2)) {
       # File is already interesected, skip it
       message(paste("Skipping intersection since ",
                     maf_file2, "already exists"))
     } else {
-      conta::intersect_snps(opt$tsv_rev_file, maf_file2,
-                            opt$dbSNP_rev_file, opt$non_dbSNP)
+      message(paste("Intersecting", maf_file2, "with", opt$dbSNP_rev_file))
+      conta::intersect_snps(opt$tsv_rev_file, maf_file2, opt$dbSNP_rev_file,
+                            opt$non_dbSNP, opt$fasta)
     }
   } else {
     maf_file2 <- NA
   }
 
   # Run conta
+  message(paste("Starting conta"))
   conta::conta_main(tsv_file = maf_file,
                     tsv_rev_file = maf_file2,
                     sample = opt$sample,
@@ -128,10 +137,14 @@ main <- function() {
                     min_cf = opt$min_cf,
                     blackswan = opt$blackswan,
                     outlier_frac = opt$outlier_frac,
-                    cores = opt$cores)
+                    cores = opt$cores,
+                    context_mode = !is.na(opt$fasta))
+  message(paste("Done."))
 
   # Remove maf file
   if (opt$remove_maf_file) {
+      message(paste("Removing annotated pileup files.",
+                     "Set --remove_maf_file FALSE to keep them."))
       file.remove(maf_file)
     if (!is.na(maf_file2))
       file.remove(maf_file2)

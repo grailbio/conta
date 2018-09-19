@@ -4,7 +4,7 @@
 \alias{log_lr}
 \title{Calculate log likelihood ratio}
 \usage{
-log_lr(cp, depth, cf, mu, ad, blackswan = 0.01)
+log_lr(cp, depth, cf, mu, ad, blackswan = 0.01, limit_lh = 0.01)
 }
 \arguments{
 \item{cp}{numeric contamination prior based on maf and genotype}
@@ -18,6 +18,8 @@ log_lr(cp, depth, cf, mu, ad, blackswan = 0.01)
 \item{ad}{numeric number of alternative alleles called}
 
 \item{blackswan}{numeric limit likelihood of individual hypotheses}
+
+\item{limit_lh}{numeric limit maximum for minimum lh}
 }
 \value{
 numeric log likelihood ratio

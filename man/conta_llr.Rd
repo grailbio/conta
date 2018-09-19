@@ -5,7 +5,7 @@
 \title{Conta log likelihood ratio}
 \usage{
 conta_llr(cf, dat, save_dir = NA, sample = NA, loh = FALSE,
-  blackswan = 0.05, outlier_frac = 0.005)
+  blackswan = 0.05, outlier_frac = 0.005, het_rate = 0.8)
 }
 \arguments{
 \item{cf}{numeric contamination fraction to be tested}
@@ -21,6 +21,8 @@ conta_llr(cf, dat, save_dir = NA, sample = NA, loh = FALSE,
 \item{blackswan}{blackswan term for maximum likelihood}
 
 \item{outlier_frac}{fraction of outliers to remove}
+
+\item{het_rate}{ratio of heterozygote to homozygote alt contaminant SNPs}
 }
 \value{
 numeric avg. log-likelihood ratio for the given cf or a more detailed

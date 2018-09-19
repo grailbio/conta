@@ -13,12 +13,13 @@
 #' @param mu numeric average error rate for this type of SNP
 #' @param ad numeric number of alternative alleles called
 #' @param blackswan numeric limit likelihood of individual hypotheses
+#' @param limit_lh numeric limit maximum for minimum lh
 #'
 #' @return numeric log likelihood ratio
 #'
 #' @importFrom stats dbinom
 #' @export
-log_lr <- function(cp, depth, cf, mu, ad, blackswan = 0.01) {
+log_lr <- function(cp, depth, cf, mu, ad, blackswan = 0.01, limit_lh = 0.01) {
 
   # Probability of het contamination
   binom_cont <- dbinom(ad, size = depth, prob = (mu + cf), log = FALSE)
@@ -27,12 +28,12 @@ log_lr <- function(cp, depth, cf, mu, ad, blackswan = 0.01) {
   binom_noise <- dbinom(ad, size = depth, prob = mu, log = FALSE)
 
   # Minimum likelihood for each hypothesis to set a limit
-  min_lh <- pmin(0.01, blackswan / depth ^ 2)
+  min_lh <- pmin(limit_lh, blackswan / depth ^ 2)
 
-  # Likelihood of contamination
+  # Likelihood of contamination (lower limit at min_lh)
   lh <- (1 - min_lh) * (cp * binom_cont + (1 - cp) * binom_noise) + min_lh
 
-  # Likelihood of no contamination
+  # Likelihood of no contamination (lower limit at min_lh)
   lh0 <- (1 - min_lh) * binom_noise + min_lh
 
   # Log likelihood ratio
@@ -48,6 +49,7 @@ log_lr <- function(cp, depth, cf, mu, ad, blackswan = 0.01) {
 #' @param loh whether to plot in LOH mode
 #' @param blackswan blackswan term for maximum likelihood
 #' @param outlier_frac fraction of outliers to remove
+#' @param het_rate ratio of heterozygote to homozygote alt contaminant SNPs
 #'
 #' @return numeric avg. log-likelihood ratio for the given cf or a more detailed
 #'   result if the save_dir and sample name are specified.
@@ -55,12 +57,13 @@ log_lr <- function(cp, depth, cf, mu, ad, blackswan = 0.01) {
 #' @importFrom stats quantile weighted.mean sd
 #' @export
 conta_llr <- function(cf, dat, save_dir = NA, sample = NA,
-                     loh = FALSE, blackswan = 0.05, outlier_frac = 0.005) {
+                      loh = FALSE, blackswan = 0.05, outlier_frac = 0.005,
+                      het_rate = 0.8) {
 
   # Likelihood for each SNP to be contaminated at cf level
   dat <- dat[gt != "0/1"]
-  dat$lr <- log_lr(dat$cp, dat$depth, get_exp_cf(cf), dat$er, dat$vr,
-                     blackswan)
+  dat$lr <- log_lr(dat$cp, dat$depth, get_exp_cf(cf, het_rate = het_rate),
+                   dat$er, dat$vr, blackswan)
 
   # Remove outliers
   dat <- dat[lr < quantile(lr, 1 - outlier_frac) &

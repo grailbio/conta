@@ -20,7 +20,7 @@ throwing out the top 2 percent of samples.}
 
 \item{mad_thresh}{Filter out samples that are this many MADs away from the
 median, applied after the extreme level and quantile filters.
-Defaults to 3 MADs}
+Defaults to 3 MADs.}
 }
 \value{
 Data frame of simulation data with samples flagged as

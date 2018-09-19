@@ -6,22 +6,39 @@
 using namespace Rcpp;
 
 // intersect_snps
-void intersect_snps(const char* tsv_filename, const char* out_tsv_filename, const char* vcf_filename, bool non_dbSNP, bool DEBUG);
-RcppExport SEXP _conta_intersect_snps(SEXP tsv_filenameSEXP, SEXP out_tsv_filenameSEXP, SEXP vcf_filenameSEXP, SEXP non_dbSNPSEXP, SEXP DEBUGSEXP) {
+void intersect_snps(const char* tsv_filename, const char* out_tsv_filename, const char* vcf_filename, bool non_dbSNP, const char* genome_filename, bool DEBUG);
+RcppExport SEXP _conta_intersect_snps(SEXP tsv_filenameSEXP, SEXP out_tsv_filenameSEXP, SEXP vcf_filenameSEXP, SEXP non_dbSNPSEXP, SEXP genome_filenameSEXP, SEXP DEBUGSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const char* >::type tsv_filename(tsv_filenameSEXP);
     Rcpp::traits::input_parameter< const char* >::type out_tsv_filename(out_tsv_filenameSEXP);
     Rcpp::traits::input_parameter< const char* >::type vcf_filename(vcf_filenameSEXP);
     Rcpp::traits::input_parameter< bool >::type non_dbSNP(non_dbSNPSEXP);
+    Rcpp::traits::input_parameter< const char* >::type genome_filename(genome_filenameSEXP);
     Rcpp::traits::input_parameter< bool >::type DEBUG(DEBUGSEXP);
-    intersect_snps(tsv_filename, out_tsv_filename, vcf_filename, non_dbSNP, DEBUG);
+    intersect_snps(tsv_filename, out_tsv_filename, vcf_filename, non_dbSNP, genome_filename, DEBUG);
     return R_NilValue;
+END_RCPP
+}
+// get_genomic_seq
+std::string get_genomic_seq(const char* genome_filename, const char* chr, const int start, const int length, bool DEBUG);
+RcppExport SEXP _conta_get_genomic_seq(SEXP genome_filenameSEXP, SEXP chrSEXP, SEXP startSEXP, SEXP lengthSEXP, SEXP DEBUGSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const char* >::type genome_filename(genome_filenameSEXP);
+    Rcpp::traits::input_parameter< const char* >::type chr(chrSEXP);
+    Rcpp::traits::input_parameter< const int >::type start(startSEXP);
+    Rcpp::traits::input_parameter< const int >::type length(lengthSEXP);
+    Rcpp::traits::input_parameter< bool >::type DEBUG(DEBUGSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_genomic_seq(genome_filename, chr, start, length, DEBUG));
+    return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_conta_intersect_snps", (DL_FUNC) &_conta_intersect_snps, 5},
+    {"_conta_intersect_snps", (DL_FUNC) &_conta_intersect_snps, 6},
+    {"_conta_get_genomic_seq", (DL_FUNC) &_conta_get_genomic_seq, 5},
     {NULL, NULL, 0}
 };
 

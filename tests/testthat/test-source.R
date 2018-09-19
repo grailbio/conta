@@ -27,10 +27,10 @@ test_that("conta source detection run",  {
 
   expect_true(file.exists(out_source))
   result <- read_data_table(out_source)
-  expect_true(result[, .N] == 8)
+  expect_true(result[, .N] == 6)
   expect_false(result[1, source_call])
-  expect_equal(sum(result[2:7, source_call]), 6)
-  expect_equal(sum(result[2:7, best_sample] == "170410_cfdna_100T_34795B_1"), 6)
+  expect_equal(sum(result[2:5, source_call]), 4)
+  expect_equal(sum(result[2:5, best_sample] == "170410_cfdna_100T_34795B_1"), 4)
 
   call_mt <- 0.005
   expect_true(result[1, best_gt_lr] < call_mt + result[1, avg_maf_lr])
@@ -38,8 +38,6 @@ test_that("conta source detection run",  {
   expect_true(result[3, best_gt_lr] > call_mt + result[3, avg_maf_lr])
   expect_true(result[4, best_gt_lr] > call_mt + result[4, avg_maf_lr])
   expect_true(result[5, best_gt_lr] > call_mt + result[5, avg_maf_lr])
-  expect_true(result[6, best_gt_lr] > call_mt + result[6, avg_maf_lr])
-  expect_true(result[7, best_gt_lr] > call_mt + result[7, avg_maf_lr])
 })
 
 test_that("conta source detection run single",  {

@@ -12,5 +12,5 @@ genotype_concordance(dt1, dt2)
 \item{dt2}{data.table of genotype set 2}
 }
 \description{
-Calculate concordance between two samples' genotypes
+TODO (edamato): support gt files from other pipelines
 }

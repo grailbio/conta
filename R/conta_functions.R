@@ -8,10 +8,30 @@
 NULL
 
 #' Return nucleotide bases
+#' @param context_mode whether to get bases from 3-base context
 #'
 #' @export
-get_bases <- function() {
-  return(c("A", "T", "G", "C"))
+get_bases <- function(context_mode = FALSE) {
+  if (!context_mode)
+    return(c("A", "T", "G", "C"))
+  else {
+    bases <- expand.grid(get_bases(), get_bases(), get_bases())
+    return(paste(bases$Var1, bases$Var2, bases$Var3, sep = ""))
+  }
+}
+
+#' Test whether the two contexts are compatible with a one base variance in the
+#' middle base
+#' @param context1 context of the first case
+#' @param context2 context of the second case
+#'
+#' @export
+is_compatible_context <- function(context1, context2) {
+  if (substring(context1, 1, 1) == substring(context2, 1, 1) &&
+      substring(context1, 3, 3) == substring(context2, 3, 3))
+    return(TRUE)
+  else
+    return(FALSE)
 }
 
 #' Return initial test range
@@ -51,7 +71,7 @@ fail_test <- function(dat) {
        nrow(dat[gt == "0/0", ]) == 0 ||
        nrow(dat[gt == "1/1", ]) == 0 ||
        nrow(dat[gt == "0/1", ]) == 0) {
-    msg <- "Either no SNPs passed filters or no genotypes were called."
+    msg <- "Either no SNPs passed filters or not all genotypes were called."
     if (interactive()) {
       stop(msg)
     } else {
@@ -243,7 +263,7 @@ load_conta_file <- function(conta_loc, snps = NULL) {
 }
 
 #' Calculate concordance between two samples' genotypes
-#' 
+#'
 #' TODO (edamato): support gt files from other pipelines
 #'
 #' @param dt1 data.table of genotype set 1
