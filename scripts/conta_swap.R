@@ -39,7 +39,7 @@ main <- function() {
   labels <- strsplit(opt$file_labels, ",", fixed=TRUE)
   # Require that the number of files and labels are equal
   if (length(files[[1]]) != length(labels[[1]])) {
-    stop("The number of flies and labels must be equal.\n", call = FALSE)
+    stop("The number of files and labels must be equal.\n", call = FALSE)
   }
   # Require that there are at least two files
   if (length(files[[1]]) < 2) {
