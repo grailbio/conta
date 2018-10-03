@@ -26,6 +26,9 @@ main <- function() {
     optparse::make_option(c("-l", "--file_labels"), type = "character", default = NULL,
                 help = "list of n comma separated labels for genotype files, n>2. Required.",
                 metavar = "character"),
+    optparse::make_option(c("-c", "--concordance_threshold"), type = "numeric", default = 0.7,
+                          help = "The genotype concordance cutoff  Default: 0.7.",
+                          metavar = "character"),
     optparse::make_option(c("-o", "--out"), type = "character", default = NULL,
                 help = "out file with swap results, required", metavar = "character"))
   opt_parser <- optparse::OptionParser(option_list = option_list)
@@ -46,7 +49,7 @@ main <- function() {
     stop("There must be at least two files.\n", call=FALSE)
   }
   # Run pairwise genotype concordance
-  df <- conta::conta_swap(files, labels)
+  df <- conta::conta_swap(files, labels, opt$concordance_threshold)
   # Write results to tsv
   utils::write.table(df, opt$out, sep = "\t", row.names = FALSE, quote = FALSE)
 }

@@ -243,6 +243,8 @@ load_conta_file <- function(conta_loc, snps = NULL) {
 }
 
 #' Calculate concordance between two samples' genotypes
+#' 
+#' TODO (edamato): support gt files from other pipelines
 #'
 #' @param dt1 data.table of genotype set 1
 #' @param dt2 data.table of genotype set 2

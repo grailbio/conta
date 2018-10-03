@@ -40,15 +40,28 @@ test_that("conta sample swap pairwise genotype concordance", {
   files <- list(c(swap_sim_file_1, swap_sim_file_2, swap_sim_file_3))
   labels <- list(c("sample1", "sample2", "sample3"))
   # Calculate pairwise concordance, three samples
-  concordances <- conta::conta_swap(files, labels)
+  concordances <- conta::conta_swap(files, labels, 0.7)
   # Validate the dimensions of the dataframe
-  expect_true(nrow(concordances) == 3)
-  expect_true(ncol(concordances) == 3)
+  expect_true(nrow(concordances) == 6)
+  expect_true(ncol(concordances) == 4)
   # Validate the expected concordance values
   expect_true(concordances %>% filter(
-    Sample1 == "sample1" & Sample2 == "sample2") %>% select(Concordance) == 0.9)
+    Sample1 == "sample1" & Sample2 == "sample2" & metric_name == "concordance") %>%
+      select(value_name) == 0.9)
   expect_true(concordances %>% filter(
-    Sample1 == "sample1" & Sample2 == "sample3") %>% select(Concordance) == 0.5)
+    Sample1 == "sample1" & Sample2 == "sample3" & metric_name == "concordance") %>%
+      select(value_name) == 0.5)
   expect_true(concordances %>% filter(
-    Sample1 == "sample2" & Sample2 == "sample3") %>% select(Concordance) == 0.5)
+    Sample1 == "sample2" & Sample2 == "sample3" & metric_name == "concordance") %>%
+      select(value_name) == 0.5)
+  # Validate the expected concordance calls
+  expect_true(concordances %>% filter(
+    Sample1 == "sample1" & Sample2 == "sample2" & metric_name == "call") %>%
+      select(value_name) == FALSE)
+  expect_true(concordances %>% filter(
+    Sample1 == "sample1" & Sample2 == "sample3" & metric_name == "call") %>%
+      select(value_name) == TRUE)
+  expect_true(concordances %>% filter(
+    Sample1 == "sample2" & Sample2 == "sample3" & metric_name == "call") %>%
+      select(value_name) == TRUE)
 })
