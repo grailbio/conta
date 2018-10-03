@@ -31,6 +31,7 @@ test_that("conta sample swap single genotype concordance", {
 })
 
 test_that("conta sample swap pairwise genotype concordance", {
+  # TODO (edamato): Add test with different threshold values
   options(warn = -1)
   # Test conta genotype files exists
   expect_true(file.exists(swap_sim_file_1))
