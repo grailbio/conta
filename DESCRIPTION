@@ -28,10 +28,10 @@ Depends: R (>= 3.3.1)
 License: Apache License (== 2.0) | file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.0
 Suggests: knitr,
     rmarkdown,
     testthat
 VignetteBuilder: knitr
 LinkingTo: Rcpp
 SystemRequirements: C++11
+RoxygenNote: 6.1.0
