@@ -25,7 +25,7 @@ read_data_table <- function(file, header = TRUE, sep = "\t",
         if (endsWith(file, ".gz")) {
           stop(paste("Reading zipped file from s3 not supported.", file))
       } else {
-        return(read_from_s3(file, fread, header = header,
+        return(grails3r::read_from_s3(file, fread, header = header,
                           stringsAsFactors = FALSE, sep = sep, ...))
       }
     }} else {
