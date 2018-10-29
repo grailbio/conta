@@ -5,22 +5,22 @@
 # license that can be found in the LICENSE file.
 
 #' Run conta swap detection
-#' 
+#'
 #' Calculates pairwise concordance between n genotype samples.
 #' Number of files and number of labels must match and be greater
 #' than two. Genotype files must contain gt column. Files and labels
 #' will be paired by index.
 #' This returns a data frame with two metrics for each pair of samples:
 #' concordance and call. Call is true if the concordance is less than
-#' or equal to the concordance threshold. Metrics are only reported 
+#' or equal to the concordance threshold. Metrics are only reported
 #' once for each pair of samples.
 #'
 #' @param gt_files list of strings, paths to genotype files
 #' @param gt_labels list of strings, labels for genotype files
 #' @param concordance_treshold float, threshold for genotype concordance
-#' 
+#'
 #' @return data.frame with all pairwise concordances and swap calls
-#' 
+#'
 #' @importFrom data.table fread
 #' @export
 conta_swap <- function(files, labels, concordance_threshold) {
@@ -47,6 +47,6 @@ conta_swap <- function(files, labels, concordance_threshold) {
   # Merge concordance and call metric, return all results
   results <- rbind(concordance_values, concordance_calls)
   df <- data.frame(results)
-  colnames(df) <- c("Sample1", "Sample2", "metric_name", "value_name")
+  colnames(df) <- c("Sample1", "Sample2", "metric_name", "metric_value")
   return(df)
 }

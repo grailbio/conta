@@ -48,21 +48,21 @@ test_that("conta sample swap pairwise genotype concordance", {
   # Validate the expected concordance values
   expect_true(concordances %>% filter(
     Sample1 == "sample1" & Sample2 == "sample2" & metric_name == "concordance") %>%
-      select(value_name) == 0.9)
+      select(metric_value) == 0.9)
   expect_true(concordances %>% filter(
     Sample1 == "sample1" & Sample2 == "sample3" & metric_name == "concordance") %>%
-      select(value_name) == 0.5)
+      select(metric_value) == 0.5)
   expect_true(concordances %>% filter(
     Sample1 == "sample2" & Sample2 == "sample3" & metric_name == "concordance") %>%
-      select(value_name) == 0.5)
+      select(metric_value) == 0.5)
   # Validate the expected concordance calls
   expect_true(concordances %>% filter(
     Sample1 == "sample1" & Sample2 == "sample2" & metric_name == "call") %>%
-      select(value_name) == FALSE)
+      select(metric_value) == FALSE)
   expect_true(concordances %>% filter(
     Sample1 == "sample1" & Sample2 == "sample3" & metric_name == "call") %>%
-      select(value_name) == TRUE)
+      select(metric_value) == TRUE)
   expect_true(concordances %>% filter(
     Sample1 == "sample2" & Sample2 == "sample3" & metric_name == "call") %>%
-      select(value_name) == TRUE)
+      select(metric_value) == TRUE)
 })
