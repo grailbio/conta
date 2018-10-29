@@ -400,9 +400,9 @@ read_sim_results <- function(file) {
   sample_splits <- strsplit(raw_data$sample, "_")
 
   sample_names <- sapply(sample_splits,
-                         function(x) x[[1]])
+                         function(x) paste0(x[1:(length(x) - 1)], collapse = "_"))
   conta_level <- sapply(sample_splits,
-                        function(x) suppressWarnings(as.numeric(x[[2]])))
+                        function(x) suppressWarnings(as.numeric(x[[length(x)]])))
   if (any(is.na(conta_level))) {
     stop(paste0("ERROR: Expect simulation `sample` column to be of the form ",
                 "{sample_id}_{conta_level}"))

@@ -23,6 +23,24 @@ test_that("conta test run with no simulation on clean sample", {
   expect_equal(got$avg_log_lr, avg_log_lr)
   expect_equal(got$conta_level, rep(c(0, 0.1, 0.5), each = 10))
 
+  samples <- paste0("this_is_a_test", 1:10, "_", rep(c(0, 0.1, 0.5), each = 10))
+  avg_log_lr <- rnorm(30)
+  test_data <- data.frame(sample = samples,
+                          avg_log_lr = avg_log_lr,
+                          stringsAsFactors = FALSE)
+  write.table(test_data,
+              "test_sim.tsv",
+              sep = "\t",
+              col.names = TRUE,
+              row.names = FALSE,
+              quote = FALSE)
+  got <- read_sim_results("test_sim.tsv")
+  expect_equal(dim(got), c(30, 3))
+  expect_equal(colnames(got), c("sample", "avg_log_lr", "conta_level"))
+  expect_equal(got$sample, rep(paste0("this_is_a_test", 1:10), 3))
+  expect_equal(got$avg_log_lr, avg_log_lr)
+  expect_equal(got$conta_level, rep(c(0, 0.1, 0.5), each = 10))
+
   # expect error if samples are misformatted
   test_data$sample[10] <- NA
   write.table(test_data,
