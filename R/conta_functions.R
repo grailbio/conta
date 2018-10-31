@@ -107,17 +107,14 @@ get_exp_cf <- function(cf, het_rate = 0.8) {
 #'
 #' @param wgs data.frame containing counts and metrics per SNP
 #' @param cf numeric contamination fraction
-#' @param seed numeric set seed for simulation
 #'
 #' @return data.frame containing counts and metrics per SNP
 #'
 #' @importFrom stats rpois runif
 #' @export
-sim_conta <- function(wgs, cf, seed = 1359) {
+sim_conta <- function(wgs, cf) {
 
   if (cf == 0) return(wgs)
-
-  set.seed(seed)
 
   # Calculate allele depths for each chromosome
   allele1 <- ifelse(runif(nrow(wgs)) > wgs$maf, wgs$major, wgs$minor)

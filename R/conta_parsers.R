@@ -243,7 +243,7 @@ annotate_and_filter <- function(dat, het_limit = 0.25, min_other_ratio = 0.15,
 chr_stats <- function(biometrics_file, chr_name) {
 
   # Read file
-  if (file.exists(biometrics_file)) {
+  if (file.exists(biometrics_file) && (file.info(biometrics_file)$size > 0)) {
     k1 <- read_data_table(biometrics_file, sep = "\t")
   }
   else {

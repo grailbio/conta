@@ -5,8 +5,8 @@
 \title{Run the conta thresholding workflow}
 \usage{
 conta_threshold(sim_data, outdir, extreme_thresh = 1.5,
-  quantile_thresh = 0.98, mad_thresh = 3, senss = c(0.95, 0.98, 0.99,
-  1), specs = c(0.95, 0.98, 0.99, 1))
+  quantile_thresh = 0.98, mad_thresh = 3, senss = c(0.95, 0.98, 0.99, 1),
+  specs = c(0.95, 0.98, 0.99, 1))
 }
 \arguments{
 \item{sim_data}{Simulation data as read in by `read_sim_data()`.}

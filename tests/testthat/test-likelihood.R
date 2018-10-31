@@ -26,11 +26,12 @@ test_that("test likelihood calculation", {
 
 test_that("test vectorized likelihood calculation", {
 
-  expect_true(all(round(log_lr(c(0.5, 0.5, 0.5),
-                               c(30, 30, 30),
-                               c(0.1, 0.1, 0.1),
-                               c(0.0001, 0.001, 0.0001),
-                               c(1, 1, 3)), 1) == c(3.2, 1.1, 9.3)))
+  expect_equal(round(log_lr(c(0.5, 0.5, 0.5),
+                            c(30, 30, 30),
+                            c(0.1, 0.1, 0.1),
+                            c(0.0001, 0.001, 0.0001),
+                            c(1, 1, 3)), 1),
+               c(3.2, 1.1, 9.3))
 })
 
 test_that("test likelihood ratio of contamination is higher when AD > 0", {

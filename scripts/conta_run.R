@@ -73,7 +73,9 @@ main <- function() {
     make_option(c("", "--fasta"), type = "character", default = NA,
                 help = "input genome fasta file for nucleotide context capture,
                         if provided, conta switches to analyzing errors
-                        in tri-nucleotide contexts", metavar = "character"))
+                        in tri-nucleotide contexts", metavar = "character"),
+    make_option(c("", "--seed"), type = "integer", default = 1234,
+                help = "seed for simulations", metavar = "integer"))
 
   opt_parser <- OptionParser(option_list = option_list);
   opt <- parse_args(opt_parser);
@@ -138,7 +140,8 @@ main <- function() {
                     blackswan = opt$blackswan,
                     outlier_frac = opt$outlier_frac,
                     cores = opt$cores,
-                    context_mode = !is.na(opt$fasta))
+                    context_mode = !is.na(opt$fasta),
+                    seed = opt$seed)
   message(paste("Done."))
 
   # Remove maf file

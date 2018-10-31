@@ -49,10 +49,11 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
                        loh_max_snps = 1000, min_maf = 0.01, subsample = NA,
                        cf_correction = 0, min_cf = 0.0001, blackswan = 1,
                        outlier_frac = 0.002, tsv_rev_file = NA,
-                       cores = 2, context_mode = FALSE, seed = 1234) {
+                       cores = 2, context_mode = FALSE, seed = 1359) {
 
   options("digits" = 8)
   options("mc.cores" = cores)
+  set.seed(seed)
 
   # Create output folder if it doesn't exist
   dir.create(save_dir, showWarnings = FALSE)
@@ -68,7 +69,6 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
 
   # Set dat as a subset of dat if it exceeds a pre-determined size
   if (!is.na(subsample) & nrow(dat) > subsample) {
-    set.seed(seed)
     dat <- dat[sort(sample(1:nrow(dat), subsample)), ]
   }
 

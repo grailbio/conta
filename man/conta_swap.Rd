@@ -23,6 +23,6 @@ than two. Genotype files must contain gt column. Files and labels
 will be paired by index.
 This returns a data frame with two metrics for each pair of samples:
 concordance and call. Call is true if the concordance is less than
-or equal to the concordance threshold. Metrics are only reported 
+or equal to the concordance threshold. Metrics are only reported
 once for each pair of samples.
 }

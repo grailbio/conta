@@ -4,8 +4,8 @@
 \alias{thresholds_by_sens_spec}
 \title{Get sensitivity and specificity at specified levels}
 \usage{
-thresholds_by_sens_spec(roc, specs = c(0.9, 0.95, 0.99, 1),
-  senss = c(0.9, 0.95, 0.99, 1))
+thresholds_by_sens_spec(roc, specs = c(0.9, 0.95, 0.99, 1), senss = c(0.9,
+  0.95, 0.99, 1))
 }
 \arguments{
 \item{roc}{Roc object from `pROC::roc`}
