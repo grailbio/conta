@@ -4,7 +4,8 @@
 \alias{get_source_llr}
 \title{Calculate likelihood ratio based on known source genotypes}
 \usage{
-get_source_llr(gt1, gt2, cf, blackswan = 1e-06, outlier_frac = 0.005)
+get_source_llr(gt1, gt2, cf, blackswan = 1, outlier_frac = 0.005,
+  match_prob = 0.9)
 }
 \arguments{
 \item{gt1}{genotype/variant call table of the host}
@@ -16,6 +17,8 @@ get_source_llr(gt1, gt2, cf, blackswan = 1e-06, outlier_frac = 0.005)
 \item{blackswan}{blackswan term for maximum likelihood}
 
 \item{outlier_frac}{fraction of outliers to remove}
+
+\item{match_prob}{prior probability of contamination}
 }
 \value{
 likelihood ratio from the source

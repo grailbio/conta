@@ -181,25 +181,28 @@ optimize_likelihood <- function(dat, lr_th, save_dir = NA, sample = NA,
 #' @param cf numeric contamination fraction
 #' @param blackswan blackswan term for maximum likelihood
 #' @param outlier_frac fraction of outliers to remove
+#' @param match_prob prior probability of contamination
 #' @return likelihood ratio from the source
 #'
 #' @importFrom stats weighted.mean
 #' @export
-get_source_llr <- function(gt1, gt2, cf, blackswan = 1e-6,
-                          outlier_frac = 0.005) {
+get_source_llr <- function(gt1, gt2, cf, blackswan = 1,
+                           outlier_frac = 0.005, match_prob = 0.9) {
 
   # Merge host with source candidate
   m1 <- merge(gt1, gt2, by = "rsid")
 
   # Prepare data table for conta
-  dat <- data.table(cp = ifelse(m1$gt.x != m1$gt.y, 0.9, 0.1),
+  dat <- data.table(cp = ifelse(m1$gt.x != m1$gt.y, match_prob, 1 - match_prob),
                     gt = m1$gt.x,
                     depth = m1$dp.x,
                     er = m1$er.x,
                     vr = m1$vr.x)
 
-  return(conta_llr(cf = cf, dat = dat, blackswan = blackswan,
-                  outlier_frac = outlier_frac))
+  result <- conta_llr(cf = cf, dat = dat, blackswan = blackswan,
+                      outlier_frac = outlier_frac)
+
+  return(result)
 }
 
 #' Calculate genotype concordance between two samples

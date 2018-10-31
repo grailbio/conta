@@ -84,11 +84,19 @@ test_that("conta source detection run double",  {
     dir.create(dirname(maf_tsv), recursive = TRUE)
     conta::intersect_snps(tsv_file, maf_tsv, dbSNP_file_art, FALSE)
     conta_main(tsv_file = maf_tsv, sample = name, cores = 8,
-               save_dir = dirname(maf_tsv), min_cf = 0.00005, lr_th = 0.05)
+               save_dir = dirname(maf_tsv), min_cf = 0.00005,
+               lr_th = 0.05)
   }
 
+  # Also add an empty conta result
+  empty_out <- paste(out_dir_source_double, "sample1",
+                     "sample1.conta.tsv", sep = "/")
+  dir.create(dirname(empty_out))
+  utils::write.table(empty_result("sample1"), file = empty_out, sep = "\t",
+                     row.names = FALSE, quote = FALSE)
+
   # Run conta source
-  conta_source(base = out_dir_source_double, out_file = out_source_double, cores = 4)
+  conta_source(base = out_dir_source_double, out_file = out_source_double, cores = 1)
 
   expect_true(file.exists(out_source_double))
   result <- read_data_table(out_source_double)

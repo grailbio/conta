@@ -23,9 +23,9 @@ main <- function() {
               help = "specify conta threshold", metavar = "numeric"),
   make_option(c("-w", "--blackswan"), type = "numeric", default = 1,
               help = "black swan term for MLE", metavar = "numeric"),
-  make_option(c("-v", "--outlier_frac"), type = "numeric", default = 0.001,
+  make_option(c("-v", "--outlier_frac"), type = "numeric", default = 0.01,
               help = "fraction of outliers to remove", metavar = "numeric"),
-  make_option(c("-m", "--source_threshold"), type = "numeric", default = 0.001,
+  make_option(c("-m", "--source_threshold"), type = "numeric", default = 0.01,
               help = "specify source threshold", metavar = "numeric"),
   make_option(c("-u", "--cores"), type = "numeric", default = 8,
               help = "cpu cores", metavar = "numeric"))
@@ -43,6 +43,7 @@ main <- function() {
                       threshold = opt$threshold,
                       blackswan = opt$blackswan,
                       outlier_frac = opt$outlier_frac,
+                      source_threshold = opt$source_threshold,
                       cores = opt$cores)
 }
 

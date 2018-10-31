@@ -33,7 +33,7 @@
 #' @export
 conta_source <- function(base, out_file, batch_samples = NA,
                          subfolder = "", threshold = NA, blackswan = 1,
-                         outlier_frac = 0.002, source_threshold = 0.005,
+                         outlier_frac = 0, source_threshold = 0.01,
                          cores = 8) {
 
   options("digits" = 5)
@@ -69,10 +69,16 @@ conta_source <- function(base, out_file, batch_samples = NA,
     paths <- paths[sapply(1:length(paths),
                           function(i) sum(startsWith(paths[i], bs$V1)) > 0)]
   }
-  names <- basename(paths)
+  run_names <- basename(paths)
 
-  lres <- parallel::mclapply(paste(base, paths, subfolder, names, ".conta.tsv",
-                                   sep = ""), read_data_table)
+  # Get all conta results
+  lres <- parallel::mclapply(paste(base, paths, subfolder, run_names,
+                                   ".conta.tsv", sep = ""), read_data_table)
+
+  # Skip results with NA calls, and correct paths and names
+  lres <- lres[unlist(lapply(lres, function(x) {!is.na(x$conta_call)}))]
+  run_names <- unlist(lapply(lres, function(x) x$sample))
+  paths <- paste(run_names, "/", sep = "")
 
   # Re-call if necessary
   if (!is.na(threshold)) {
@@ -83,20 +89,22 @@ conta_source <- function(base, out_file, batch_samples = NA,
   }
 
   # Keep only the same batch smples if batch files variable is specified
-  lgt <- parallel::mclapply(paste(base, paths, subfolder, names, ".gt.loh.tsv",
-                                  sep = ""), read_data_table)
+  lgt <- parallel::mclapply(paste(base, paths, subfolder, run_names,
+                                  ".gt.loh.tsv", sep = ""), read_data_table)
 
   # Define a data.frame for the output, one line for contaminated sample
-  out <- data.frame(name = character(),
-                    cf = numeric(),
-                    source_call = logical(),
-                    avg_maf_lr = numeric(),
-                    best_gt_lr = numeric(),
-                    best_sample = character(),
-                    second_gt_lr = numeric(),
-                    second_sample = character(),
-                    third_gt_lr = numeric(),
-                    third_sample = character())
+  out <- data.frame(
+    conta_version = character(),
+    name = character(),
+    cf = numeric(),
+    source_call = logical(),
+    avg_maf_lr = numeric(),
+    best_gt_lr = numeric(),
+    best_sample = character(),
+    second_gt_lr = numeric(),
+    second_sample = character(),
+    third_gt_lr = numeric(),
+    third_sample = character())
 
   # for each conta result file
   for (i in 1:length(lres)) {
@@ -135,7 +143,7 @@ conta_source <- function(base, out_file, batch_samples = NA,
 
       # Combine and sort the scores
       scores <- unlist(scores)
-      score_df <- data.frame(score = scores, name = names)
+      score_df <- data.frame(score = scores, name = run_names)
       score_df <- score_df[order(score_df$score, decreasing = TRUE), ]
       score_df[is.na(score_df$score), ]$name <- NA
 
@@ -151,12 +159,14 @@ conta_source <- function(base, out_file, batch_samples = NA,
         score_df[1, ]$score > call_thr
 
       # Create base output frame
-      out_this <- data.frame(name = names[i],
-                             cf = cf,
-                             source_call = source_call,
-                             avg_maf_lr = avg_maf_lr,
-                             best_gt_lr = max(score_df[1, ]$score, 0),
-                             best_sample = score_df[1, ]$name)
+      out_this <- data.frame(
+        conta_version = as.character(packageVersion("conta")),
+        name = run_names[i],
+        cf = cf,
+        source_call = source_call,
+        avg_maf_lr = avg_maf_lr,
+        best_gt_lr = max(score_df[1, ]$score, 0),
+        best_sample = score_df[1, ]$name)
 
       # Add second best result if there is a second result
       if (nrow(score_df) >= 2) {
