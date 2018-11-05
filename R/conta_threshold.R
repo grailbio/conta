@@ -271,7 +271,7 @@ fit_sens_by_conta_level <- function(sens_by_level,
   sens_lm <- lm(sensitivity ~ log(conta_level) + I(log(conta_level) ^ 2) + I(log(conta_level) ^ 3),
                 data = sens_by_level)
 
-  prediction_levels <- seq(from = 0.001,
+  prediction_levels <- seq(from = min(sens_by_level$conta_level),
                            to = max(sens_by_level$conta_level),
                            length.out = 100)
   predicted_sens <- predict(sens_lm,
@@ -292,7 +292,7 @@ fit_sens_by_conta_level <- function(sens_by_level,
          col = "red", pch = "X")
   dev.off()
 
-  return(list(lod = lod, model = sens_lm))
+  return(list(lod = lod, sens = sens_lod, model = sens_lm))
 }
 
 
@@ -341,6 +341,12 @@ conta_threshold <- function(sim_data,
                                                        senss = c(0.95, 0.98, 0.99, 1.0))
   sens_spec_by_level <- conta::sens_spec_by_level(sim_data_filt,
                                                   target_specs = c(0.95, 0.98, 0.99, 1.0))
+  # Write out table of sens and spec and thresholds
+  readr::write_tsv(sens_spec_all_data,
+                   file.path(outdir, "sens_spec_all_data.tsv"))
+  # Write out table of sens and spec and thresholds
+  readr::write_tsv(sens_spec_by_level,
+                   file.path(outdir, "sens_spec_by_level.tsv"))
   lods <- tapply(seq_len(nrow(sens_spec_by_level)),
                  sens_spec_by_level$specificity,
                  function(indices) {
@@ -348,23 +354,16 @@ conta_threshold <- function(sim_data,
                    this_spec <- unique(this_data$specificity)
 
                    # Remove levels where sens hit 100% to prevent a bad fit
-                   this_data <- dplyr::filter(this_data, sensitivity < 1.00)
                    plot_out <- file.path(outdir,
                                          sprintf("sens_fit_spec_%0.2f.png",
                                                  this_spec))
-                   lod <- conta::fit_sens_by_conta_level(this_data, plot_out)$lod
-                   return(data.frame(lod = lod,
+                   fit_ret <- conta::fit_sens_by_conta_level(this_data, plot_out)
+                   return(data.frame(lod = fit_ret$lod,
                                      spec = this_spec,
-                                     sens = 0.95))
+                                     sens = fit_ret$sens))
                  })
   lods <- do.call(rbind, lods)
 
-  # Write out table of sens and spec and thresholds
-  readr::write_tsv(sens_spec_all_data,
-                   file.path(outdir, "sens_spec_all_data.tsv"))
-  # Write out table of sens and spec and thresholds
-  readr::write_tsv(sens_spec_by_level,
-                   file.path(outdir, "sens_spec_by_level.tsv"))
 
   # Write out table with lods
   readr::write_tsv(lods,
@@ -382,7 +381,7 @@ conta_threshold <- function(sim_data,
 
   # Box plot of avg llr by conta level
   llr_boxplot <- conta::plot_avg_llr_by_conta(sim_data_filt)
-  png(file.path(opt$out_dir, "boxplot_conta_level.png"),
+  png(file.path(outdir, "boxplot_conta_level.png"),
       height = 800,
       width = 1000,
       res = 144)

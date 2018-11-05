@@ -50,8 +50,8 @@ main <- function() {
   sim_data <- conta::read_sim_results(opt$simulation_input)
   conta::conta_threshold(sim_data,
                          opt$out_dir,
-                         extreme_level = opt$extreme_threshold,
-                         filter_quantile = opt$quantile_threshold,
+                         extreme_thresh = opt$extreme_threshold,
+                         quantile_thresh = opt$quantile_threshold,
                          mad_thresh = opt$mad_threshold)
 }
 
