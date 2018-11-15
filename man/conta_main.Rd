@@ -10,7 +10,7 @@ conta_main(tsv_file, sample, save_dir, metrics_file = "", lr_th = 0.001,
   loh_max_snps = 1000, min_maf = 0.01, subsample = NA,
   cf_correction = 0, min_cf = 1e-04, blackswan = 1,
   outlier_frac = 0.002, tsv_rev_file = NA, cores = 2,
-  context_mode = FALSE, seed = 1359)
+  context_mode = FALSE, chr_y_male_threshold = 5e-04, seed = 1359)
 }
 \arguments{
 \item{tsv_file}{input tsv file}

@@ -49,7 +49,8 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
                        loh_max_snps = 1000, min_maf = 0.01, subsample = NA,
                        cf_correction = 0, min_cf = 0.0001, blackswan = 1,
                        outlier_frac = 0.002, tsv_rev_file = NA,
-                       cores = 2, context_mode = FALSE, seed = 1359) {
+                       cores = 2, context_mode = FALSE,
+                       chr_y_male_threshold = 0.0005, seed = 1359) {
 
   options("digits" = 8)
   options("mc.cores" = cores)
@@ -132,27 +133,31 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
                                 sample, loh = TRUE, blackswan, min_cf,
                                 cf_correction, outlier_frac = outlier_frac)
 
-  # Calculate chr Y counts from metrics file if provided
+  # Calculate chr X and Y counts from metrics file if provided
   chr_y_stats <- chr_stats(metrics_file, "chrY")
-  y_frac <- chr_y_stats$fraction_covered
+  chr_x_stats <- chr_stats(metrics_file, "chrX")
+  x_het_snps <- nrow(dat[gt == "0/1" & (chrom == "X" | chrom == "chrX"), ])
 
-  # A male pregnancy is a female host with lower likelihood on X chr
-  # and Y chr count above expected (expected for female is ~0.002). We do not
-  # currently call a female pregnancy.
-  female_host <- y_frac < 0.2
-  male_contamination <- result$conta_call && y_frac >= 0.005
-  pregnancy <- ifelse(!female_host | !male_contamination, NA,
-                      ifelse(result$pos_lr_x <= (0.7 * result$pos_lr_all),
-                             TRUE, FALSE))
+  # Make a sex/gender call for the host
+  sex <- get_sex_call(chr_y_stats, chr_y_male_threshold, result)
+
+  # Make a pregnancy call for the contaminant
+  pregnancy <- get_pregnancy_call(result, sex,
+                                  chr_y_stats, chr_y_male_threshold)
 
   # Results to be written
   max_result <- data.table(conta_version = packageVersion("conta"),
                            sample = sample,
+                           sex = sex,
                            format(result, digits = 5, trim = TRUE),
                            y_count = round(chr_y_stats$count, 4),
                            y_norm_count = round(chr_y_stats$normalized_count, 6),
-                           y_frac = round(y_frac, 4),
-                           pregnancy = NA,
+                           y_fraction_covered = round(chr_y_stats$fraction_covered, 4),
+                           x_count = round(chr_x_stats$count, 4),
+                           x_norm_count = round(chr_x_stats$normalized_count, 6),
+                           x_fraction_covered = round(chr_x_stats$fraction_covered, 4),
+                           x_het_snps = x_het_snps,
+                           pregnancy = pregnancy,
                            excluded_regions = bin_stats[loh == TRUE, .N],
                            error_rate = round(mean(EE$er), 7),
                            round(t(data.frame(EE$er,

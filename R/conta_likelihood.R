@@ -98,14 +98,14 @@ conta_llr <- function(cf, dat, save_dir = NA, sample = NA,
     }
 
     # Pos lr ratio on X chr tells us whether the contaminant is male or female
-    pos_lr_x <- per_chr[chrom == "chrX", pos_ratio]
+    pos_lr_x <- per_chr[chrom == "X" | chrom == "chrX", pos_ratio]
     pos_cv <- as.numeric(per_chr[, .(sd(pos_ratio, na.rm = TRUE) /
                             mean(pos_ratio, na.rm = TRUE))])
 
     return(data.table( cf = round(cf, 5),
                        sum_log_lr = max(sum_log_lr, 0),
                        avg_log_lr = max(avg_log_lr, 0),
-                       snps = dat[, .N],
+                       hom_snps = dat[, .N],
                        depth = round(dat[, mean(depth)], 0),
                        pos_lr_all = pos_lr_all,
                        pos_lr_x = ifelse(length(pos_lr_x) > 0, pos_lr_x, NA),

@@ -17,9 +17,12 @@ test_that("conta test wgs run with biometrics file", {
   result <- read_data_table(conta_out)
   expect_true(result[, .N] == 1)
   #expect_true(result[, conta_call])
-  expect_equal(result[, y_frac], 0.0016, tolerance = 1e-4)
+  expect_equal(result[, y_fraction_covered], 0.0016, tolerance = 1e-4)
   expect_equal(result[, y_count], 21802, tolerance = 0)
   expect_equal(result[, y_norm_count], 0.00004, tolerance = 1e-5)
+  expect_equal(result[, x_fraction_covered], 0.74, tolerance = 1e-2)
+  expect_equal(result[, x_count], 23445561, tolerance = 0)
+  expect_equal(result[, x_norm_count], 0.040, tolerance = 1e-3)
 
   # run conta on dummy sample with male metrics
   conta_main(wgs_tsv, "wgs", out_dir_wgs, male_metrics_file, cores = 4)
@@ -28,9 +31,12 @@ test_that("conta test wgs run with biometrics file", {
   result <- read_data_table(conta_out)
   expect_true(result[, .N] == 1)
   #expect_true(result[, conta_call])
-  expect_equal(result[, y_frac], 0.2508, tolerance = 1e-3)
+  expect_equal(result[, y_fraction_covered], 0.2508, tolerance = 1e-3)
   expect_equal(result[, y_count], 1717521, tolerance = 0)
   expect_equal(result[, y_norm_count], 0.00181, tolerance = 1e-5)
+  expect_equal(result[, x_fraction_covered], 0.75, tolerance = 1e-2)
+  expect_equal(result[, x_count], 26821414, tolerance = 0)
+  expect_equal(result[, x_norm_count], 0.028, tolerance = 1e-3)
 
   # Check result columns are the same as that for empty results
   expect_equal(colnames(result), colnames(empty_result("wgs")))

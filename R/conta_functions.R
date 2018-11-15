@@ -49,12 +49,12 @@ get_initial_range <- function() {
 empty_result <- function(sample) {
   vals <- list(conta_version = as.character(packageVersion("conta")),
                sample = sample)
-  na_names <- c("conta_call", "cf", "sum_log_lr", "avg_log_lr", "snps", "depth",
-                "pos_lr_all", "pos_lr_x", "pos_lr_chr_cv", "y_count",
-                "y_norm_count", "y_frac", "pregnancy",
-                "excluded_regions", "error_rate",
-                "T>A", "G>A", "C>A", "A>T", "G>T", "C>T",
-                "A>G", "T>G", "C>G", "A>C", "T>C", "G>C")
+  na_names <- c("sex", "conta_call", "cf", "sum_log_lr", "avg_log_lr", "hom_snps",
+                "depth", "pos_lr_all", "pos_lr_x", "pos_lr_chr_cv", "y_count",
+                "y_norm_count", "y_fraction_covered", "x_count", "x_norm_count",
+                "x_fraction_covered", "x_het_snps", "pregnancy",
+                "excluded_regions", "error_rate", "T>A", "G>A", "C>A", "A>T",
+                "G>T", "C>T", "A>G", "T>G", "C>G", "A>C", "T>C", "G>C")
   na_vals <- rep(NA_character_, length(na_names))
   names(na_vals) <- na_names
   empty_result <- do.call(data.table, c(vals, na_vals))
@@ -336,4 +336,80 @@ set_numeric_chrs <- function(dat) {
         TRUE ~ as.numeric(chrom_int))
     )
   return(data.table(datt))
+}
+
+#' Make a sex call for the host
+#'
+#' @section TODO: Add a joint caller for chrX and chrY
+#' @section TODO: Consider adding chrX heterozygous SNP counts to the model
+#' @section TODO: Report sex chromosome aneuploidies
+#'
+#' @param chr_y_stats data frame containing read counts for chrY
+#' @param chr_y_male_threshold threshold to call male on chrY data
+#' @param result data frame with conta results
+#' @param chr_x_stats data frame containing read counts for chrX
+#' @param chr_x_female_threshold threshold to call female on chrX reads
+#' @param ftm female threshold multiplier minimum fraction of chrY reads to call
+#'    This multiplier defines a gray zone for the sex call.
+#' @param cf_threshold contamination fraction to skip sex call in case there
+#'     is a host switch (used only when there are enough chrY reads). i.e if
+#'     both host and contaminant are females, then we can still make a sex call.
+#'
+#' @return sex estimated sex call, i.e. FEMALE, MALE or NO CALL
+#' @export
+get_sex_call <- function(chr_y_stats, chr_y_male_threshold, result,
+                         chr_x_stats = NA, chr_x_female_threshold = NA,
+                         ftm = 0.75, cf_threshold = 0.2) {
+
+  # Base logic:
+  # NO CALL if conta call and cf is >= 10%
+  # MALE if normalized chrY count is more than the threshold
+  # FEMALE if chrY count is less than specified fraction of the threshold
+  # NO CALL otherwise (which is the grey zone, could be lower percentages of
+  # contamination or mosaic aneuploidies)
+  sex <- dplyr::case_when(
+    result$conta_call & (result$cf >= cf_threshold) &
+      chr_y_stats$normalized_count > (ftm * chr_y_male_threshold) ~ "No_call",
+    chr_y_stats$normalized_count >= chr_y_male_threshold ~ "Male",
+    chr_y_stats$normalized_count <= (ftm * chr_y_male_threshold) ~ "Female",
+    TRUE ~ "No_call"
+  )
+
+  return(sex)
+}
+
+#' Make a pregnancy call if there is contamination and host is female
+#'
+#' Pregnancy may be defined as a female host with a contamination call that has
+#' less signal on the X chromosome. In general if the child is a male, there
+#' should be no contamination signal on the X chromosome, presence of Y
+#' fragments, and an overall contamination signal. For a female child, there
+#' should be half the expected contamination signal on the X chromosome, and
+#' no presence of Y fragments.
+#'
+#' @param result data frame with conta results
+#' @param sex estimated sex call for the host
+#' @param chr_y_stats data frame containing read counts for chrY
+#' @param chr_y_male_threshold threshold to call male on chrY data
+#' @param ftm female threshold multiplier minimum fraction of chrY reads to call
+#' @param mpm male pregnancy multiplier minimum fraction conta likelihood
+#'     expected in the case of a male pregnancy
+#' @param fpm female_pregnancy_multiplier minimum fraction conta likelihood
+#'     expected in the case of a female pregnancy
+#' @return pregnancy estimated pregnancy call, i.e. FEMALE, MALE or NA
+#'     (NA is reported in the case of no contamination or host sex not female)
+#' @export
+get_pregnancy_call <- function(result, sex, chr_y_stats, chr_y_male_threshold,
+                               ftm = 0.1, mpm = 0.2, fpm = 0.7) {
+
+  no_X_conta <- result$pos_lr_x <= (mpm * result$pos_lr_all)
+  one_X_conta <- result$pos_lr_x <= (fpm * result$pos_lr_all)
+  observed_Y <- chr_y_stats$normalized_count >= ftm * chr_y_male_threshold
+  pregnancy <- dplyr::case_when(
+    result$conta_call & (sex != "MALE") & no_X_conta & observed_Y ~ "Male",
+    result$conta_call & (sex != "MALE") & one_X_conta & !observed_Y ~ "Female",
+    TRUE ~ "NA"
+  )
+
+  return(pregnancy)
 }
