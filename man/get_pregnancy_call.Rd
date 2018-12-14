@@ -4,8 +4,10 @@
 \alias{get_pregnancy_call}
 \title{Make a pregnancy call if there is contamination and host is female}
 \usage{
-get_pregnancy_call(result, sex, chr_y_stats, chr_y_male_threshold, ftm = 0.1,
-  mpm = 0.2, fpm = 0.7)
+get_pregnancy_call(result, sex, chr_y_stats, chr_y_male_threshold,
+  chr_y_female_baseline = 6 * 10^-6, chr_y_male_baseline = 0.001,
+  conta_variance = 0.75, min_pregnancy_level = 0.2, mpm = 0.2,
+  fpm = 0.6)
 }
 \arguments{
 \item{result}{data frame with conta results}
@@ -16,7 +18,13 @@ get_pregnancy_call(result, sex, chr_y_stats, chr_y_male_threshold, ftm = 0.1,
 
 \item{chr_y_male_threshold}{threshold to call male on chrY data}
 
-\item{ftm}{female threshold multiplier minimum fraction of chrY reads to call}
+\item{chr_y_female_baseline}{expected chrY normalized reads for a female}
+
+\item{chr_y_male_baseline}{expected chrY normalized reads for a male}
+
+\item{conta_variance}{expected variance in case of male contamination}
+
+\item{min_pregnancy_level}{minimum contamination fraction for pregnancy}
 
 \item{mpm}{male pregnancy multiplier minimum fraction conta likelihood
 expected in the case of a male pregnancy}

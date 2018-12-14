@@ -413,3 +413,33 @@ read_sim_results <- function(file) {
 
   return(raw_data)
 }
+
+#' Write genotype file
+#'
+#' Genotypes and contamination metrics for each SNP are useful for different
+#' applications such as contamination source and swap detection.
+#'
+#' @param dat data.table containing counts and metrics per SNP
+#' @param max_result conta result with maximum likelihood
+#' @param blackswan blackswan parameter for likelihood calculation
+#' @param outlier_fract outlier fraction
+#' @param out_file_gt name and location of the output file
+#'
+#' @export
+write_gt_file <- function(dat, max_result, blackswan, outlier_frac,
+                          out_file_gt) {
+  dat$lr <- ifelse(dat$gt == "0/1", NA,
+                   log_lr(dat$cp, dat$depth,
+                          get_exp_cf(as.numeric(max_result$cf)),
+                          dat$er, dat$vr, blackswan))
+  dat$outlier <- ifelse(dat$lr < quantile(dat$lr, 1 - outlier_frac,
+                                          na.rm = TRUE) &
+                          dat$lr > quantile(dat$lr, outlier_frac,
+                                            na.rm = TRUE), 0, 1)
+
+  # Write genotypes and possible contaminant reads
+  gt_sum <- rbind(dat[, .(rsid, chr = chrom, pos, et, maf, cp,
+                          dp = depth, er, gt, vr, lr, outlier)])
+  write.table(format(gt_sum, digits = 6, trim = TRUE), file = out_file_gt,
+              sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+}

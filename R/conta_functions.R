@@ -362,7 +362,7 @@ get_sex_call <- function(chr_y_stats, chr_y_male_threshold, result,
                          ftm = 0.75, cf_threshold = 0.2) {
 
   # Base logic:
-  # NO CALL if conta call and cf is >= 10%
+  # NO CALL if conta call and contamination fraction is high
   # MALE if normalized chrY count is more than the threshold
   # FEMALE if chrY count is less than specified fraction of the threshold
   # NO CALL otherwise (which is the grey zone, could be lower percentages of
@@ -391,7 +391,10 @@ get_sex_call <- function(chr_y_stats, chr_y_male_threshold, result,
 #' @param sex estimated sex call for the host
 #' @param chr_y_stats data frame containing read counts for chrY
 #' @param chr_y_male_threshold threshold to call male on chrY data
-#' @param ftm female threshold multiplier minimum fraction of chrY reads to call
+#' @param chr_y_female_baseline expected chrY normalized reads for a female
+#' @param chr_y_male_baseline expected chrY normalized reads for a male
+#' @param conta_variance expected variance in case of male contamination
+#' @param min_pregnancy_level minimum contamination fraction for pregnancy
 #' @param mpm male pregnancy multiplier minimum fraction conta likelihood
 #'     expected in the case of a male pregnancy
 #' @param fpm female_pregnancy_multiplier minimum fraction conta likelihood
@@ -400,14 +403,21 @@ get_sex_call <- function(chr_y_stats, chr_y_male_threshold, result,
 #'     (NA is reported in the case of no contamination or host sex not female)
 #' @export
 get_pregnancy_call <- function(result, sex, chr_y_stats, chr_y_male_threshold,
-                               ftm = 0.1, mpm = 0.2, fpm = 0.7) {
+                               chr_y_female_baseline = 6 * 10^-6,
+                               chr_y_male_baseline = 0.001,
+                               conta_variance = 0.75,
+                               min_pregnancy_level = 0.2,
+                               mpm = 0.2, fpm = 0.6) {
 
   no_X_conta <- result$pos_lr_x <= (mpm * result$pos_lr_all)
   one_X_conta <- result$pos_lr_x <= (fpm * result$pos_lr_all)
-  observed_Y <- chr_y_stats$normalized_count >= ftm * chr_y_male_threshold
+  observed_Y <- chr_y_stats$normalized_count >= chr_y_female_baseline +
+    conta_variance * result$cf * chr_y_male_baseline
   pregnancy <- dplyr::case_when(
-    result$conta_call & (sex != "MALE") & no_X_conta & observed_Y ~ "Male",
-    result$conta_call & (sex != "MALE") & one_X_conta & !observed_Y ~ "Female",
+    result$conta_call & result$cf >= min_pregnancy_level & (sex != "MALE") &
+      no_X_conta & observed_Y ~ "Male",
+    result$conta_call & result$cf >= min_pregnancy_level & (sex != "MALE") &
+      one_X_conta & !observed_Y ~ "Female",
     TRUE ~ "NA"
   )
 

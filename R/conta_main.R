@@ -145,7 +145,7 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
   pregnancy <- get_pregnancy_call(result, sex,
                                   chr_y_stats, chr_y_male_threshold)
 
-  # Results to be written
+  # Final results table
   max_result <- data.table(conta_version = packageVersion("conta"),
                            sample = sample,
                            sex = sex,
@@ -163,22 +163,15 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
                            round(t(data.frame(EE$er,
                                  row.names = rownames(EE))), digits = 7))
 
-  # Write conta results to file
+  # Write conta results
   write.table(max_result, file = out_file, sep = "\t", row.names = FALSE,
               quote = FALSE)
 
-  # Write genotypes and possible contaminant reads
-  gt_sum <- rbind(dat[, .(rsid, chr = chrom, pos, et, maf, cp,
-                          dp = depth, er, gt, vr)])
-  out_file_gt <- file.path(save_dir, paste(sample, "gt.tsv", sep = "."))
-  write.table(format(gt_sum, digits = 6, trim = TRUE), file = out_file_gt,
-              sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+  # Write genotype files for all SNPs
+  write_gt_file(dat, max_result, blackswan, outlier_frac,
+                file.path(save_dir, paste(sample, "gt.tsv", sep = ".")))
 
-  # Write genotypes and possible contaminant reads
-  gt_sum_loh <- rbind(dat_loh[, .(rsid, chr = chrom, pos, et, maf, cp,
-                                  dp = depth, er, gt, vr)])
-  out_file_gt_loh <- file.path(save_dir, paste(sample, "gt.loh.tsv", sep = "."))
-  write.table(format(gt_sum_loh, digits = 6, trim = TRUE),
-              file = out_file_gt_loh, sep = "\t", col.names = TRUE,
-              row.names = FALSE, quote = FALSE)
+  # Write genotype files for LOH-excluded SNPs
+  write_gt_file(dat_loh, max_result, blackswan, outlier_frac,
+                file.path(save_dir, paste(sample, "gt.loh.tsv", sep = ".")))
 }

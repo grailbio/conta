@@ -74,6 +74,8 @@ main <- function() {
                 help = "input genome fasta file for nucleotide context capture,
                         if provided, conta switches to analyzing errors
                         in tri-nucleotide contexts", metavar = "character"),
+    make_option(c("", "--chr_y"), type = "numeric", default = 0.0005,
+                help = "Chromosome Y normalized read threshold for male calls"),
     make_option(c("", "--seed"), type = "integer", default = 1234,
                 help = "seed for simulations", metavar = "integer"))
 
@@ -141,6 +143,7 @@ main <- function() {
                     outlier_frac = opt$outlier_frac,
                     cores = opt$cores,
                     context_mode = !is.na(opt$fasta),
+                    chr_y_male_threshold = opt$chr_y,
                     seed = opt$seed)
   message(paste("Done."))
 
