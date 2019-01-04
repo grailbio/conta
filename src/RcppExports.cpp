@@ -35,10 +35,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// get_genomic_seqs
+CharacterVector get_genomic_seqs(const char* genome_filename, CharacterVector chrs, NumericVector starts, NumericVector lengths, bool DEBUG);
+RcppExport SEXP _conta_get_genomic_seqs(SEXP genome_filenameSEXP, SEXP chrsSEXP, SEXP startsSEXP, SEXP lengthsSEXP, SEXP DEBUGSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const char* >::type genome_filename(genome_filenameSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type chrs(chrsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type starts(startsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type lengths(lengthsSEXP);
+    Rcpp::traits::input_parameter< bool >::type DEBUG(DEBUGSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_genomic_seqs(genome_filename, chrs, starts, lengths, DEBUG));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_conta_intersect_snps", (DL_FUNC) &_conta_intersect_snps, 6},
     {"_conta_get_genomic_seq", (DL_FUNC) &_conta_get_genomic_seq, 5},
+    {"_conta_get_genomic_seqs", (DL_FUNC) &_conta_get_genomic_seqs, 5},
     {NULL, NULL, 0}
 };
 

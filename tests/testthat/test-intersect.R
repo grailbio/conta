@@ -60,6 +60,21 @@ test_that("Test read genome", {
   expect_true(seq4 == "NNN")
 })
 
+test_that("Test read genome multiple positions", {
+
+  # Note these are 0-based positions, when intersect is running, it does proper
+  # conversion of 1-based to 0-based before calling this function.
+  seqs <- get_genomic_seqs(test_genome, c("1", "1", "1", "1"),
+                           c(-1, 10, 0, 500),
+                           c(3, 5, 3, 3),
+                           FALSE)
+
+  expect_true(seqs[1] == "NNN")
+  expect_true(seqs[2] == "TCACC")
+  expect_true(seqs[3] == "GGG")
+  expect_true(seqs[4] == "NNN")
+})
+
 test_that("Test intersection with context positions", {
 
   conta::intersect_snps(context_tsv, context_out_tsv, dbSNP_file, FALSE,

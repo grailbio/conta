@@ -398,7 +398,7 @@ void intersect_snps(const char* tsv_filename, const char* out_tsv_filename,
       std::cout << "Elapsed seconds: " << elapsed_secs << "\n";
 }
 
-//' Return sequence specified by the chromosome start and end positions
+//' Return sequence specified by the chromosome start and lengths
 //'
 //' @param genome_filename string name of the genome.fa
 //' @param chr chromosome name
@@ -415,8 +415,35 @@ std::string get_genomic_seq(const char* genome_filename = "NA",
                             const int length = 0,
                             bool DEBUG = false) {
 
-  std::shared_ptr<Genome> genome = (std::shared_ptr<Genome>)
-    (new Genome(genome_filename, false));
+  Genome genome(genome_filename, false);
 
-  return(genome->getPos(chr, start, length));
+  return(genome.getPos(chr, start, length));
+}
+
+//' Return sequences specified by the chromosome start and lengths
+//'
+//' @param genome_filename string name of the genome.fa
+//' @param chrs chromosome name
+//' @param starts sequence start base
+//' @param lengths length of sequence
+//' @param DEBUG print out debug messages
+//' @return sequence string
+//'
+//' @export
+// [[Rcpp::export]]
+CharacterVector get_genomic_seqs(const char* genome_filename,
+                                 CharacterVector chrs,
+                                 NumericVector starts,
+                                 NumericVector lengths,
+                                 bool DEBUG = false) {
+
+  Genome genome(genome_filename, false);
+
+  int n = chrs.size();
+  CharacterVector seqs(n);
+
+  for (int i=0; i<n; i++)
+    seqs[i] = genome.getPos((const char *) chrs[i], starts[i], lengths[i]);
+
+  return(seqs);
 }

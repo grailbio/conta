@@ -19,7 +19,7 @@ intersect_snps <- function(tsv_filename, out_tsv_filename, vcf_filename, non_dbS
     invisible(.Call('_conta_intersect_snps', PACKAGE = 'conta', tsv_filename, out_tsv_filename, vcf_filename, non_dbSNP, genome_filename, DEBUG))
 }
 
-#' Return sequence specified by the chromosome start and end positions
+#' Return sequence specified by the chromosome start and lengths
 #'
 #' @param genome_filename string name of the genome.fa
 #' @param chr chromosome name
@@ -31,5 +31,19 @@ intersect_snps <- function(tsv_filename, out_tsv_filename, vcf_filename, non_dbS
 #' @export
 get_genomic_seq <- function(genome_filename = "NA", chr = "NA", start = 0L, length = 0L, DEBUG = FALSE) {
     .Call('_conta_get_genomic_seq', PACKAGE = 'conta', genome_filename, chr, start, length, DEBUG)
+}
+
+#' Return sequences specified by the chromosome start and lengths
+#'
+#' @param genome_filename string name of the genome.fa
+#' @param chrs chromosome name
+#' @param starts sequence start base
+#' @param lengths length of sequence
+#' @param DEBUG print out debug messages
+#' @return sequence string
+#'
+#' @export
+get_genomic_seqs <- function(genome_filename, chrs, starts, lengths, DEBUG = FALSE) {
+    .Call('_conta_get_genomic_seqs', PACKAGE = 'conta', genome_filename, chrs, starts, lengths, DEBUG)
 }
 

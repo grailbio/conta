@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{get_genomic_seq}
 \alias{get_genomic_seq}
-\title{Return sequence specified by the chromosome start and end positions}
+\title{Return sequence specified by the chromosome start and lengths}
 \usage{
 get_genomic_seq(genome_filename = "NA", chr = "NA", start = 0L,
   length = 0L, DEBUG = FALSE)
@@ -22,5 +22,5 @@ get_genomic_seq(genome_filename = "NA", chr = "NA", start = 0L,
 sequence string
 }
 \description{
-Return sequence specified by the chromosome start and end positions
+Return sequence specified by the chromosome start and lengths
 }
