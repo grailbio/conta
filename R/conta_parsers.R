@@ -155,6 +155,35 @@ ratio_and_counts <- function(dat) {
   return(dat)
 }
 
+#' Add bayesian_gt estimate of genotype based upon per-snp error rate and major and
+#' minor allele counts/frequencies.
+#'
+#' @param dat data.table containing counts and metrics per SNP
+#' @return data.table containing counts and metrics per SNP
+bayesian_genotype <- function(dat) {
+  dat <- dat %>%
+    dplyr::rowwise() %>%
+    dplyr:: mutate(hom_ref_prob = dbinom(minor_count,
+                                          size = major_count + minor_count,
+                                          prob = er) * (1-minor_ratio)^2) %>%
+    dplyr::mutate(hom_alt_prob = dbinom(minor_count,
+                                         size = major_count + minor_count,
+                                         prob = 1 - er) * minor_ratio^2) %>%
+    dplyr::mutate(het_prob = dbinom(minor_count,
+                                    size = major_count + minor_count,
+                                    prob = .5) *2*(1-minor_ratio)*(minor_ratio)) %>%
+    dplyr::mutate(total_prob = het_prob + hom_ref_prob + hom_alt_prob) %>%
+    dplyr:: mutate(het_prob = het_prob/total_prob,
+                   hom_alt_prob = hom_alt_prob/total_prob,
+                   hom_ref_prob = hom_ref_prob/total_prob) %>%
+    dplyr::mutate(bayes_gt = c("0/0", "0/1", "1/1")[
+      which(c(hom_ref_prob, het_prob, hom_alt_prob) ==
+              max(c(hom_ref_prob, het_prob, hom_alt_prob)))]) %>%
+    dplyr::select(-total_prob) %>%
+    dplyr::ungroup()
+  return(data.table(dat))
+}
+
 #' Add in more useful columns, annotation and filter sites.
 #'
 #' @param dat data.table containing counts and metrics per SNP
@@ -437,9 +466,16 @@ write_gt_file <- function(dat, max_result, blackswan, outlier_frac,
                           dat$lr > quantile(dat$lr, outlier_frac,
                                             na.rm = TRUE), 0, 1)
 
-  # Write genotypes and possible contaminant reads
-  gt_sum <- rbind(dat[, .(rsid, chr = chrom, pos, et, maf, cp,
-                          dp = depth, er, gt, vr, lr, outlier)])
+  if ("bayes_gt" %in% colnames(dat)) {
+    # Write genotypes and possible contaminant reads
+    gt_sum <- rbind(dat[, .(rsid, chr = chrom, pos, et, maf, cp,
+                            dp = depth, er, gt, bayes_gt, vr, lr, outlier)])
+  }
+  else {
+    # Write genotypes and possible contaminant reads
+    gt_sum <- rbind(dat[, .(rsid, chr = chrom, pos, et, maf, cp,
+                            dp = depth, er, gt, vr, lr, outlier)])
+  }
   write.table(format(gt_sum, digits = 6, trim = TRUE), file = out_file_gt,
               sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 }

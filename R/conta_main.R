@@ -98,6 +98,9 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
   # Remove low maf positions (they were kept for error model calculations)
   dat <- dat[ maf > min_maf & maf < (1 - min_maf), ]
 
+  # Add experimental bayesian genotype estimation.
+  dat <- bayesian_genotype(dat)
+
   # Fail if there is no data, or one of the genotypes is never observed
   fail_test(dat)
 

@@ -38,6 +38,7 @@ dir.create(out_dir_strand, showWarnings = FALSE)
 dir.create(out_dir_context, showWarnings = FALSE)
 
 # Conta input files
+dat_tsv <- sprintf("%s/test.dat.tsv", data_dir)
 wgs_tsv <- sprintf("%s/test.wgs.maf.tsv", data_dir)
 male_metrics_file <- sprintf("%s/test.male.bio-metrics.txt", data_dir)
 female_metrics_file <- sprintf("%s/test.female.bio-metrics.txt", data_dir)

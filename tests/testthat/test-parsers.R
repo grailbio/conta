@@ -71,3 +71,58 @@ test_that("conta test run with no simulation on clean sample", {
   expect_error(read_sim_results("test_sim.tsv"))
   file.remove("test_sim.tsv")
 })
+
+test_that("bayesian genotype concordance with hard-cutoffs", {
+  dat <- readr::read_tsv(dat_tsv)
+  dat <- conta:::bayesian_genotype(dat)
+  expect_true(sum(dat$bayes_gt == dat$gt)/nrow(dat) > 0.98)
+})
+
+
+test_that("bayesian genotype boundary testing.", {
+
+  # Testing upper minor ratio boundary with multiple error rates
+  test1 <- data.frame(major_count = 10, minor_count = 10:200, er = 0.0002)
+  test1 <- test1 %>% mutate(minor_ratio = minor_count/(major_count+minor_count))
+  test1_out <- conta:::bayesian_genotype(test1)
+  # Finding the minimum minor_ratio at which the genotype is called as hom_alt
+  testthat::expect_true(all.equal(test1_out[
+    min(which(test1_out$bayes_gt == "1/1")), ]$minor_ratio, 0.917, 0.001))
+
+  test2 <- data.frame(major_count = 10, minor_count = 10:200, er = 0.0001)
+  test2 <- test2 %>% mutate(minor_ratio = minor_count/(major_count+minor_count))
+  test2_out <- conta:::bayesian_genotype(test2)
+  # Finding the minimum minor_ratio at which the genotype is called as hom_alt
+  testthat::expect_true(all.equal(test2_out[
+    min(which(test2_out$bayes_gt == "1/1")), ]$minor_ratio, 0.924, 0.001))
+
+  test3 <- data.frame(major_count = 10, minor_count = 10:200, er = 0.00001)
+  test3 <- test3 %>% mutate(minor_ratio = minor_count/(major_count+minor_count))
+  test3_out <- conta:::bayesian_genotype(test3)
+  # Finding the minimum minor_ratio at which the genotype is called as hom_alt
+  testthat::expect_true(all.equal(test3_out[
+    min(which(test3_out$bayes_gt == "1/1")), ]$minor_ratio, 0.939, 0.001))
+
+
+  # Testing lower minor ratio boundary with multiple error rates
+  test4 <- data.frame(major_count = 10:200, minor_count = 10, er = 0.0002)
+  test4 <- test4 %>% mutate(minor_ratio = minor_count/(major_count+minor_count))
+  test4_out <- conta:::bayesian_genotype(test4)
+  # Finding the minimum minor_ratio at which the genotype is called as hom_ref
+  testthat::expect_true(all.equal(test4_out[
+    min(which(test4_out$bayes_gt == "0/0")), ]$minor_ratio, 0.083, 0.05))
+
+  test5 <- data.frame(major_count = 10:200, minor_count = 10, er = 0.0001)
+  test5 <- test5 %>% mutate(minor_ratio = minor_count/(major_count+minor_count))
+  test5_out <- conta:::bayesian_genotype(test5)
+  # Finding the minimum minor_ratio at which the genotype is called as hom_ref
+  testthat::expect_true(all.equal(test5_out[
+    min(which(test5_out$bayes_gt == "0/0")), ]$minor_ratio, 0.076, 0.05))
+
+  test6 <- data.frame(major_count = 10:200, minor_count  = 10, er = 0.00001)
+  test6 <- test6 %>% mutate(minor_ratio = minor_count/(major_count+minor_count))
+  test6_out <- conta:::bayesian_genotype(test6)
+  # Finding the minimum minor_ratio at which the genotype is called as hom_ref
+  testthat::expect_true(all.equal(test6_out[
+    min(which(test6_out$bayes_gt == "0/0")), ]$minor_ratio, 0.061, 0.05))
+})
