@@ -233,7 +233,7 @@ plot_depth_by_chr <- function(dat, save_dir, sample, min_depth,
 #' @export
 plot_minor_ratio <- function(dat, dat_loh = NULL,
                              save_dir, sample, ext_plot = "vr.png",
-                             max_snps = 20000, seed = 1) {
+                             max_snps = 50000, seed = 1) {
 
   # Set dat as a subset of dat if it exceeds a pre-determined size
   if (nrow(dat) > max_snps) {
