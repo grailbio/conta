@@ -64,10 +64,11 @@ read_data_table <- function(file, header = TRUE, sep = "\t",
 #'
 #' @param file tsv file containing SNP info for the sample
 #' @param file_rev tsv file containing SNP counts for reverse strand
+#' @param baseline tsv file with blacklist and noise model
 #' @return data.table containing counts and metrics per SNP
 #'
 #' @export
-read_and_prep <- function(file, file_rev = NA) {
+read_and_prep <- function(file, file_rev = NA, baseline = NA) {
 
   dat <- read_data_table(file, stop_if_missing = TRUE)
 
@@ -76,6 +77,20 @@ read_and_prep <- function(file, file_rev = NA) {
   if (!is.na(file_rev)) {
     dat2 <- read_data_table(file_rev, stop_if_missing = TRUE)
     dat <- combine_counts(dat, dat2)
+  }
+
+  # Remove blacklisted SNPs if provided
+  required_columns <- c("blacklist", "rsid")
+  if (!is.null(baseline) && !is.na(baseline) &&
+      all(required_columns %in% colnames(baseline))) {
+    blacklist <- baseline %>%
+      filter(blacklist == TRUE)
+    dat <- dat %>%
+      filter(!rsid %in% blacklist$rsid)
+    dat <- as.data.table(dat)
+  } else if (!is.null(baseline) && !is.na(baseline)) {
+    warning(paste("One of the required columns in baseline file is missing.",
+                  "Required columns:", paste(required_columns, collapse = ", ")))
   }
 
   # Return if data.table is empty
@@ -163,17 +178,17 @@ ratio_and_counts <- function(dat) {
 bayesian_genotype <- function(dat) {
   dat <- dat %>%
     dplyr::rowwise() %>%
-    dplyr:: mutate(hom_ref_prob = dbinom(minor_count,
+    dplyr::mutate(hom_ref_prob = dbinom(minor_count,
                                           size = major_count + minor_count,
-                                          prob = er) * (1-minor_ratio)^2) %>%
+                                          prob = er) * (1 - minor_ratio)^2) %>%
     dplyr::mutate(hom_alt_prob = dbinom(minor_count,
                                          size = major_count + minor_count,
                                          prob = 1 - er) * minor_ratio^2) %>%
     dplyr::mutate(het_prob = dbinom(minor_count,
                                     size = major_count + minor_count,
-                                    prob = .5) *2*(1-minor_ratio)*(minor_ratio)) %>%
+                                    prob = .5) * 2 * (1 - minor_ratio) * (minor_ratio)) %>%
     dplyr::mutate(total_prob = het_prob + hom_ref_prob + hom_alt_prob) %>%
-    dplyr:: mutate(het_prob = het_prob/total_prob,
+    dplyr::mutate(het_prob = het_prob/total_prob,
                    hom_alt_prob = hom_alt_prob/total_prob,
                    hom_ref_prob = hom_ref_prob/total_prob) %>%
     dplyr::mutate(bayes_gt = c("0/0", "0/1", "1/1")[

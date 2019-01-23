@@ -17,7 +17,7 @@
 #' @param sim_level if non-zero, a contaminant at this level will
 #'     be added to the current sample. The contaminant will be randomly
 #'     generated from minor allele frequencies of the SNPs in the population.
-#' @param baseline noise model
+#' @param baseline baseline file for blacklist or noise model
 #' @param min_depth minimum depth for a SNP to be considered
 #' @param max_depth maximum depth for a SNP to be considered
 #' @param loh_lr_cutoff minimum likelihood ratio to call a region as LOH
@@ -65,8 +65,12 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
   write.table(empty_result, file = out_file, sep = "\t", row.names = FALSE,
               quote = FALSE)
 
+  # Read baseline if available
+  if (!is.na(baseline))
+    baseline <- read_data_table(baseline)
+
   # Prep snp counts
-  dat <- read_and_prep(tsv_file, tsv_rev_file)
+  dat <- read_and_prep(tsv_file, tsv_rev_file, baseline)
 
   # Set dat as a subset of dat if it exceeds a pre-determined size
   if (!is.na(subsample) & nrow(dat) > subsample) {

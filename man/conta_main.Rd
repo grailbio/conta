@@ -29,7 +29,7 @@ by the user based on a sensitivity - specificity trade-off.}
 be added to the current sample. The contaminant will be randomly
 generated from minor allele frequencies of the SNPs in the population.}
 
-\item{baseline}{noise model}
+\item{baseline}{baseline file for blacklist or noise model}
 
 \item{min_depth}{minimum depth for a SNP to be considered}
 

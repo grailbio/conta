@@ -28,7 +28,7 @@ filter_data <- function(sim_data,
                         mad_thresh = 3) {
   `%>%` <- dplyr::`%>%`
   if (nrow(dplyr::filter(sim_data, conta_level == 0)) == 0) {
-    warning("WARNING: Can't filter data without 0 contamination level")
+    warning("Can't filter data without 0 contamination level")
   }
   # Drop any samples with super high avg llr with 0 simulated contamination,
   # largely to remove positive controls

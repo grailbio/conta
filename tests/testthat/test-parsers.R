@@ -4,6 +4,56 @@
 
 context("test parsing")
 
+test_that("SNP blacklist is parsed and applied", {
+
+  expect_true(file.exists(error_tsv))
+  dat1 <- read_and_prep(error_tsv)
+
+  # Make a dummy baseline
+  baseline <- data.frame(rsid = sample(dat1$rsid, 5),
+                         blacklist = sample(c(TRUE, FALSE),
+                                            5, replace = TRUE))
+
+  dat2 <- read_and_prep(error_tsv, baseline = baseline)
+
+  expect_equal(nrow(dat1) - sum(baseline$blacklist),
+               nrow(dat2))
+})
+
+test_that("SNP blacklist is malformed", {
+
+  expect_true(file.exists(error_tsv))
+  dat1 <- read_and_prep(error_tsv)
+
+  # Make a dummy baseline
+  baseline <- data.frame(id = sample(dat1$rsid, 5),
+                         blaklis = sample(c(TRUE, FALSE),
+                                            5, replace = TRUE))
+
+  expect_warning(dat2 <- read_and_prep(error_tsv, baseline = baseline))
+
+  expect_equal(nrow(dat1), nrow(dat2))
+})
+
+test_that("Baseline is read from file and blacklist applied", {
+  expect_true(file.exists(error_tsv))
+  expect_true(file.exists(baseline_tsv))
+  dat1 <- read_and_prep(error_tsv)
+  baseline <- read_data_table(baseline_tsv)
+  dat2 <- read_and_prep(error_tsv, baseline = baseline)
+  expect_equal(nrow(dat1) - sum(baseline$blacklist),
+               nrow(dat2))
+})
+
+test_that("Baseline file specified does not exist.", {
+  expect_true(file.exists(error_tsv))
+  dat1 <- read_and_prep(error_tsv)
+  expect_warning(baseline <- read_data_table(paste(baseline_tsv, ".",
+                                                   sep = "")))
+  dat2 <- read_and_prep(error_tsv, baseline = baseline)
+  expect_equal(nrow(dat1), nrow(dat2))
+})
+
 test_that("conta test run with no simulation on clean sample", {
   samples <- paste0("sample", 1:10, "_", rep(c(0, 0.1, 0.5), each = 10))
   avg_log_lr <- rnorm(30)
@@ -79,7 +129,7 @@ test_that("bayesian genotype concordance with hard-cutoffs", {
 })
 
 
-test_that("bayesian genotype boundary testing.", {
+test_that("bayesian genotype boundary testing", {
 
   # Testing upper minor ratio boundary with multiple error rates
   test1 <- data.frame(major_count = 10, minor_count = 10:200, er = 0.0002)
@@ -102,7 +152,6 @@ test_that("bayesian genotype boundary testing.", {
   # Finding the minimum minor_ratio at which the genotype is called as hom_alt
   testthat::expect_true(all.equal(test3_out[
     min(which(test3_out$bayes_gt == "1/1")), ]$minor_ratio, 0.939, 0.001))
-
 
   # Testing lower minor ratio boundary with multiple error rates
   test4 <- data.frame(major_count = 10:200, minor_count = 10, er = 0.0002)

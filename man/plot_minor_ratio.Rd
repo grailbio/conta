@@ -5,7 +5,7 @@
 \title{Plot minor allele ratio sorted by chromosomes}
 \usage{
 plot_minor_ratio(dat, dat_loh = NULL, save_dir, sample, ext_plot = "vr.png",
-  max_snps = 20000, seed = 1)
+  max_snps = 50000, seed = 1)
 }
 \arguments{
 \item{dat}{data.table with snp allele ratio information per locus}

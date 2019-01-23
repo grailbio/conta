@@ -37,7 +37,7 @@ test_that("test filtering data", {
   # Expect warning if no samples with zero simulated contamination
   sim_data$conta_level <- 0.1
   expect_warning(filtered <- filter_data(sim_data, extreme_level = 2.5),
-                 regex = "WARNING: Can't filter data without 0 contamination level")
+                 regex = "Can't filter data without 0 contamination level")
   expect_equal(filtered, sim_data)
 
 })

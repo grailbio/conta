@@ -46,6 +46,7 @@ targeted_tsv <- sprintf("%s/test.targeted.maf.tsv", data_dir)
 # Error input files
 error_tsv <- sprintf("%s/test.error.tsv", data_dir)
 supp_tsv <- sprintf("%s/test.supp.maf.tsv", data_dir)
+baseline_tsv <- sprintf("%s/test.baseline.tsv", data_dir)
 # Intersect input files
 maf_file <- sprintf("%s/test.maf.tsv", out_dir)
 maf_file2 <- sprintf("%s/test.maf2.tsv", out_dir)
