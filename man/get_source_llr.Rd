@@ -5,7 +5,7 @@
 \title{Calculate likelihood ratio based on known source genotypes}
 \usage{
 get_source_llr(gt1, gt2, cf, blackswan = 1, outlier_frac = 0.005,
-  match_prob = 0.9)
+  match_prob = 0.9, detailed_results = FALSE)
 }
 \arguments{
 \item{gt1}{genotype/variant call table of the host}
@@ -19,6 +19,8 @@ get_source_llr(gt1, gt2, cf, blackswan = 1, outlier_frac = 0.005,
 \item{outlier_frac}{fraction of outliers to remove}
 
 \item{match_prob}{prior probability of contamination}
+
+\item{detailed_results}{return likelihood ratios per SNP}
 }
 \value{
 likelihood ratio from the source

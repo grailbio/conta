@@ -60,6 +60,35 @@ read_data_table <- function(file, header = TRUE, sep = "\t",
   }
 }
 
+#' Write a data.table to a given path
+#'
+#' Check if file name starts with s3 or not, use appropriate function to write.
+#'
+#' @param out data to write
+#' @param out_file output file to write to
+#' @param header logical whether to read the header
+#' @param sep the separator
+#' @param ... additional arguments
+#' @return data.table
+#'
+#' @export
+write_data_table <- function(out, out_file, header = TRUE, sep = "\t", ...) {
+  if (startsWith(out_file, "s3")) {
+    if (requireNamespace("grails3r")) {
+      grails3r::write_to_s3(out, out_file, write.table, sep = sep,
+                            row.names = FALSE, col.names = header,
+                            quote = FALSE, ...)
+    } else {
+      s3write_using(out, FUN = write.table, object = out_file, sep = sep,
+                    col.names = header, row.names = FALSE, ...)
+    }
+  } else {
+    write.table(out, out_file, sep = sep, row.names = FALSE,
+                col.names = header, quote = FALSE, ...)
+  }
+}
+
+
 #' Read a counts tsv file and prep it
 #'
 #' @param file tsv file containing SNP info for the sample

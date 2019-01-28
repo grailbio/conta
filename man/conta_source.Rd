@@ -5,7 +5,7 @@
 \title{Run conta source detection}
 \usage{
 conta_source(base, out_file, batch_samples = NA, subfolder = "",
-  threshold = NA, blackswan = 1, outlier_frac = 0,
+  threshold = NA, blackswan = 1, outlier_frac = 0.001,
   source_threshold = 0.01, cores = 8)
 }
 \arguments{

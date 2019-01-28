@@ -40,6 +40,33 @@ log_lr <- function(cp, depth, cf, mu, ad, blackswan = 0.01, limit_lh = 0.01) {
   return(log(lh / lh0))
 }
 
+#' Calculate likelihood ratio for each SNP
+#'
+#' @param cf numeric contamination fraction to be tested
+#' @param dat data.table containing counts and metrics per SNP, hets filtered
+#' @param blackswan blackswan term for maximum likelihood
+#' @param outlier_frac fraction of outliers to remove
+#' @param het_rate ratio of heterozygote to homozygote alt contaminant SNPs
+#'
+#' @return numeric avg. log-likelihood ratio for the given cf for each SNP
+#'
+#' @importFrom stats quantile weighted.mean sd
+#' @export
+get_lr <- function(cf, dat, blackswan = 0.05, outlier_frac = 0.005,
+                   het_rate = 0.8) {
+
+  # Remove het genotype and calculate log likelihood ratio for each SNP
+  dat <- dat[gt != "0/1"]
+  dat$lr <- log_lr(dat$cp, dat$depth, get_exp_cf(cf, het_rate = het_rate),
+                   dat$er, dat$vr, blackswan)
+
+  # Remove outliers
+  dat <- dat[lr < quantile(lr, 1 - outlier_frac) &
+               lr > quantile(lr, outlier_frac)]
+
+  return(dat)
+}
+
 #' Conta log likelihood ratio
 #'
 #' @param cf numeric contamination fraction to be tested
@@ -61,13 +88,7 @@ conta_llr <- function(cf, dat, save_dir = NA, sample = NA,
                       het_rate = 0.8) {
 
   # Likelihood for each SNP to be contaminated at cf level
-  dat <- dat[gt != "0/1"]
-  dat$lr <- log_lr(dat$cp, dat$depth, get_exp_cf(cf, het_rate = het_rate),
-                   dat$er, dat$vr, blackswan)
-
-  # Remove outliers
-  dat <- dat[lr < quantile(lr, 1 - outlier_frac) &
-               lr > quantile(lr, outlier_frac)]
+  dat <- get_lr(cf, dat, blackswan, outlier_frac, het_rate)
 
   # Calculate average likelihoods of contamination per SNP per depth
   if (is.na(save_dir) | is.na(sample)) {
@@ -182,27 +203,34 @@ optimize_likelihood <- function(dat, lr_th, save_dir = NA, sample = NA,
 #' @param blackswan blackswan term for maximum likelihood
 #' @param outlier_frac fraction of outliers to remove
 #' @param match_prob prior probability of contamination
+#' @param detailed_results return likelihood ratios per SNP
+#'
 #' @return likelihood ratio from the source
 #'
 #' @importFrom stats weighted.mean
 #' @export
 get_source_llr <- function(gt1, gt2, cf, blackswan = 1,
-                           outlier_frac = 0.005, match_prob = 0.9) {
+                           outlier_frac = 0.005, match_prob = 0.9,
+                           detailed_results = FALSE) {
 
   # Merge host with source candidate
   m1 <- merge(gt1, gt2, by = "rsid")
 
   # Prepare data table for conta
-  dat <- data.table(cp = ifelse(m1$gt.x != m1$gt.y, match_prob, 1 - match_prob),
+  dat <- data.table(rsid = m1$rsid,
+                    cp = ifelse(m1$gt.x != m1$gt.y, match_prob, 1 - match_prob),
                     gt = m1$gt.x,
                     depth = m1$dp.x,
                     er = m1$er.x,
                     vr = m1$vr.x)
 
-  result <- conta_llr(cf = cf, dat = dat, blackswan = blackswan,
-                      outlier_frac = outlier_frac)
-
-  return(result)
+  if (detailed_results) {
+    return(get_lr(cf = cf, dat = dat, blackswan = blackswan,
+                  outlier_frac = outlier_frac))
+  } else {
+    return(conta_llr(cf = cf, dat = dat, blackswan = blackswan,
+                     outlier_frac = outlier_frac))
+  }
 }
 
 #' Calculate genotype concordance between two samples

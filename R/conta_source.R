@@ -33,7 +33,7 @@
 #' @export
 conta_source <- function(base, out_file, batch_samples = NA,
                          subfolder = "", threshold = NA, blackswan = 1,
-                         outlier_frac = 0, source_threshold = 0.01,
+                         outlier_frac = 0.001, source_threshold = 0.01,
                          cores = 8) {
 
   options("digits" = 5)
@@ -89,8 +89,11 @@ conta_source <- function(base, out_file, batch_samples = NA,
   }
 
   # Keep only the same batch smples if batch files variable is specified
-  lgt <- parallel::mclapply(paste(base, paths, subfolder, run_names,
-                                  ".gt.loh.tsv", sep = ""), read_data_table)
+  gt_files <- paste(base, paths, subfolder, run_names,
+                    ".gt.loh.tsv", sep = "")
+  gt_source_files <- paste(dirname(out_file), "/", run_names,
+                           ".gt.loh.source.tsv", sep = "")
+  lgt <- parallel::mclapply(gt_files, read_data_table)
 
   # Define a data.frame for the output, one line for contaminated sample
   out <- data.frame(
@@ -141,11 +144,12 @@ conta_source <- function(base, out_file, batch_samples = NA,
         return(get_source_llr(gt1, gt2, cf, blackswan, outlier_frac))
         })
 
-      # Combine and sort the scores
+      # Combine and sort the scores, remove self results
       scores <- unlist(scores)
       score_df <- data.frame(score = scores, name = run_names)
       score_df <- score_df[order(score_df$score, decreasing = TRUE), ]
       score_df[is.na(score_df$score), ]$name <- NA
+      score_df <- score_df[!is.na(score_df$name), ]
 
       # Make a source contamination call
       # Requirements are:
@@ -165,39 +169,64 @@ conta_source <- function(base, out_file, batch_samples = NA,
         cf = cf,
         source_call = source_call,
         avg_maf_lr = avg_maf_lr,
-        best_gt_lr = max(score_df[1, ]$score, 0),
-        best_sample = score_df[1, ]$name)
+        best_gt_lr = NA,
+        best_sample = NA,
+        second_gt_lr = NA,
+        second_sample = NA,
+        third_gt_lr = NA,
+        third_sample = NA)
+
+      # Create genotype lr frame, copy of original data at first
+      gtm <- lgt[[i]]
+
+      if (nrow(score_df) >= 1) {
+        out_this$best_gt_lr <- max(score_df[1, ]$score, 0)
+        out_this$best_sample <- score_df[1, ]$name
+        dat1 <- get_source_llr(gt1,
+                               lgt[[which(run_names == score_df[1, ]$name)]],
+                               cf, blackswan, outlier_frac,
+                               detailed_results = TRUE)
+        dat1s <- dat1[, c("rsid", "lr")] %>%
+          dplyr::mutate(source_lr1 = lr) %>%
+          dplyr::select(-lr)
+        gtm <- merge(gtm, dat1s, by = "rsid", all.x = TRUE)
+      }
 
       # Add second best result if there is a second result
       if (nrow(score_df) >= 2) {
         out_this$second_gt_lr <- max(score_df[2, ]$score, 0)
         out_this$second_sample <- score_df[2, ]$name
+        dat2 <- get_source_llr(gt1,
+                               lgt[[which(run_names == score_df[2, ]$name)]],
+                               cf, blackswan, outlier_frac,
+                               detailed_results = TRUE)
+        dat2s <- dat2[, c("rsid", "lr")] %>%
+          dplyr::mutate(source_lr2 = lr) %>%
+          dplyr::select(-lr)
+        gtm <- merge(gtm, dat2s, by = "rsid", all.x = TRUE)
       }
 
       # Add third best result if there is a third result
-      if (nrow(score_df) >= 2) {
+      if (nrow(score_df) >= 3) {
         out_this$third_gt_lr <- max(score_df[3, ]$score, 0)
         out_this$third_sample <- score_df[3, ]$name
+        dat3 <- get_source_llr(gt1,
+                               lgt[[which(run_names == score_df[3, ]$name)]],
+                               cf, blackswan, outlier_frac,
+                               detailed_results = TRUE)
+        dat3s <- dat3[, c("rsid", "lr")] %>%
+          dplyr::mutate(source_lr3 = lr) %>%
+          dplyr::select(-lr)
+        gtm <- merge(gtm, dat3s, by = "rsid", all.x = TRUE)
       }
 
       # Merge this sample's result with overall results
       out <- rbind(out, out_this)
-
+      write_data_table(gtm, gt_source_files[i])
     }
   }
 
   out <- format(out, digits = 3, trim = TRUE)
 
-  if (startsWith(base, "s3")) {
-    if (requireNamespace("grails3r")) {
-      grails3r::write_to_s3(out, out_file, write.table, sep = "\t",
-                            row.names = FALSE, col.names = TRUE, quote = FALSE)
-    } else {
-      s3write_using(out, FUN = write.table, object = out_file, sep = "\t",
-                    row.names = FALSE)
-    }
-  } else {
-    write.table(out, out_file, sep = "\t", row.names = FALSE, col.names = TRUE,
-                quote = FALSE)
-  }
+  write_data_table(out, out_file)
 }

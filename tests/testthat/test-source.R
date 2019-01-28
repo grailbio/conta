@@ -19,11 +19,13 @@ test_that("conta source detection run",  {
     dir.create(dirname(maf_tsv), recursive = TRUE)
     conta::intersect_snps(tsv_file, maf_tsv, dbSNP_file_art, FALSE)
     conta_main(tsv_file = maf_tsv, sample = name, cores = 8,
-               save_dir = dirname(maf_tsv), min_cf = 0.00005, lr_th = 0.05)
+               save_dir = dirname(maf_tsv), min_cf = 0.00005,
+               outlier_frac = 0.001, lr_th = 0.05)
   }
 
   # Run conta source
-  conta_source(base = out_dir_source, out_file = out_source, cores = 4)
+  conta_source(base = out_dir_source, out_file = out_source,
+               outlier_frac = 0.001, cores = 4)
 
   expect_true(file.exists(out_source))
   result <- read_data_table(out_source)
@@ -32,6 +34,28 @@ test_that("conta source detection run",  {
   expect_equal(sum(result[2:5, source_call]), 4)
   expect_equal(sum(result[2:5, best_sample] == "170410_cfdna_100T_34795B_1"), 4)
 
+  # Check if source files exist
+  for (tsv_file in source_tsvs) {
+
+    name <- basename(gsub(".subset.collapsed.nobaq.tsv", "", tsv_file))
+    sfile <- paste(dirname(out_source), "/", name, ".gt.loh.source.tsv",
+                   sep = "")
+    expect_true(file.exists(sfile))
+    sresult <- read_data_table(sfile)
+    sind <- which(result$name == name)
+    if (!is.na(result[sind]$best_sample)) {
+      expect_true("source_lr1" %in% colnames(sresult))
+      expect_true(!is.na(mean(sresult$source_lr1, na.rm = TRUE)))
+    }
+    if (!is.na(result[sind]$second_sample)) {
+      expect_true("source_lr2" %in% colnames(sresult))
+      expect_true(!is.na(mean(sresult$source_lr2, na.rm = TRUE)))
+    }
+    if (!is.na(result[sind]$third_sample)) {
+      expect_true("source_lr3" %in% colnames(sresult))
+      expect_true(!is.na(mean(sresult$source_lr3, na.rm = TRUE)))
+    }
+  }
   call_mt <- 0.005
   expect_true(result[1, best_gt_lr] < call_mt + result[1, avg_maf_lr])
   expect_true(result[2, best_gt_lr] > call_mt + result[2, avg_maf_lr])
@@ -55,11 +79,13 @@ test_that("conta source detection run single",  {
     dir.create(dirname(maf_tsv), recursive = TRUE)
     conta::intersect_snps(tsv_file, maf_tsv, dbSNP_file_art, FALSE)
     conta_main(tsv_file = maf_tsv, sample = name, cores = 8,
-               save_dir = dirname(maf_tsv), min_cf = 0.00005, lr_th = 0.05)
+               save_dir = dirname(maf_tsv), min_cf = 0.00005,
+               outlier_frac = 0.001, lr_th = 0.05)
   }
 
   # Run conta source
-  conta_source(base = out_dir_source_single, out_file = out_source_single, cores = 4)
+  conta_source(base = out_dir_source_single, out_file = out_source_single,
+               outlier_frac = 0.001, cores = 4)
 
   expect_true(file.exists(out_source_single))
   result <- read_data_table(out_source_single)
@@ -85,7 +111,7 @@ test_that("conta source detection run double",  {
     conta::intersect_snps(tsv_file, maf_tsv, dbSNP_file_art, FALSE)
     conta_main(tsv_file = maf_tsv, sample = name, cores = 8,
                save_dir = dirname(maf_tsv), min_cf = 0.00005,
-               lr_th = 0.05)
+               outlier_frac = 0.001, lr_th = 0.05)
   }
 
   # Also add an empty conta result
@@ -96,7 +122,8 @@ test_that("conta source detection run double",  {
                      row.names = FALSE, quote = FALSE)
 
   # Run conta source
-  conta_source(base = out_dir_source_double, out_file = out_source_double, cores = 1)
+  conta_source(base = out_dir_source_double, out_file = out_source_double,
+               outlier_frac = 0.001, cores = 1)
 
   expect_true(file.exists(out_source_double))
   result <- read_data_table(out_source_double)
