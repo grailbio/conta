@@ -291,10 +291,6 @@ annotate_and_filter <- function(dat, het_limit = 0.25, min_other_ratio = 0.15,
   # Remove low and high depth
   dat <- dat[ !is.na(depth) & depth >= min_depth & depth <= max_depth, ]
 
-  # Remove depth outliers
-  dat <- dat[depth <= quantile(depth, 1 - out_frac)
-             & depth >= quantile(depth, out_frac), ]
-
   # Add chunks
   dat <- add_chunks(dat)
 
