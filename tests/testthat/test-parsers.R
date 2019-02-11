@@ -128,6 +128,12 @@ test_that("bayesian genotype concordance with hard-cutoffs", {
   expect_true(sum(dat$bayes_gt == dat$gt)/nrow(dat) > 0.98)
 })
 
+test_that("specify precision testing", {
+  y <- c("1.1234", "-1.1234", "13123.1111")
+  expected <- c("1.123", "-1.123", "13123.111")
+  actual <- conta:::specify_precision(y, 3)
+  expect_true(all.equal(actual, expected))
+})
 
 test_that("bayesian genotype boundary testing", {
 

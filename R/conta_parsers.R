@@ -519,3 +519,17 @@ write_gt_file <- function(dat, max_result, blackswan, outlier_frac,
   write.table(format(gt_sum, digits = 6, trim = TRUE), file = out_file_gt,
               sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 }
+
+#' Returns character list of provided precision
+#' 
+#' This function takes in a given numeric data.frame column, rounds it to the 
+#' provided precision and returns back the values as a character list
+#' 
+#' @param x numeric data.frame or numeric data.frame column
+#' @param precision numeric int for decimal place to round to
+#' 
+#' @export
+specify_precision <- function(x, precision){
+  format(round(as.numeric(x), precision), nsmall = precision,
+         trim = TRUE, scientific =  FALSE)
+}

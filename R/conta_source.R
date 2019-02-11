@@ -34,9 +34,7 @@
 conta_source <- function(base, out_file, batch_samples = NA,
                          subfolder = "", threshold = NA, blackswan = 1,
                          outlier_frac = 0.001, source_threshold = 0.01,
-                         cores = 8) {
-
-  options("digits" = 5)
+                         cores = 8, precision = 3) {
   options("mc.cores" = cores)
 
   # Add slash to the end of base if it wasn' specified
@@ -166,14 +164,14 @@ conta_source <- function(base, out_file, batch_samples = NA,
       out_this <- data.frame(
         conta_version = as.character(packageVersion("conta")),
         name = run_names[i],
-        cf = cf,
+        cf = as.numeric(cf),
         source_call = source_call,
-        avg_maf_lr = avg_maf_lr,
-        best_gt_lr = NA,
+        avg_maf_lr = as.numeric(avg_maf_lr),
+        best_gt_lr = as.numeric(NA),
         best_sample = NA,
-        second_gt_lr = NA,
+        second_gt_lr = as.numeric(NA),
         second_sample = NA,
-        third_gt_lr = NA,
+        third_gt_lr = as.numeric(NA),
         third_sample = NA)
 
       # Create genotype lr frame, copy of original data at first
@@ -187,7 +185,7 @@ conta_source <- function(base, out_file, batch_samples = NA,
                                cf, blackswan, outlier_frac,
                                detailed_results = TRUE)
         dat1s <- dat1[, c("rsid", "lr")] %>%
-          dplyr::mutate(source_lr1 = lr) %>%
+          dplyr::mutate(source_lr1 = specify_precision(lr, precision)) %>%
           dplyr::select(-lr)
         gtm <- merge(gtm, dat1s, by = "rsid", all.x = TRUE)
       }
@@ -201,7 +199,7 @@ conta_source <- function(base, out_file, batch_samples = NA,
                                cf, blackswan, outlier_frac,
                                detailed_results = TRUE)
         dat2s <- dat2[, c("rsid", "lr")] %>%
-          dplyr::mutate(source_lr2 = lr) %>%
+          dplyr::mutate(source_lr2 = specify_precision(lr, precision)) %>%
           dplyr::select(-lr)
         gtm <- merge(gtm, dat2s, by = "rsid", all.x = TRUE)
       }
@@ -215,18 +213,44 @@ conta_source <- function(base, out_file, batch_samples = NA,
                                cf, blackswan, outlier_frac,
                                detailed_results = TRUE)
         dat3s <- dat3[, c("rsid", "lr")] %>%
-          dplyr::mutate(source_lr3 = lr) %>%
+          dplyr::mutate(source_lr3 = specify_precision(lr, precision)) %>%
           dplyr::select(-lr)
         gtm <- merge(gtm, dat3s, by = "rsid", all.x = TRUE)
       }
 
+      # Remove het snps and arrange rsid in ascending numeric order
+      gtm <- gtm %>%
+        filter(gt != "0/1") %>%
+        dplyr::mutate(id = as.numeric(stringr::str_replace(rsid, "rs", ""))) %>%
+        dplyr::arrange(id) %>%
+        dplyr::select(-id)
+
+      # Add NA likelihoods for missing values
+      if (!("source_lr1" %in% colnames(gtm))) {
+        gtm <- gtm %>% dplyr::mutate(source_lr1 = NA)
+      }
+      if (!("source_lr2" %in% colnames(gtm))) {
+        gtm <- gtm %>% dplyr::mutate(source_lr2 = NA)
+      }
+      if (!("source_lr3" %in% colnames(gtm))) {
+        gtm <- gtm %>% dplyr::mutate(source_lr3 = NA)
+      }
+
       # Merge this sample's result with overall results
       out <- rbind(out, out_this)
+
+      gtm <- gtm %>%
+        dplyr::mutate(cp = specify_precision(cp, precision))
       write_data_table(gtm, gt_source_files[i])
     }
   }
 
-  out <- format(out, digits = 3, trim = TRUE)
-
+  # Format output precision
+  out <- as.data.frame(out) %>%
+    dplyr::mutate(cf = specify_precision(cf, precision)) %>%
+    dplyr::mutate(avg_maf_lr = specify_precision(avg_maf_lr, precision)) %>%
+    dplyr::mutate(best_gt_lr = specify_precision(best_gt_lr, precision)) %>%
+    dplyr::mutate(second_gt_lr = specify_precision(second_gt_lr, precision)) %>%
+    dplyr::mutate(third_gt_lr = specify_precision(third_gt_lr, precision))
   write_data_table(out, out_file)
 }
