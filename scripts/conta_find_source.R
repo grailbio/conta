@@ -23,7 +23,7 @@ main <- function() {
               help = "specify conta threshold", metavar = "numeric"),
   make_option(c("-w", "--blackswan"), type = "numeric", default = 1,
               help = "black swan term for MLE", metavar = "numeric"),
-  make_option(c("-v", "--outlier_frac"), type = "numeric", default = 0.01,
+  make_option(c("-q", "--outlier_frac"), type = "numeric", default = 0.01,
               help = "fraction of outliers to remove", metavar = "numeric"),
   make_option(c("-m", "--source_threshold"), type = "numeric", default = 0.01,
               help = "specify source threshold", metavar = "numeric"),
