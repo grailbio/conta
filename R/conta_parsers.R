@@ -204,6 +204,8 @@ ratio_and_counts <- function(dat) {
 #'
 #' @param dat data.table containing counts and metrics per SNP
 #' @return data.table containing counts and metrics per SNP
+#'
+#' @export
 bayesian_genotype <- function(dat) {
   dat <- dat %>%
     dplyr::rowwise() %>%
@@ -217,12 +219,12 @@ bayesian_genotype <- function(dat) {
                                     size = major_count + minor_count,
                                     prob = .5) * 2 * (1 - minor_ratio) * (minor_ratio)) %>%
     dplyr::mutate(total_prob = het_prob + hom_ref_prob + hom_alt_prob) %>%
-    dplyr::mutate(het_prob = het_prob/total_prob,
-                   hom_alt_prob = hom_alt_prob/total_prob,
-                   hom_ref_prob = hom_ref_prob/total_prob) %>%
-    dplyr::mutate(bayes_gt = c("0/0", "0/1", "1/1")[
+    dplyr::mutate(het_prob = ifelse(total_prob == 0, 0, het_prob/total_prob),
+                   hom_alt_prob = ifelse(total_prob == 0, 0, hom_alt_prob/total_prob),
+                   hom_ref_prob = ifelse(total_prob == 0, 0, hom_ref_prob/total_prob)) %>%
+    dplyr::mutate(bayes_gt = ifelse(total_prob == 0, gt, c("0/0", "0/1", "1/1")[
       which(c(hom_ref_prob, het_prob, hom_alt_prob) ==
-              max(c(hom_ref_prob, het_prob, hom_alt_prob)))]) %>%
+              max(c(hom_ref_prob, het_prob, hom_alt_prob)))[1]])) %>%
     dplyr::select(-total_prob) %>%
     dplyr::ungroup()
   return(data.table(dat))
@@ -521,13 +523,13 @@ write_gt_file <- function(dat, max_result, blackswan, outlier_frac,
 }
 
 #' Returns character list of provided precision
-#' 
-#' This function takes in a given numeric data.frame column, rounds it to the 
+#'
+#' This function takes in a given numeric data.frame column, rounds it to the
 #' provided precision and returns back the values as a character list
-#' 
+#'
 #' @param x numeric data.frame or numeric data.frame column
 #' @param precision numeric int for decimal place to round to
-#' 
+#'
 #' @export
 specify_precision <- function(x, precision){
   format(round(as.numeric(x), precision), nsmall = precision,

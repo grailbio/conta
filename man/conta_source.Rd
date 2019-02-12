@@ -6,7 +6,7 @@
 \usage{
 conta_source(base, out_file, batch_samples = NA, subfolder = "",
   threshold = NA, blackswan = 1, outlier_frac = 0.001,
-  source_threshold = 0.01, cores = 8)
+  source_threshold = 0.01, cores = 8, precision = 3)
 }
 \arguments{
 \item{base}{character base directory with a batch of conta results}
