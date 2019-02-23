@@ -511,12 +511,13 @@ write_gt_file <- function(dat, max_result, blackswan, outlier_frac,
   if ("bayes_gt" %in% colnames(dat)) {
     # Write genotypes and possible contaminant reads
     gt_sum <- rbind(dat[, .(rsid, chr = chrom, pos, et, maf, cp,
-                            dp = depth, er, gt, bayes_gt, vr, lr, outlier)])
+                            dp = depth, er, gt, bayes_gt, vr, minor_ratio,
+                            lr, outlier)])
   }
   else {
     # Write genotypes and possible contaminant reads
     gt_sum <- rbind(dat[, .(rsid, chr = chrom, pos, et, maf, cp,
-                            dp = depth, er, gt, vr, lr, outlier)])
+                            dp = depth, er, gt, vr, minor_ratio, lr, outlier)])
   }
   write.table(format(gt_sum, digits = 6, trim = TRUE), file = out_file_gt,
               sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
