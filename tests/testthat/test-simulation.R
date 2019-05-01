@@ -127,3 +127,45 @@ test_that("conta test run with simulation 20 percent", {
   expect_true(result[, conta_call])
   expect_equal(result[, cf], 0.2, tolerance = 3e-2)
 })
+
+test_that("conta test run with simulation 30 percent", {
+
+  expect_true(file.exists(sim_file))
+
+  # run conta on dummy sample
+  conta_main(sim_file, "sim_30perc", out_dir_sim, sim_level = 0.3, cores = 8)
+  conta_out <- file.path(out_dir_sim, "sim_30perc.conta.tsv")
+  expect_true(file.exists(conta_out))
+  result <- read_data_table(conta_out)
+  expect_true(result[, .N] == 1)
+  expect_true(result[, conta_call])
+  expect_equal(result[, cf], 0.3, tolerance = 3e-1)
+})
+
+test_that("conta test run with simulation 40 percent", {
+
+  expect_true(file.exists(sim_file))
+
+  # run conta on dummy sample
+  conta_main(sim_file, "sim_40perc", out_dir_sim, sim_level = 0.4, cores = 8)
+  conta_out <- file.path(out_dir_sim, "sim_40perc.conta.tsv")
+  expect_true(file.exists(conta_out))
+  result <- read_data_table(conta_out)
+  expect_true(result[, .N] == 1)
+  expect_true(result[, conta_call])
+  expect_equal(result[, cf], 0.4, tolerance = 3e-1)
+})
+
+test_that("conta test run with simulation 50 percent", {
+
+  expect_true(file.exists(sim_file))
+
+  # run conta on dummy sample
+  conta_main(sim_file, "sim_50perc", out_dir_sim, sim_level = 0.5, cores = 8)
+  conta_out <- file.path(out_dir_sim, "sim_50perc.conta.tsv")
+  expect_true(file.exists(conta_out))
+  result <- read_data_table(conta_out)
+  expect_true(result[, .N] == 1)
+  expect_true(result[, conta_call])
+  expect_equal(result[, cf], 0.5, tolerance = 3e-1)
+})

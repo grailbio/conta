@@ -22,6 +22,8 @@
 #' @param max_depth maximum depth for a SNP to be considered
 #' @param loh_lr_cutoff minimum likelihood ratio to call a region as LOH
 #' @param loh_delta_cutoff minimum delta (het deviation) to call a region as LOH
+#' @param loh_auto_delta_cutoff minimum delta to call a region automatically,
+#'     without looking at contamination likelihood, as LOH
 #' @param loh_min_snps minimum number of SNPs in a region to consider LOH
 #' @param loh_max_snps maxmimum number of SNPs in a region to use for LOH, if
 #'     there are more SNPs, they are subsampled to this number
@@ -45,8 +47,9 @@
 conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
                        lr_th = 0.001, sim_level = 0, baseline = NA,
                        min_depth = 10, max_depth = 10000, loh_lr_cutoff = 0.01,
-                       loh_delta_cutoff = 0.3, loh_min_snps = 20,
-                       loh_max_snps = 1000, min_maf = 0.01, subsample = NA,
+                       loh_delta_cutoff = 0.3, loh_auto_delta_cutoff = 0.4,
+                       loh_min_snps = 20, loh_max_snps = 1000,
+                       min_maf = 0.01, subsample = NA,
                        cf_correction = 0, min_cf = 0.0001, blackswan = 1,
                        outlier_frac = 0.002, tsv_rev_file = NA,
                        cores = 2, context_mode = FALSE,
@@ -118,7 +121,8 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
                                blackswan = blackswan,
                                min_loh = loh_delta_cutoff,
                                min_snps = loh_min_snps,
-                               max_snps = loh_max_snps)
+                               max_snps = loh_max_snps,
+                               min_auto_loh = loh_auto_delta_cutoff)
   dat_loh <- exclude_high_loh_regions(dat, bin_stats)
 
   # TODO: Re-calculate substitution rates after LOH exclusion

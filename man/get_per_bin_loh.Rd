@@ -5,7 +5,7 @@
 \title{Calculate per bin (large chromosomal segments) stats}
 \usage{
 get_per_bin_loh(dat, save_dir, sample, min_lr, blackswan, min_loh = 0.15,
-  min_snps = 20, max_snps = 200, seed = 1359)
+  min_snps = 20, max_snps = 200, min_auto_loh = 0.4, seed = 1359)
 }
 \arguments{
 \item{dat}{data.table containing counts and metrics per SNP}

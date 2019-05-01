@@ -160,7 +160,7 @@ pg <- function(gt, maf) {
 #' @export
 get_per_bin_loh <- function(dat, save_dir, sample, min_lr, blackswan,
                             min_loh = 0.15, min_snps = 20, max_snps = 200,
-                            seed = 1359) {
+                            min_auto_loh = 0.4, seed = 1359) {
 
   results <- data.table(chrom = character(), chunk = numeric(),
                         snps = numeric(),
@@ -203,8 +203,9 @@ get_per_bin_loh <- function(dat, save_dir, sample, min_lr, blackswan,
                           loh_val = loh_opt$objective,
                           cont_mle = cont_opt$maximum,
                           cont_val = cont_opt$objective,
-                          loh = loh_opt$objective > cont_opt$objective &
-                            loh_opt$objective > min_lr)
+                          loh = (loh_opt$maximum >= min_auto_loh ||
+                                   (loh_opt$objective > cont_opt$objective &
+                                      loh_opt$objective > min_lr)))
     } else {
 
       dfres <- data.table(chrom = combs[i, 1], chunk = combs[i, 2],
