@@ -1,9 +1,11 @@
 Package: conta
 Title: Detect cross-contamination
-Version: 0.9.13
+Version: 0.9.14
 Authors@R: as.person(c(
     "Onur Sakarya <osakarya@grailbio.com> [aut, cre]", 
-    "TaeHyung Simon Kim <tkim@grailbio.com> [aut]"
+    "TaeHyung Simon Kim <tkim@grailbio.com> [aut]",
+    "Christopher Yakym <cyakym@grailbio.com> [aut]",
+    "Robert Calef <rcalef@grailbio.com> [aut]"
   ))
 Description: Detect contamination from sequencing data. 
     Input data comes in the format of pileup tsv files. Population minor allele

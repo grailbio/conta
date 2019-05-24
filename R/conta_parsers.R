@@ -536,3 +536,40 @@ specify_precision <- function(x, precision){
   format(round(as.numeric(x), precision), nsmall = precision,
          trim = TRUE, scientific =  FALSE)
 }
+
+#' Read in and parse 1000G vcf
+#'
+#' Reads in 1000G vcf file. Parses 'INFO' column into their own columns.
+#' Filters out MNVs (multiple nucleotide variants), Indels, SNPs with no RSID,
+#' and INFO columns of unexpected order.
+#'
+#' @param vcf 1000 genomes vcf
+#' @return Data frame of parsed vcf
+#' @importFrom dplyr filter %>%
+#'
+#' @export
+parse_1000g_vcf <- function(vcf) {
+
+  single_bases <- conta::get_bases()
+
+  # Read in 1000g vcf
+  parsed_vcf <- conta::read_data_table(vcf,
+                                       skip = "CHROM")
+
+  # Parse INFO field, filter, and rename CHROM column
+  parsed_vcf <- tidyr::separate(data = parsed_vcf, col = INFO,
+                                into = c("AC", "AF", "AN", "NS", "DP", "EAS_AF",
+                                         "AMR_AF", "AFR_AF", "EUR_AF", "SAS_AF"),
+                                sep = ";",
+                                extra = "drop") %>%
+    dplyr::rename("chr" = 1,
+                  "rsid" = 3) %>%
+    dplyr::filter(REF %in% single_bases,
+                  ALT %in% single_bases,
+                  !rsid == ".")
+
+  # Remove all non-numeric characters from new columns and change to numeric
+  parsed_vcf[, 8:17] <- lapply(parsed_vcf[, 8:17], function(x) as.numeric(gsub("[^0-9.]", "", x)))
+  parsed_vcf <- parsed_vcf %>% tidyr::drop_na(AC) ## drop SNPs with no allele counts
+  return(parsed_vcf)
+}
