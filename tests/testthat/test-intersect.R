@@ -17,6 +17,19 @@ test_that("Test intersection of tsv and dbSNP to generate tsv", {
   expect_true(maf$maf[3] == round(0.02276, 4))
 })
 
+test_that("Test intersection of tsv and 1000G to generate tsv", {
+
+  conta::intersect_snps(tsv_file, maf_file_1000G, SNP_1000G_file, FALSE)
+
+  expect_true(file.exists(maf_file_1000G))
+
+  maf <- read.table(maf_file_1000G, header = TRUE, stringsAsFactors = FALSE)
+  expect_true(nrow(maf) == 3)
+  expect_true(maf$maf[1] == 0.00159744, 4)
+  expect_true(maf$maf[2] == 0.000798722, 4)
+  expect_true(maf$maf[3] == 0.000199681, 4)
+})
+
 test_that("Test intersection of pileup and dbSNP to generate tsv", {
 
   conta::intersect_snps(pileup_file, maf_file2, dbSNP_file, FALSE)

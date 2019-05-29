@@ -68,14 +68,17 @@ class VcfRecord {
     } else {
       int afStart = info.find("AF=");
 
-      if (afStart == -1) {
-        int afEnd = info.find(',', afStart);
+      if (afStart != -1) {
+        int afEnd = info.find(';', afStart);
         // Since we skipped multi-allelic it is guaranteed there is only one MAF.
         if (afEnd != -1) {
-          MAF = atof(info.substr(afStart, afEnd).c_str());
+          MAF = atof(info.substr(afStart+3, afEnd-afStart-3).c_str());
         } else {
-          MAF = atof(info.substr(afStart).c_str());
+          MAF = atof(info.substr(afStart+3).c_str());
         }
+      } else {
+        std::cerr << "CAF or AF field not found for VCF line: " << line << "\n";
+        exit(EXIT_FAILURE);
       }
     }
 

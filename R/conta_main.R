@@ -125,14 +125,6 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
                                min_auto_loh = loh_auto_delta_cutoff)
   dat_loh <- exclude_high_loh_regions(dat, bin_stats)
 
-  # TODO: Re-calculate substitution rates after LOH exclusion
-  # Note this requires SNPs removed from analyses after LOH removal and
-  # re-calculation of error rates. Perhaps give up on visualization without
-  # LOH filters (because that step would be costly with all the SNPs)
-  #EE <- calculate_error_model(dat_loh, save_dir, sample,
-  #  context_mode = context_mode)
-  #dat <- add_error_rates(dat_loh, EE, context_mode)
-
   # Plot minor allele ratio plot (.vr) with LOH
   plot_minor_ratio(dat, dat_loh, save_dir, sample)
 
