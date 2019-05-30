@@ -133,13 +133,13 @@ get_snp_likelihoods <- function(snp_intersect) {
 #' Second, calculates log likelihoods, and then log likelihood per chromosome.
 #' Third, applies ethnicity priors to the likelihood values to generate the
 #' posterior likelihoods. Lastly, calculates the P(data) and apply it to the posterior
-#' likelihoods to generate the postier probabilities per chromosome.
+#' likelihoods to generate the posterior probabilities per chromosome.
 #'
 #' @param initial_snp_likelihoods Data frame of the initial likelihoods per
 #'                                snp per 1000G populations by
 #'                                'get_snp_likelihoods()'
 #' @return Data frame with the log likelihoods per chromosome
-#' @importFrom dplyr mutate group_by summarise select transmute arrange rename
+#' @importFrom dplyr mutate group_by summarise select transmute arrange rename row_number
 #' @importFrom tidyr gather
 #'
 #' @export
@@ -157,7 +157,7 @@ calculate_ranked_predictions <- function(initial_snp_likelihoods) {
   # Takes the sum of the log likelihoods per ethnicity per chromosome
   ll_chr <- ll %>%
     dplyr::group_by(chr) %>%
-    dplyr::summarise(n = n(),
+    dplyr::summarise(n_snps = dplyr::row_number(),
                      EAS = sum(EAS_ll),
                      AMR = sum(AMR_ll),
                      AFR = sum(AFR_ll),
@@ -167,7 +167,7 @@ calculate_ranked_predictions <- function(initial_snp_likelihoods) {
   # Capture the number of snps per chromosome so we know how much data was used
   # to generate these probabilities
   snps_per_chr <- ll_chr %>%
-    dplyr::select(chr, n)
+    dplyr::select(chr, n_snps)
 
   # Calculate exp(sum(log(P(Data|Ethnicity)))) * P(Ethnicity) per chromosome.
   # Read in ethnicity priors from CCG1, exponentiate the log likelihoods and
@@ -197,17 +197,27 @@ calculate_ranked_predictions <- function(initial_snp_likelihoods) {
                      South_Asian = (SAS/prob_data))
 
   probs_per_chr_final <- cbind(snps_per_chr, probs_per_chr)
-  probs_per_chr_final$chr <- factor(probs_per_chr_final$chr, levels = c(1:22, "X"))
+  probs_per_chr_final$chr <- factor(probs_per_chr_final$chr, levels = c(1:22))
 
-  # rank ethnicity predictions per chromosome
-  ranked_predictions <- probs_per_chr_final %>%
-    dplyr::select(-n) %>%
+  # Rank ethnicity predictions per chromosome
+  pre_ranked_predictions <- probs_per_chr_final %>%
+    dplyr::select(-n_snps) %>%
     tidyr::gather(column, value, -chr) %>%
     dplyr::group_by(chr) %>%
     dplyr::mutate(pred_rank = rank(-value)) %>%
     dplyr::arrange(pred_rank, as.numeric(chr)) %>%
     dplyr::rename("ethnicity" = 2,
                   "probability" = 3)
+
+  # Join SNPs per chromosome to ranked predictions data frame. This allows better
+  # for better diagnostics through understanding how much power (SNPs) went into
+  # calculating ethnicity probabilities per chromosome.
+  pre_ranked_predictions$chr <- as.character(pre_ranked_predictions$chr)
+  ranked_predictions <- dplyr::left_join(snps_per_chr,
+                                         pre_ranked_predictions,
+                                         by = "chr") %>%
+    dplyr::arrange(pred_rank)
+
   return(ranked_predictions)
 }
 
@@ -254,7 +264,7 @@ conta_ethnicity <- function(gt_loh_file_loc,
                             vcf,
                             outdir){
 
-  parsed_vcf <- conta::parse_1000g_vcf(vcf)
+  parsed_vcf <- conta::parse_1000g_vcf(vcf, remove_sex_chr = TRUE)
 
   prepped_vcf <- conta::prep_1000g_vcf_af(parsed_vcf)
 

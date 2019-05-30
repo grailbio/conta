@@ -544,11 +544,13 @@ specify_precision <- function(x, precision){
 #' and INFO columns of unexpected order.
 #'
 #' @param vcf 1000 genomes vcf
+#' @param remove_sex_chr Defaults to FALSE, meaning sex chromosomes will not be
+#'                       filtered out. If 'TRUE' sex chromosomes will be removed
 #' @return Data frame of parsed vcf
 #' @importFrom dplyr filter %>%
 #'
 #' @export
-parse_1000g_vcf <- function(vcf) {
+parse_1000g_vcf <- function(vcf, remove_sex_chr = FALSE) {
 
   single_bases <- conta::get_bases()
 
@@ -567,6 +569,11 @@ parse_1000g_vcf <- function(vcf) {
     dplyr::filter(REF %in% single_bases,
                   ALT %in% single_bases,
                   !rsid == ".")
+
+  if (remove_sex_chr == TRUE) {
+    parsed_vcf <- parsed_vcf %>%
+      dplyr::filter(!chr %in% c("X", "Y"))
+    }
 
   # Remove all non-numeric characters from new columns and change to numeric
   parsed_vcf[, 8:17] <- lapply(parsed_vcf[, 8:17], function(x) as.numeric(gsub("[^0-9.]", "", x)))

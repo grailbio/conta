@@ -5,8 +5,9 @@
 context("test functions for ethnicity prediction")
 
 test_that("test reading in and parsing vcf", {
-  # Load in test vcf and parse. Test vcf file has 10 SNPs per chromosome.
-  parsed_vcf <- parse_1000g_vcf(vcf = "./test_data/test.vcf")
+  # Load in test vcf and parse. Test vcf file has 10 SNPs per chromosome with
+  # setting the removal of sex chromosomes to 'TRUE'.
+  parsed_vcf <- parse_1000g_vcf(vcf = "./test_data/test.vcf", remove_sex_chr = TRUE)
 
   # Expect test vcf's "INFO" column to be split into 10 separate columns,
   # making the parsed_vcf file have 17 columns.
@@ -17,16 +18,29 @@ test_that("test reading in and parsing vcf", {
                                                "EAS_AF", "AMR_AF", "AFR_AF",
                                                "EUR_AF", "SAS_AF"))
 
+  # Expect all X and Y chromosome SNPs to be filtered out because the
+  # 'parse_1000g_vcf' function when 'remove_sex_chr' is set to TRUE,
+  # removes both sex chromosomes
+  expect_equal(0, nrow(parsed_vcf %>% dplyr::filter(chr %in% c("X", "Y"))))
+
+  # Because all Y chromosomes are filtered out, expect 220 rows.
+  # Rows in test.vcf (240) - X & Y chromosome rows (20) = 220.
+  expect_equal(dim(parsed_vcf)[1], 220)
+
+  # There should be no NAs in any column
+  expect_equal(FALSE, unique(apply(parsed_vcf, 2, function(x) any(is.na(x)))))
+
+  # Load in test vcf and parse. Test vcf file has 10 SNPs per chromosome with
+  # setting the removal of sex chromosomes to 'FALSE'.
+  parsed_vcf <- parse_1000g_vcf(vcf = "./test_data/test.vcf", remove_sex_chr = FALSE)
+
   # Expect all Y chromosome SNPs to be filtered out due to its INFO column
   # having an unexpected ordering of information.
   expect_equal(0, nrow(parsed_vcf %>% dplyr::filter(chr == "Y")))
 
-  # Because all Y chromosomes are filtered out, expect 230 rows.
-  # Rows in test.vcf (240) - Y chromosome rows (10) = 230.
-  expect_equal(dim(parsed_vcf)[1], 230)
-
-  # There should be no NAs in any column
-  expect_equal(FALSE, unique(apply(parsed_vcf, 2, function(x) any(is.na(x)))))
+  # All of chromosome Y was already filtered out due to incorrect ordering of
+  # information, however all 10 SNPs on the X chromosome should remain.
+  expect_equal(10, nrow(parsed_vcf %>% dplyr::filter(chr == "X")))
 })
 
 test_that("test bounding of allele frequencies", {
