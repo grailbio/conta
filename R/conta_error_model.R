@@ -8,14 +8,14 @@
 #' @param save.dir character location to save the results
 #' @param default_error_rate if absolutely no errors are observed in the data,
 #'     use this number as the error rate
-#' @param sample character sample name
+#' @param filename_prefix file name prefix
 #' @param context_mode whether to run in context mode
 #'
 #' @return data.frame with error model
 #'
 #' @importFrom utils write.table
 #' @export
-calculate_error_model <- function(dat, save.dir = NA, sample = NA,
+calculate_error_model <- function(dat, save.dir = NA, filename_prefix = NA,
                                   default_error_rate = 1e-5,
                                   context_mode = FALSE) {
 
@@ -120,9 +120,9 @@ calculate_error_model <- function(dat, save.dir = NA, sample = NA,
     EE[is.na(EE$er), ]$er <- mean(EE$er, na.rm = TRUE)
   }
 
-  # Write error model to file if save.dir and sample are specified
-  if (!is.na(save.dir) && !is.na(sample)) {
-    error.file <- file.path(save.dir, paste(sample, "error.tsv", sep = "."))
+  # Write error model to file if save.dir and filename_prefix are specified
+  if (!is.na(save.dir) && !is.na(filename_prefix)) {
+    error.file <- file.path(save.dir, paste(filename_prefix, "error.tsv", sep = "."))
     write.table(format(EE, digits = 5, trim = TRUE), file = error.file,
                 sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
   }

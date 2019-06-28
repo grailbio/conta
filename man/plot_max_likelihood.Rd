@@ -4,7 +4,7 @@
 \alias{plot_max_likelihood}
 \title{Plot log likelihoods and mark the top score}
 \usage{
-plot_max_likelihood(cf_range, grid_lr, opt_val, save_dir, sample)
+plot_max_likelihood(cf_range, grid_lr, opt_val, save_dir, filename_prefix)
 }
 \arguments{
 \item{cf_range}{range of contamination fraction}
@@ -15,7 +15,7 @@ plot_max_likelihood(cf_range, grid_lr, opt_val, save_dir, sample)
 
 \item{save_dir}{location to save the results}
 
-\item{sample}{sample name}
+\item{filename_prefix}{file name prefix}
 }
 \value{
 none

@@ -43,12 +43,11 @@ get_initial_range <- function() {
 }
 
 #' Return an empty results table to output when quitting early
-#' @param sample sample name
 #' @importFrom utils packageVersion
 #' @export
-empty_result <- function(sample) {
+empty_result <- function(sample.id = "") {
   vals <- list(conta_version = as.character(packageVersion("conta")),
-               sample = sample)
+               sample = sample.id)
   na_names <- c("sex", "conta_call", "cf", "sum_log_lr", "avg_log_lr", "hom_snps",
                 "depth", "pos_lr_all", "pos_lr_x", "pos_lr_chr_cv", "y_count",
                 "y_norm_count", "y_fraction_covered", "x_count", "x_norm_count",
@@ -58,6 +57,9 @@ empty_result <- function(sample) {
   na_vals <- rep(NA_character_, length(na_names))
   names(na_vals) <- na_names
   empty_result <- do.call(data.table, c(vals, na_vals))
+  if (sample.id == "") {
+    empty_result[, sample := NULL]
+  }
   return(empty_result)
 }
 

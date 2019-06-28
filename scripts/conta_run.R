@@ -29,7 +29,7 @@ main <- function() {
     make_option(c("-c", "--dbSNP_rev_file"), type = "character", default = NULL,
                 help = "input vcf file from rev dbSNP", metavar = "character"),
     make_option(c("-s", "--sample"), type = "character", default = "test",
-                help = "sample name to prefix out", metavar = "character"),
+                help = "Sample ID / file name to prefix out", metavar = "character"),
     make_option(c("-l", "--lr_th"), type = "numeric", default = 0.001,
                 help = "Likelihood ratio threshold", metavar = "numeric"),
     make_option(c("-m", "--sim_level"), type = "numeric", default = 0,
@@ -85,6 +85,8 @@ main <- function() {
 
   opt_parser <- OptionParser(option_list = option_list);
   opt <- parse_args(opt_parser);
+  filename_prefix <- opt$sample
+  sample_id       <- opt$sample
 
   if (is.null(opt$tsv_file) | is.null(opt$dbSNP_file)) {
     print_help(opt_parser)
@@ -95,7 +97,7 @@ main <- function() {
   dir.create(opt$save_dir, showWarnings = FALSE)
 
   # Intersect counts file with dbSNP
-  maf_file <- paste(opt$save_dir, "/", opt$sample, ".maf.tsv", sep = "")
+  maf_file <- paste(opt$save_dir, "/", filename_prefix, ".maf.tsv", sep = "")
 
   if (file.exists(maf_file)) {
     # File is already interesected, skip it
@@ -108,7 +110,7 @@ main <- function() {
 
   # Intersect counts with minus strand counts if provided
   if (!is.null(opt$tsv_rev_file) & !is.null(opt$dbSNP_rev_file)) {
-    maf_file2 <- paste(opt$save_dir, "/", opt$sample, ".maf.rev.tsv", sep = "")
+    maf_file2 <- paste(opt$save_dir, "/", filename_prefix, ".maf.rev.tsv", sep = "")
 
     if (file.exists(maf_file2)) {
       # File is already interesected, skip it
@@ -127,7 +129,7 @@ main <- function() {
   message(paste("Starting conta"))
   conta::conta_main(tsv_file = maf_file,
                     tsv_rev_file = maf_file2,
-                    sample = opt$sample,
+                    sample_id = sample_id,
                     save_dir = opt$save_dir,
                     metrics_file = opt$biometrics_file,
                     lr_th = opt$lr_th,

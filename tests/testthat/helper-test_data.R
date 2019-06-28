@@ -4,22 +4,23 @@
 
 # Global variables used by tests (helper-* files are loaded by testthat)
 
-data_dir <- "test_data"
-in_dir_source <- paste(data_dir, "source_test", sep = "/")
-in_dir_source_single <- paste(data_dir, "source_test_single", sep = "/")
-in_dir_source_double <- paste(data_dir, "source_test_double", sep = "/")
-out_dir <- "test_output"
-out_dir_wgs <- "test_output/wgs"
-out_dir_targeted <- "test_output/targeted"
-out_dir_sim <- "test_sim"
-out_dir_source <- "test_source"
-out_source <- paste(out_dir_source, "source.tsv", sep = "/")
-out_dir_source_single <- "test_source_single"
-out_source_single <- paste(out_dir_source_single, "source.tsv", sep = "/")
-out_dir_source_double <- "test_source_double"
-out_source_double <- paste(out_dir_source_double, "source.tsv", sep = "/")
-out_dir_strand <- "test_strand"
-out_dir_context <- "test_output/context"
+base_out_dir <- "."
+data_dir              <- file.path(base_out_dir, "test_data")
+in_dir_source         <- file.path(data_dir, "source_test")
+in_dir_source_single  <- file.path(data_dir, "source_test_single")
+in_dir_source_double  <- file.path(data_dir, "source_test_double")
+out_dir               <- file.path(base_out_dir, "test_output")
+out_dir_wgs           <- file.path(out_dir, "wgs")
+out_dir_targeted      <- file.path(out_dir, "targeted")
+out_dir_sim           <- file.path(base_out_dir, "test_sim")
+out_dir_source        <- file.path(base_out_dir, "test_source")
+out_source            <- file.path(out_dir_source, "source.tsv")
+out_dir_source_single <- file.path(base_out_dir, "test_source_single")
+out_source_single     <- file.path(out_dir_source_single, "source.tsv")
+out_dir_source_double <- file.path(base_out_dir, "test_source_double")
+out_source_double     <- file.path(out_dir_source_double, "source.tsv")
+out_dir_strand        <- file.path(base_out_dir, "test_strand")
+out_dir_context       <- file.path(out_dir, "context")
 
 # Remove existing test output directories
 unlink(out_dir, recursive = TRUE)

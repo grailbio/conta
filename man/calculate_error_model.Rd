@@ -4,7 +4,7 @@
 \alias{calculate_error_model}
 \title{Calculate error model}
 \usage{
-calculate_error_model(dat, save.dir = NA, sample = NA,
+calculate_error_model(dat, save.dir = NA, filename_prefix = NA,
   default_error_rate = 1e-05, context_mode = FALSE)
 }
 \arguments{
@@ -13,7 +13,7 @@ alleles (0/0 and 1/1). Het alleles should have already been removed.}
 
 \item{save.dir}{character location to save the results}
 
-\item{sample}{character sample name}
+\item{filename_prefix}{file name prefix}
 
 \item{default_error_rate}{if absolutely no errors are observed in the data,
 use this number as the error rate}

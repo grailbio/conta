@@ -4,8 +4,8 @@
 \alias{simulate_loh_conta}
 \title{Simulate LOH and/or contamination}
 \usage{
-simulate_loh_conta(n, min_maf, dp_min, dp_max, er_min, er_max, delta, alpha,
-  seed = 1359)
+simulate_loh_conta(n, min_maf, dp_min, dp_max, er_min, er_max, delta,
+  alpha, seed = 1359)
 }
 \arguments{
 \item{n}{number of SNPs to simulate}

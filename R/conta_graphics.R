@@ -12,7 +12,7 @@
 #' @param grid_lr initial grid that was searched
 #' @param opt_val optimized result
 #' @param save_dir location to save the results
-#' @param sample sample name
+#' @param filename_prefix file name prefix
 #'
 #' @return none
 #'
@@ -20,9 +20,9 @@
 #' @importFrom graphics abline plot
 #' @importFrom utils capture.output
 #' @export
-plot_max_likelihood <- function(cf_range, grid_lr, opt_val, save_dir, sample) {
+plot_max_likelihood <- function(cf_range, grid_lr, opt_val, save_dir, filename_prefix) {
 
-  out_file <- file.path(save_dir, paste(sample, "likelihood.png", sep = "."))
+  out_file <- file.path(save_dir, paste(filename_prefix, "likelihood.png", sep = "."))
   png(filename = out_file, width = 1280, height = 720)
   cf_range <- c(cf_range, opt_val$maximum)
   grid_lr <- c(grid_lr, opt_val$objective)[order(cf_range)]
@@ -30,7 +30,7 @@ plot_max_likelihood <- function(cf_range, grid_lr, opt_val, save_dir, sample) {
   plot(cf_range, grid_lr, log = "x", las = 2, type = "b",
        ylab = "average log-likelihood ratio",
        xlab = "contamination level",
-       main = paste(sample, "cf_est =", round(opt_val$maximum, 5)),
+       main = paste("cf_est =", round(opt_val$maximum, 5)),
        cex.main = 1.25, cex.lab = 1.25, cex.axis = 1.25)
   abline(v = opt_val$maximum, lwd = 2, col = "red", lty = 2)
   abline(h = opt_val$objective, lwd = 2, col = "red", lty = 2)
@@ -40,7 +40,7 @@ plot_max_likelihood <- function(cf_range, grid_lr, opt_val, save_dir, sample) {
 #' Calculate a set of likelihood metrics across SNPs
 #'
 #' @param save_dir folder location to write files and plots
-#' @param sample name of the sample
+#' @param filename_prefix file name prefix
 #' @param dat data.table with likelihood information per locus
 #' @param per_chr data.table with per chromosome metrics
 #' @param ext_chr_table extension for per chr output table
@@ -52,22 +52,22 @@ plot_max_likelihood <- function(cf_range, grid_lr, opt_val, save_dir, sample) {
 #' @importFrom grDevices dev.off png
 #' @importFrom utils write.table
 #' @export
-plot_lr <- function(save_dir, sample, dat, per_chr,
+plot_lr <- function(save_dir, filename_prefix, dat, per_chr,
                     ext_chr_table = "per_chr.tsv",
                     ext_loh_table = "per_bin.tsv",
                     ext_loh_plot = "bin.lr.png") {
 
   # Write per_chr results to file
-  per_chr_file <- file.path(save_dir, paste(sample, ext_chr_table, sep = "."))
+  per_chr_file <- file.path(save_dir, paste(filename_prefix, ext_chr_table, sep = "."))
   write.table(format(per_chr, digits = 4, trim = TRUE),
               file = paste(per_chr_file),
               sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 
   # Plot sorted log-likelihoods to see whether there are one or two platoes
-  plot_vfn_cp(dat, save_dir, sample)
+  plot_vfn_cp(dat, save_dir, filename_prefix)
 
   # Generate plots per bin
-  plot_lr_per_bin(dat, save_dir, sample,
+  plot_lr_per_bin(dat, save_dir, filename_prefix,
                   ext_table = ext_loh_table,
                   ext_plot = ext_loh_plot)
 }
@@ -77,7 +77,7 @@ plot_lr <- function(save_dir, sample, dat, per_chr,
 #'
 #' @param dat data.table with likelihood information per locus
 #' @param save_dir folder to write out the results
-#' @param sample sample name to put in filename and plot title
+#' @param filename_prefix file name prefix
 #' @param min_maf_plot minimum allele frequency used to filter SNPs
 #' @param max_snps max number of SNPs to plot
 #' @param seed random seed
@@ -87,10 +87,10 @@ plot_lr <- function(save_dir, sample, dat, per_chr,
 #' @importFrom grDevices dev.off png
 #' @importFrom utils capture.output
 #' @export
-plot_vfn_cp <- function(dat, save_dir, sample, min_maf_plot = 0.01,
+plot_vfn_cp <- function(dat, save_dir, filename_prefix, min_maf_plot = 0.01,
                         max_snps = 10000, seed = 1359) {
 
-  png(file.path(save_dir, paste(sample, "vfn.cp.png", sep = ".")),
+  png(file.path(save_dir, paste(filename_prefix, "vfn.cp.png", sep = ".")),
       width = 1280, height = 720)
 
   # Set dat as a subset of dat if it exceeds a pre-determined size
@@ -128,7 +128,7 @@ plot_vfn_cp <- function(dat, save_dir, sample, min_maf_plot = 0.01,
 #' The goal is to find localized inconcistencies
 #' @param dat data.table with likelihood information per locus
 #' @param save_dir folder to write out the results
-#' @param sample sample name to put in filename and plot title
+#' @param filename_prefix file name prefix
 #' @param ext_table extension for the table output
 #' @param ext_plot extension for the figure output
 #' @return none
@@ -137,7 +137,7 @@ plot_vfn_cp <- function(dat, save_dir, sample, min_maf_plot = 0.01,
 #' @importFrom utils capture.output
 #' @importFrom utils write.table
 #' @export
-plot_lr_per_bin <- function(dat, save_dir, sample,
+plot_lr_per_bin <- function(dat, save_dir, filename_prefix,
                             ext_table = "per_bin.tsv",
                             ext_plot = "bin.lr.png") {
 
@@ -150,12 +150,12 @@ plot_lr_per_bin <- function(dat, save_dir, sample,
                                 vr = mean(vr, na.rm = TRUE)),
                  by = .(chrom, chunk)]
 
-  per_bin_file <- file.path(save_dir, paste(sample, ext_table, sep = "."))
+  per_bin_file <- file.path(save_dir, paste(filename_prefix, ext_table, sep = "."))
   write.table(format(per_bin, digits = 4, trim = TRUE),
               file = paste(per_bin_file),
               sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 
-  png(file.path(save_dir, paste(sample, ext_plot, sep = ".")),
+  png(file.path(save_dir, paste(filename_prefix, ext_plot, sep = ".")),
       width = 1280, height = 720)
 
   p <- ggplot(per_bin, aes(chunk, avg_lr, colour = chrom))
@@ -175,7 +175,7 @@ plot_lr_per_bin <- function(dat, save_dir, sample,
 #' The goal is to find depth ups and downs
 #' @param dat data.table with likelihood information per locus
 #' @param save_dir folder to write out the results
-#' @param sample sample name to put in filename and plot title
+#' @param filename_prefix file name prefix
 #' @param min_depth minimum depth to visualize
 #' @param ext_plot extension for the figure output
 #' @param max_snps limit to specified number of SNPs for faster plotting
@@ -186,11 +186,11 @@ plot_lr_per_bin <- function(dat, save_dir, sample,
 #' @importFrom grDevices dev.off png
 #' @importFrom utils capture.output
 #' @export
-plot_depth_by_chr <- function(dat, save_dir, sample, min_depth,
+plot_depth_by_chr <- function(dat, save_dir, filename_prefix, min_depth,
                               ext_plot = "depth.png", max_snps = 10000,
                               seed = 1359) {
 
-  png(file.path(save_dir, paste(sample, ext_plot, sep = ".")),
+  png(file.path(save_dir, paste(filename_prefix, ext_plot, sep = ".")),
       width = 1280, height = 720)
 
   if (dat[, .N] > 0 && dat[depth >= min_depth, .N] > 0) {
@@ -221,7 +221,7 @@ plot_depth_by_chr <- function(dat, save_dir, sample, min_depth,
 #' @param dat data.table with snp allele ratio information per locus
 #' @param dat_loh data.table with snp allele ratio information with LOH removed
 #' @param save_dir folder to write out the results
-#' @param sample sample name to put in filename and plot title
+#' @param filename_prefix file name prefix
 #' @param ext_plot extension for the figure output
 #' @param max_snps maximum number of points to plot
 #' @param seed random seed
@@ -232,7 +232,7 @@ plot_depth_by_chr <- function(dat, save_dir, sample, min_depth,
 #' @importFrom utils capture.output
 #' @export
 plot_minor_ratio <- function(dat, dat_loh = NULL,
-                             save_dir, sample, ext_plot = "vr.png",
+                             save_dir, filename_prefix, ext_plot = "vr.png",
                              max_snps = 50000, seed = 1) {
 
   # Set dat as a subset of dat if it exceeds a pre-determined size
@@ -252,7 +252,7 @@ plot_minor_ratio <- function(dat, dat_loh = NULL,
     }
   }
 
-  png(file.path(save_dir, paste(sample, ext_plot, sep = ".")),
+  png(file.path(save_dir, paste(filename_prefix, ext_plot, sep = ".")),
       width = 1280, height = 720)
   plot_cols <- ifelse(dat$loh, "orange",
                       ifelse(dat$gt == "0/1", "green",

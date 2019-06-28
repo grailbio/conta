@@ -4,20 +4,21 @@
 \alias{conta_main}
 \title{Run conta.}
 \usage{
-conta_main(tsv_file, sample, save_dir, metrics_file = "", lr_th = 0.001,
-  sim_level = 0, baseline = NA, min_depth = 10, max_depth = 10000,
-  loh_lr_cutoff = 0.01, loh_delta_cutoff = 0.3,
-  loh_auto_delta_cutoff = 0.4, loh_min_snps = 20, loh_max_snps = 1000,
-  min_maf = 0.01, subsample = NA, cf_correction = 0, min_cf = 1e-04,
-  blackswan = 1, outlier_frac = 0.002, tsv_rev_file = NA, cores = 2,
+conta_main(tsv_file, sample_id, save_dir, filename_prefix = sample_id,
+  metrics_file = "", lr_th = 0.001, sim_level = 0, baseline = NA,
+  min_depth = 10, max_depth = 10000, loh_lr_cutoff = 0.01,
+  loh_delta_cutoff = 0.3, loh_auto_delta_cutoff = 0.4,
+  loh_min_snps = 20, loh_max_snps = 1000, min_maf = 0.01,
+  subsample = NA, cf_correction = 0, min_cf = 1e-04, blackswan = 1,
+  outlier_frac = 0.002, tsv_rev_file = NA, cores = 2,
   context_mode = FALSE, chr_y_male_threshold = 5e-04, seed = 1359)
 }
 \arguments{
 \item{tsv_file}{input tsv file}
 
-\item{sample}{experiment name (basename for outputs)}
-
 \item{save_dir}{output folder}
+
+\item{filename_prefix}{experiment name (basename for outputs)}
 
 \item{metrics_file}{input tsv metrics file in long format}
 

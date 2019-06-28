@@ -4,7 +4,8 @@
 \alias{get_lr}
 \title{Calculate likelihood ratio for each SNP}
 \usage{
-get_lr(cf, dat, blackswan = 0.05, outlier_frac = 0.005, het_rate = 0.8)
+get_lr(cf, dat, blackswan = 0.05, outlier_frac = 0.005,
+  het_rate = 0.8)
 }
 \arguments{
 \item{cf}{numeric contamination fraction to be tested}

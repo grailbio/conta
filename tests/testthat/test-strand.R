@@ -14,13 +14,13 @@ test_that("conta strand specific run",  {
   conta::intersect_snps(spam_rev_strand, spam_rev_maf, rev_dbSNP_file, FALSE)
 
   conta_main(tsv_file = spam_for_maf, tsv_rev_file = spam_rev_maf,
-             sample = "strand_test", save_dir = out_dir_strand,
+             sample_id = "strand_test", save_dir = out_dir_strand,
              min_depth = 20, cores = 8)
   conta_main(tsv_file = spam_for_maf,
-             sample = "strand_test_for", save_dir = out_dir_strand,
+             sample_id = "strand_test_for", save_dir = out_dir_strand,
              min_depth = 20, cores = 8)
   conta_main(tsv_file = spam_rev_maf,
-             sample = "strand_test_rev", save_dir = out_dir_strand,
+             sample_id = "strand_test_rev", save_dir = out_dir_strand,
              min_depth = 20, cores = 8)
 
   conta_file <- paste(out_dir_strand, "strand_test.conta.tsv", sep = "/")

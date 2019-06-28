@@ -4,10 +4,13 @@
 \alias{parse_1000g_vcf}
 \title{Read in and parse 1000G vcf}
 \usage{
-parse_1000g_vcf(vcf)
+parse_1000g_vcf(vcf, remove_sex_chr = FALSE)
 }
 \arguments{
 \item{vcf}{1000 genomes vcf}
+
+\item{remove_sex_chr}{Defaults to FALSE, meaning sex chromosomes will not be
+filtered out. If 'TRUE' sex chromosomes will be removed}
 }
 \value{
 Data frame of parsed vcf

@@ -20,5 +20,5 @@ takes in population likelihoods per snp as output from 'get_snp_likelihoods()'.
 Second, calculates log likelihoods, and then log likelihood per chromosome.
 Third, applies ethnicity priors to the likelihood values to generate the
 posterior likelihoods. Lastly, calculates the P(data) and apply it to the posterior
-likelihoods to generate the postier probabilities per chromosome.
+likelihoods to generate the posterior probabilities per chromosome.
 }

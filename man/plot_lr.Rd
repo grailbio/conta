@@ -4,13 +4,14 @@
 \alias{plot_lr}
 \title{Calculate a set of likelihood metrics across SNPs}
 \usage{
-plot_lr(save_dir, sample, dat, per_chr, ext_chr_table = "per_chr.tsv",
-  ext_loh_table = "per_bin.tsv", ext_loh_plot = "bin.lr.png")
+plot_lr(save_dir, filename_prefix, dat, per_chr,
+  ext_chr_table = "per_chr.tsv", ext_loh_table = "per_bin.tsv",
+  ext_loh_plot = "bin.lr.png")
 }
 \arguments{
 \item{save_dir}{folder location to write files and plots}
 
-\item{sample}{name of the sample}
+\item{filename_prefix}{file name prefix}
 
 \item{dat}{data.table with likelihood information per locus}
 

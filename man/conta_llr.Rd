@@ -4,7 +4,7 @@
 \alias{conta_llr}
 \title{Conta log likelihood ratio}
 \usage{
-conta_llr(cf, dat, save_dir = NA, sample = NA, loh = FALSE,
+conta_llr(cf, dat, save_dir = NA, filename_prefix = NA, loh = FALSE,
   blackswan = 0.05, outlier_frac = 0.005, het_rate = 0.8)
 }
 \arguments{
@@ -14,7 +14,7 @@ conta_llr(cf, dat, save_dir = NA, sample = NA, loh = FALSE,
 
 \item{save_dir}{directory to save results}
 
-\item{sample}{name of the sample for printing purposes}
+\item{filename_prefix}{file name prefix for printing purposes}
 
 \item{loh}{whether to plot in LOH mode}
 
@@ -26,7 +26,7 @@ conta_llr(cf, dat, save_dir = NA, sample = NA, loh = FALSE,
 }
 \value{
 numeric avg. log-likelihood ratio for the given cf or a more detailed
-  result if the save_dir and sample name are specified.
+  result if the save_dir and filename_prefix are specified.
 }
 \description{
 Conta log likelihood ratio

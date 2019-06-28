@@ -4,8 +4,8 @@
 \alias{optimize_likelihood}
 \title{Optimize a set of likelihood metrics across SNPs using optimize function.}
 \usage{
-optimize_likelihood(dat, lr_th, save_dir = NA, sample = NA, loh = FALSE,
-  blackswan, min_cf, cf_correction, outlier_frac)
+optimize_likelihood(dat, lr_th, save_dir = NA, filename_prefix = NA,
+  loh = FALSE, blackswan, min_cf, cf_correction, outlier_frac)
 }
 \arguments{
 \item{dat}{data.table containing counts and metrics per SNP, hets filtered}
@@ -14,7 +14,7 @@ optimize_likelihood(dat, lr_th, save_dir = NA, sample = NA, loh = FALSE,
 
 \item{save_dir}{character location to save the results}
 
-\item{sample}{character sample name}
+\item{filename_prefix}{character file name prefix}
 
 \item{loh}{whether to plot in LOH mode}
 

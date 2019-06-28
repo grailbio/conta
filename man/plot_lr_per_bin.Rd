@@ -4,15 +4,15 @@
 \alias{plot_lr_per_bin}
 \title{Plot per bin likelihood across chromosomes}
 \usage{
-plot_lr_per_bin(dat, save_dir, sample, ext_table = "per_bin.tsv",
-  ext_plot = "bin.lr.png")
+plot_lr_per_bin(dat, save_dir, filename_prefix,
+  ext_table = "per_bin.tsv", ext_plot = "bin.lr.png")
 }
 \arguments{
 \item{dat}{data.table with likelihood information per locus}
 
 \item{save_dir}{folder to write out the results}
 
-\item{sample}{sample name to put in filename and plot title}
+\item{filename_prefix}{file name prefix}
 
 \item{ext_table}{extension for the table output}
 

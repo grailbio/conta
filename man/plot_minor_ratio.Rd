@@ -4,8 +4,8 @@
 \alias{plot_minor_ratio}
 \title{Plot minor allele ratio sorted by chromosomes}
 \usage{
-plot_minor_ratio(dat, dat_loh = NULL, save_dir, sample, ext_plot = "vr.png",
-  max_snps = 50000, seed = 1)
+plot_minor_ratio(dat, dat_loh = NULL, save_dir, filename_prefix,
+  ext_plot = "vr.png", max_snps = 50000, seed = 1)
 }
 \arguments{
 \item{dat}{data.table with snp allele ratio information per locus}
@@ -14,7 +14,7 @@ plot_minor_ratio(dat, dat_loh = NULL, save_dir, sample, ext_plot = "vr.png",
 
 \item{save_dir}{folder to write out the results}
 
-\item{sample}{sample name to put in filename and plot title}
+\item{filename_prefix}{file name prefix}
 
 \item{ext_plot}{extension for the figure output}
 

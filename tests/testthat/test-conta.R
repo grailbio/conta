@@ -10,8 +10,10 @@ test_that("conta test wgs run with biometrics file", {
   expect_true(file.exists(male_metrics_file))
   expect_true(file.exists(female_metrics_file))
 
+  sample_id <- "wgs"
   # run conta on dummy sample with female metrics
-  conta_main(wgs_tsv, "wgs", out_dir_wgs, female_metrics_file, cores = 4)
+  conta_main(wgs_tsv, sample_id, out_dir_wgs, metrics_file = female_metrics_file,
+             cores = 4)
   conta_out <- file.path(out_dir_wgs, "wgs.conta.tsv")
   expect_true(file.exists(conta_out))
   result <- read_data_table(conta_out)
@@ -25,7 +27,8 @@ test_that("conta test wgs run with biometrics file", {
   expect_equal(result[, x_norm_count], 0.040, tolerance = 1e-3)
 
   # run conta on dummy sample with male metrics
-  conta_main(wgs_tsv, "wgs", out_dir_wgs, male_metrics_file, cores = 4)
+  conta_main(wgs_tsv, sample_id, out_dir_wgs, metrics_file = male_metrics_file,
+             cores = 4)
   conta_out <- file.path(out_dir_wgs, "wgs.conta.tsv")
   expect_true(file.exists(conta_out))
   result <- read_data_table(conta_out)
@@ -39,7 +42,7 @@ test_that("conta test wgs run with biometrics file", {
   expect_equal(result[, x_norm_count], 0.028, tolerance = 1e-3)
 
   # Check result columns are the same as that for empty results
-  expect_equal(colnames(result), colnames(empty_result("wgs")))
+  expect_equal(colnames(result), colnames(empty_result(sample_id)))
 })
 
 test_that("conta test targeted run", {

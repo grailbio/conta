@@ -72,18 +72,18 @@ get_lr <- function(cf, dat, blackswan = 0.05, outlier_frac = 0.005,
 #' @param cf numeric contamination fraction to be tested
 #' @param dat data.table containing counts and metrics per SNP, hets filtered
 #' @param save_dir directory to save results
-#' @param sample name of the sample for printing purposes
+#' @param filename_prefix file name prefix for printing purposes
 #' @param loh whether to plot in LOH mode
 #' @param blackswan blackswan term for maximum likelihood
 #' @param outlier_frac fraction of outliers to remove
 #' @param het_rate ratio of heterozygote to homozygote alt contaminant SNPs
 #'
 #' @return numeric avg. log-likelihood ratio for the given cf or a more detailed
-#'   result if the save_dir and sample name are specified.
+#'   result if the save_dir and filename_prefix are specified.
 #'
 #' @importFrom stats quantile weighted.mean sd
 #' @export
-conta_llr <- function(cf, dat, save_dir = NA, sample = NA,
+conta_llr <- function(cf, dat, save_dir = NA, filename_prefix = NA,
                       loh = FALSE, blackswan = 0.05, outlier_frac = 0.005,
                       het_rate = 0.8) {
 
@@ -91,7 +91,7 @@ conta_llr <- function(cf, dat, save_dir = NA, sample = NA,
   dat <- get_lr(cf, dat, blackswan, outlier_frac, het_rate)
 
   # Calculate average likelihoods of contamination per SNP per depth
-  if (is.na(save_dir) | is.na(sample)) {
+  if (is.na(save_dir) | is.na(filename_prefix)) {
     return(max(weighted.mean(dat[, lr], dat[, depth], na.rm = TRUE), 0))
   } else {
 
@@ -110,12 +110,12 @@ conta_llr <- function(cf, dat, save_dir = NA, sample = NA,
 
     # Generate likelihood ratio plots
     if (loh) {
-      plot_lr(save_dir, sample, dat, per_chr,
+      plot_lr(save_dir, filename_prefix, dat, per_chr,
               ext_chr_table = "per_chr.loh.tsv",
               ext_loh_table = "per_bin.loh.tsv",
               ext_loh_plot = "bin.lr.loh.png")
     } else {
-      plot_lr(save_dir, sample, dat, per_chr)
+      plot_lr(save_dir, filename_prefix, dat, per_chr)
     }
 
     # Pos lr ratio on X chr tells us whether the contaminant is male or female
@@ -141,7 +141,7 @@ conta_llr <- function(cf, dat, save_dir = NA, sample = NA,
 #' @param dat data.table containing counts and metrics per SNP, hets filtered
 #' @param lr_th numeric likelihood threshold to make a call
 #' @param save_dir character location to save the results
-#' @param sample character sample name
+#' @param filename_prefix character file name prefix
 #' @param loh whether to plot in LOH mode
 #' @param blackswan blackswan term for maximum likelihood
 #' @param min_cf minimum contamination fraction to call
@@ -152,7 +152,7 @@ conta_llr <- function(cf, dat, save_dir = NA, sample = NA,
 #'
 #' @importFrom stats optimize
 #' @export
-optimize_likelihood <- function(dat, lr_th, save_dir = NA, sample = NA,
+optimize_likelihood <- function(dat, lr_th, save_dir = NA, filename_prefix = NA,
                                 loh = FALSE, blackswan, min_cf, cf_correction,
                                 outlier_frac) {
 
@@ -174,7 +174,7 @@ optimize_likelihood <- function(dat, lr_th, save_dir = NA, sample = NA,
                       tol = 1e-6, maximum = TRUE)
 
   # Get optimized result
-  result <- conta_llr(opt_val$maximum, dat, save_dir, sample,
+  result <- conta_llr(opt_val$maximum, dat, save_dir, filename_prefix,
                      loh = loh, blackswan = blackswan,
                      outlier_frac = outlier_frac)
 
@@ -190,7 +190,7 @@ optimize_likelihood <- function(dat, lr_th, save_dir = NA, sample = NA,
   # Plot the likelihood distribution and the maximum likelihood (in red cross)
   # Do not plot if this was not a post-loh run
   if (conta_call & loh)
-    plot_max_likelihood(cf, grid_lr, opt_val, save_dir, sample)
+    plot_max_likelihood(cf, grid_lr, opt_val, save_dir, filename_prefix)
 
   return(cbind(conta_call, result))
 }

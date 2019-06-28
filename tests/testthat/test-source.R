@@ -18,7 +18,7 @@ test_that("conta source detection run",  {
     maf_tsv <- paste(out_dir_source, name, basename(maf_tsv), sep = "/")
     dir.create(dirname(maf_tsv), recursive = TRUE)
     conta::intersect_snps(tsv_file, maf_tsv, dbSNP_file_art, FALSE)
-    conta_main(tsv_file = maf_tsv, sample = name, cores = 8,
+    conta_main(tsv_file = maf_tsv, sample_id = name, cores = 8,
                save_dir = dirname(maf_tsv), min_cf = 0.00005,
                outlier_frac = 0.001, lr_th = 0.05)
   }
@@ -78,7 +78,7 @@ test_that("conta source detection run single",  {
     maf_tsv <- paste(out_dir_source_single, name, basename(maf_tsv), sep = "/")
     dir.create(dirname(maf_tsv), recursive = TRUE)
     conta::intersect_snps(tsv_file, maf_tsv, dbSNP_file_art, FALSE)
-    conta_main(tsv_file = maf_tsv, sample = name, cores = 8,
+    conta_main(tsv_file = maf_tsv, sample_id = name, cores = 8,
                save_dir = dirname(maf_tsv), min_cf = 0.00005,
                outlier_frac = 0.001, lr_th = 0.05)
   }
@@ -109,7 +109,7 @@ test_that("conta source detection run double",  {
     maf_tsv <- paste(out_dir_source_double, name, basename(maf_tsv), sep = "/")
     dir.create(dirname(maf_tsv), recursive = TRUE)
     conta::intersect_snps(tsv_file, maf_tsv, dbSNP_file_art, FALSE)
-    conta_main(tsv_file = maf_tsv, sample = name, cores = 8,
+    conta_main(tsv_file = maf_tsv, sample_id = name, cores = 8,
                save_dir = dirname(maf_tsv), min_cf = 0.00005,
                outlier_frac = 0.001, lr_th = 0.05)
   }

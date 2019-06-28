@@ -4,15 +4,15 @@
 \alias{plot_vfn_cp}
 \title{Plot sorted log likelihoods}
 \usage{
-plot_vfn_cp(dat, save_dir, sample, min_maf_plot = 0.01, max_snps = 10000,
-  seed = 1359)
+plot_vfn_cp(dat, save_dir, filename_prefix, min_maf_plot = 0.01,
+  max_snps = 10000, seed = 1359)
 }
 \arguments{
 \item{dat}{data.table with likelihood information per locus}
 
 \item{save_dir}{folder to write out the results}
 
-\item{sample}{sample name to put in filename and plot title}
+\item{filename_prefix}{file name prefix}
 
 \item{min_maf_plot}{minimum allele frequency used to filter SNPs}
 

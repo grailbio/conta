@@ -72,10 +72,11 @@ conta_source <- function(base, out_file, batch_samples = NA,
   # Get all conta results
   lres <- parallel::mclapply(paste(base, paths, subfolder, run_names,
                                    ".conta.tsv", sep = ""), read_data_table)
+  names(lres) <- run_names
 
   # Skip results with NA calls, and correct paths and names
   lres <- lres[unlist(lapply(lres, function(x) {!is.na(x$conta_call)}))]
-  run_names <- unlist(lapply(lres, function(x) x$sample))
+  run_names <- names(lres)
   paths <- paste(run_names, "/", sep = "")
 
   # Re-call if necessary
@@ -220,7 +221,7 @@ conta_source <- function(base, out_file, batch_samples = NA,
 
       # Remove het snps and arrange rsid in ascending numeric order
       gtm <- gtm %>%
-        filter(gt != "0/1") %>%
+        dplyr::filter(gt != "0/1") %>%
         dplyr::mutate(id = as.numeric(stringr::str_replace(rsid, "rs", ""))) %>%
         dplyr::arrange(id) %>%
         dplyr::select(-id)

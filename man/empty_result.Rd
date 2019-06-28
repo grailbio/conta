@@ -4,10 +4,7 @@
 \alias{empty_result}
 \title{Return an empty results table to output when quitting early}
 \usage{
-empty_result(sample)
-}
-\arguments{
-\item{sample}{sample name}
+empty_result(sample.id = "")
 }
 \description{
 Return an empty results table to output when quitting early

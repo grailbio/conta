@@ -9,7 +9,7 @@
 #'
 #' @param tsv_file input tsv file
 #' @param metrics_file input tsv metrics file in long format
-#' @param sample experiment name (basename for outputs)
+#' @param filename_prefix experiment name (basename for outputs)
 #' @param save_dir output folder
 #' @param lr_th min avg. likelihood ratio per SNP to make a call, this
 #'     number is highly dependent on the data type used and should be optimized
@@ -44,7 +44,8 @@
 #' @importFrom utils packageVersion
 #' @importFrom utils write.table
 #' @export
-conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
+conta_main <- function(tsv_file, sample_id, save_dir, filename_prefix = sample_id,
+                       metrics_file = "",
                        lr_th = 0.001, sim_level = 0, baseline = NA,
                        min_depth = 10, max_depth = 10000, loh_lr_cutoff = 0.01,
                        loh_delta_cutoff = 0.3, loh_auto_delta_cutoff = 0.4,
@@ -63,8 +64,8 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
   dir.create(save_dir, showWarnings = FALSE)
 
   # Write out a default TSV result file in case we exit early from fail_test
-  empty_result <- empty_result(sample)
-  out_file <- file.path(save_dir, paste(sample, "conta.tsv", sep = "."))
+  empty_result <- empty_result(sample_id)
+  out_file <- file.path(save_dir, paste(filename_prefix, "conta.tsv", sep = "."))
   write.table(empty_result, file = out_file, sep = "\t", row.names = FALSE,
               quote = FALSE)
 
@@ -84,7 +85,7 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
   dat <- sim_conta(dat, sim_level)
 
   # Original depth by chr
-  plot_depth_by_chr(dat, save_dir, sample, min_depth, ext_plot = "depth.png")
+  plot_depth_by_chr(dat, save_dir, filename_prefix, min_depth, ext_plot = "depth.png")
 
   # Add in more useful fields and filter based on depth and outlier fractions
   dat <- annotate_and_filter(dat, min_depth = min_depth, max_depth = max_depth,
@@ -94,11 +95,11 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
   fail_test(dat)
 
   # Depth by chr after filters
-  plot_depth_by_chr(dat, save_dir, sample, min_depth,
+  plot_depth_by_chr(dat, save_dir, filename_prefix, min_depth,
                     ext_plot = "filtered.depth.png")
 
   # Calculate substitution rates per base and add them to SNP data table
-  EE <- calculate_error_model(dat, save_dir, sample,
+  EE <- calculate_error_model(dat, save_dir, filename_prefix,
     context_mode = context_mode)
   dat <- add_error_rates(dat, EE, context_mode)
 
@@ -112,12 +113,12 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
   fail_test(dat)
 
   # Obtain results and plot lr without LOH filter applied yet
-  result <- optimize_likelihood(dat, lr_th, save_dir, sample,
+  result <- optimize_likelihood(dat, lr_th, save_dir, filename_prefix,
                                 loh = FALSE, blackswan, min_cf, cf_correction,
                                 outlier_frac = outlier_frac)
 
   # Remove loss of heterozygosity regions
-  bin_stats <- get_per_bin_loh(dat, save_dir, sample, min_lr = loh_lr_cutoff,
+  bin_stats <- get_per_bin_loh(dat, save_dir, filename_prefix, min_lr = loh_lr_cutoff,
                                blackswan = blackswan,
                                min_loh = loh_delta_cutoff,
                                min_snps = loh_min_snps,
@@ -126,14 +127,14 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
   dat_loh <- exclude_high_loh_regions(dat, bin_stats)
 
   # Plot minor allele ratio plot (.vr) with LOH
-  plot_minor_ratio(dat, dat_loh, save_dir, sample)
+  plot_minor_ratio(dat, dat_loh, save_dir, filename_prefix)
 
   # Fail if there is no data, or one of the genotypes is never observed
   fail_test(dat_loh)
 
   # Calculate likelihood, max likelihood, and whether to call it
   result <- optimize_likelihood(dat_loh, lr_th, save_dir,
-                                sample, loh = TRUE, blackswan, min_cf,
+                                filename_prefix, loh = TRUE, blackswan, min_cf,
                                 cf_correction, outlier_frac = outlier_frac)
 
   # Calculate chr X and Y counts from metrics file if provided
@@ -150,7 +151,7 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
 
   # Final results table
   max_result <- data.table(conta_version = packageVersion("conta"),
-                           sample = sample,
+                           sample = sample_id,
                            sex = sex,
                            format(result, digits = 5, trim = TRUE),
                            y_count = round(chr_y_stats$count, 4),
@@ -165,6 +166,10 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
                            error_rate = round(mean(EE$er), 7),
                            round(t(data.frame(EE$er,
                                  row.names = rownames(EE))), digits = 7))
+  # Remove sample ID column if not provided or empty.
+  if (is.na(sample_id) || is.null(sample_id) || sample_id == "") {
+    max_result$sample <- NULL
+  }
 
   # Write conta results
   write.table(max_result, file = out_file, sep = "\t", row.names = FALSE,
@@ -172,9 +177,9 @@ conta_main <- function(tsv_file, sample, save_dir, metrics_file = "",
 
   # Write genotype files for all SNPs
   write_gt_file(dat, max_result, blackswan, outlier_frac,
-                file.path(save_dir, paste(sample, "gt.tsv", sep = ".")))
+                file.path(save_dir, paste(filename_prefix, "gt.tsv", sep = ".")))
 
   # Write genotype files for LOH-excluded SNPs
   write_gt_file(dat_loh, max_result, blackswan, outlier_frac,
-                file.path(save_dir, paste(sample, "gt.loh.tsv", sep = ".")))
+                file.path(save_dir, paste(filename_prefix, "gt.loh.tsv", sep = ".")))
 }

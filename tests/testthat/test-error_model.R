@@ -65,7 +65,7 @@ test_that("error model correctly calculates tri-base context", {
                         test_genome)
   expect_true(file.exists(context_out_tsv))
 
-  conta::conta_main(tsv_file = context_out_tsv, sample = "test",
+  conta::conta_main(tsv_file = context_out_tsv, sample_id = "test",
     save_dir = out_dir_context, context_mode = TRUE, min_maf = 0,
     outlier_frac = 0, min_depth = 1)
 
