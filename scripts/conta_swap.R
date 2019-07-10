@@ -5,12 +5,12 @@
 # license that can be found in the LICENSE file.
 
 #' CLI for swap detection
-#' 
+#'
 #' Reads n genotype files and labels, and calculates the genotype concordance
 #' between each sample. Files and labels are paired by index, and the number of
-#' files and labels must be equal. Each file should contain a "gt" column. The 
+#' files and labels must be equal. Each file should contain a "gt" column. The
 #' result is written as a tsv to the specified output file.
-#' 
+#'
 #' @importFrom optparse OptionParser
 #' @importFrom optparse make_option
 #' @importFrom utils write.table
@@ -26,8 +26,8 @@ main <- function() {
     optparse::make_option(c("-l", "--file_labels"), type = "character", default = NULL,
                 help = "list of n comma separated labels for genotype files, n>2. Required.",
                 metavar = "character"),
-    optparse::make_option(c("-c", "--concordance_threshold"), type = "numeric", default = 0.7,
-                          help = "The genotype concordance cutoff  Default: 0.7.",
+    optparse::make_option(c("-c", "--concordance_threshold"), type = "numeric", default = 0.85,
+                          help = "The genotype concordance cutoff  Default: 0.85.",
                           metavar = "character"),
     optparse::make_option(c("-o", "--out"), type = "character", default = NULL,
                 help = "out file with swap results, required", metavar = "character"))
@@ -50,8 +50,9 @@ main <- function() {
   }
   # Run pairwise genotype concordance
   df <- conta::conta_swap(files, labels, opt$concordance_threshold)
+  df_long <- df[2]
   # Write results to tsv
-  utils::write.table(df, opt$out, sep = "\t", row.names = FALSE, quote = FALSE)
+  utils::write.table(df_long, opt$out, sep = "\t", row.names = FALSE, quote = FALSE)
 }
 
 if (sys.nframe() == 0) {

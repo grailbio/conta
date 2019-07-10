@@ -259,21 +259,49 @@ load_conta_file <- function(conta_loc, snps = NULL) {
   return(conta_loc_dt)
 }
 
-#' Calculate concordance between two samples' genotypes
+#' Calculate concordance between two samples' genotypes. Annotate the
+#' type of genotype swaps per SNP.
 #'
-#' TODO (edamato): support gt files from other pipelines
 #'
 #' @param dt1 data.table of genotype set 1
 #' @param dt2 data.table of genotype set 2
 #'
+#' @importFrom dplyr left_join group_by count bind_rows mutate
+#' @importFrom tidyr spread
 #' @export
 genotype_concordance <- function(dt1, dt2) {
+  # Merge the two gt data tables to put each SNP in a single row.
+  # Annotate the type of genotype swap per SNP.
+  merged_gt_df <- dplyr::inner_join(dt1, dt2, by = "rsid") %>%
+    dplyr::mutate(swap_type = ifelse(gt.x == gt.y,
+                                     "No_Change",
+                                     ifelse(gt.x == "0/0" & gt.y == "1/1",
+                                            "Hom_Ref_to_Hom_Alt",
+                                            ifelse(gt.x == "1/1" & gt.y == "0/0",
+                                                   "Hom_Alt_to_Hom_Ref",
+                                                   "Het_Change"))))
 
-  # Merge the two data tables to put each SNP in a single row
-  m1 <- merge(dt1, dt2, by = "rsid")
+  # Count the number of SNPs per swap type
+  swap_type_counts <- merged_gt_df %>%
+    dplyr::group_by(swap_type) %>%
+    dplyr::count() %>%
+    tidyr::spread(swap_type, n)
 
-  # Calculate genotype concordance which is the fraction of matching genotypes
-  return(m1[, mean(gt.x == gt.y, na.rm = TRUE)])
+  # Calculate total number of intersecting snps between samples
+  total_snps <- rowSums(swap_type_counts)
+
+  # Set blank dataframe, bind 'swap_type_counts' to blank template, set NAs to 0
+  swap_template <- setNames(data.frame(matrix(ncol = 4, nrow = 0)),
+                            c("Hom_Ref_to_Hom_Alt", "Hom_Alt_to_Hom_Ref",
+                              "Het_Change", "No_Change"))
+  swap_metrics <- dplyr::bind_rows(swap_template, swap_type_counts)
+  swap_metrics[is.na(swap_metrics)] <- 0
+
+  # Calculate gt concordance which is the fraction of matching genotypes
+  swap_metrics <- swap_metrics %>%
+    dplyr::mutate(Concordance =
+                    1-(Hom_Ref_to_Hom_Alt + Hom_Alt_to_Hom_Ref + Het_Change)/total_snps)
+  return(swap_metrics)
 }
 
 #' Get folders under a specified s3 directory

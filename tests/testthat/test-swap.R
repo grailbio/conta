@@ -25,44 +25,66 @@ test_that("conta sample swap single genotype concordance", {
   conc1 <- conta::genotype_concordance(dt1, dt2)
   conc2 <- conta::genotype_concordance(dt1, dt3)
   conc3 <- conta::genotype_concordance(dt2, dt3)
-  expect_true(conc1 == 0.9)
-  expect_true(conc2 == 0.5)
-  expect_true(conc3 == 0.5)
+  expect_true(conc1$Concordance == 0.9)
+  expect_true(conc2$Concordance == 0.5)
+  expect_true(conc3$Concordance == 0.5)
+  expect_true(conc1$No_Change == 9)
+  expect_true(conc2$No_Change == 5)
+  expect_true(conc3$No_Change == 5)
+  expect_true(conc1$Hom_Ref_to_Hom_Alt == 1)
+  expect_true(conc2$Hom_Ref_to_Hom_Alt == 0)
+  expect_true(conc3$Hom_Ref_to_Hom_Alt == 0)
 })
 
 test_that("conta sample swap pairwise genotype concordance", {
-  # TODO (edamato): Add test with different threshold values
   options(warn = -1)
   # Test conta genotype files exists
   expect_true(file.exists(swap_sim_file_1))
   expect_true(file.exists(swap_sim_file_2))
   expect_true(file.exists(swap_sim_file_3))
   # Construct file and label lists
-  files <- list(c(swap_sim_file_1, swap_sim_file_2, swap_sim_file_3))
-  labels <- list(c("sample1", "sample2", "sample3"))
-  # Calculate pairwise concordance, three samples
+  # files <- list(c(swap_sim_file_1, swap_sim_file_2, swap_sim_file_3))
+  # labels <- list(c("sample1", "sample2", "sample3"))
+
+  files <- list(c(swap_sim_file_1, swap_sim_file_2))
+  labels <- list(c("sample1", "sample2"))
+
+  # Calculate pairwise concordance, three samples, threshold of 0.7
   concordances <- conta::conta_swap(files, labels, 0.7)
   # Validate the dimensions of the dataframe
-  expect_true(nrow(concordances) == 6)
-  expect_true(ncol(concordances) == 4)
+  concordances_long <- data.frame(concordances[2])
+  expect_true(nrow(concordances_long) == 8)
+  expect_true(ncol(concordances_long) == 4)
+  # Validate the dimensions of the dataframe
+  concordances_wide <- data.frame(concordances[1])
+  expect_true(nrow(concordances_wide) == 1)
+  expect_true(ncol(concordances_wide) == 10)
   # Validate the expected concordance values
-  expect_true(concordances %>% filter(
-    Sample1 == "sample1" & Sample2 == "sample2" & metric_name == "concordance") %>%
+  expect_true(concordances_long %>% filter(
+    Sample1 == "sample1" & Sample2 == "sample2" & metric_name == "Concordance") %>%
       select(metric_value) == 0.9)
-  expect_true(concordances %>% filter(
-    Sample1 == "sample1" & Sample2 == "sample3" & metric_name == "concordance") %>%
-      select(metric_value) == 0.5)
-  expect_true(concordances %>% filter(
-    Sample1 == "sample2" & Sample2 == "sample3" & metric_name == "concordance") %>%
-      select(metric_value) == 0.5)
-  # Validate the expected concordance calls
-  expect_true(concordances %>% filter(
-    Sample1 == "sample1" & Sample2 == "sample2" & metric_name == "call") %>%
+  # Validate the expected swap calls
+  expect_true(concordances_long %>% filter(
+    Sample1 == "sample1" & Sample2 == "sample2" & metric_name == "Call") %>%
       select(metric_value) == FALSE)
-  expect_true(concordances %>% filter(
-    Sample1 == "sample1" & Sample2 == "sample3" & metric_name == "call") %>%
-      select(metric_value) == TRUE)
-  expect_true(concordances %>% filter(
-    Sample1 == "sample2" & Sample2 == "sample3" & metric_name == "call") %>%
-      select(metric_value) == TRUE)
+
+  # Calculate pairwise concordance, three samples, threshold of 0.4
+  concordances <- conta::conta_swap(files, labels, 0.4)
+  concordances_long <- data.frame(concordances[2])
+  # Validate the dimensions of the dataframe
+  expect_true(nrow(concordances_long) == 8)
+  expect_true(ncol(concordances_long) == 4)
+  # Validate the expected concordance values
+  expect_true(concordances_long %>% filter(
+    Sample1 == "sample1" & Sample2 == "sample2" & metric_name == "Concordance") %>%
+      select(metric_value) == 0.9)
+  # Validate the expected swap calls
+  expect_true(concordances_long %>% filter(
+    Sample1 == "sample1" & Sample2 == "sample2" & metric_name == "Call") %>%
+      select(metric_value) == FALSE)
+
+
+  # Ensure the dimensions of results are correct. Expect that the results are a list of 2.
+  concordances <- conta::conta_swap(files, labels, 0.85)
+  expect_equal(length(concordances), 2)
 })
