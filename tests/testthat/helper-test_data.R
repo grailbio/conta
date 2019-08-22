@@ -20,7 +20,8 @@ out_source_single     <- file.path(out_dir_source_single, "source.tsv")
 out_dir_source_double <- file.path(base_out_dir, "test_source_double")
 out_source_double     <- file.path(out_dir_source_double, "source.tsv")
 out_dir_strand        <- file.path(base_out_dir, "test_strand")
-out_dir_context       <- file.path(out_dir, "context")
+out_dir_context       <- file.path(out_dir, "test_context")
+out_dir_edge          <- file.path(out_dir, "test_edge_cases")
 
 # Remove existing test output directories
 unlink(out_dir, recursive = TRUE)
@@ -37,6 +38,7 @@ dir.create(out_dir_wgs, showWarnings = FALSE)
 dir.create(out_dir_targeted, showWarnings = FALSE)
 dir.create(out_dir_strand, showWarnings = FALSE)
 dir.create(out_dir_context, showWarnings = FALSE)
+dir.create(out_dir_edge, showWarnings = FALSE)
 
 # Conta input files
 dat_tsv <- sprintf("%s/test.dat.tsv", data_dir)
@@ -76,3 +78,4 @@ swap_sim_file_1 <- sprintf("%s/test.sim1.gt.tsv", data_dir)
 swap_sim_file_2 <- sprintf("%s/test.sim2.gt.tsv", data_dir)
 swap_sim_file_3 <- sprintf("%s/test.sim3.gt.tsv", data_dir)
 test_genome <- sprintf("%s/test.genome.fa", data_dir)
+edge_3_genotypes <- sprintf("%s/test.edge.3.tsv", data_dir)

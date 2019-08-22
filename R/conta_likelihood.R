@@ -61,8 +61,8 @@ get_lr <- function(cf, dat, blackswan = 0.05, outlier_frac = 0.005,
                    dat$er, dat$vr, blackswan)
 
   # Remove outliers
-  dat <- dat[lr < quantile(lr, 1 - outlier_frac) &
-               lr > quantile(lr, outlier_frac)]
+  dat <- dat[lr <= quantile(lr, 1 - outlier_frac) &
+               lr >= quantile(lr, outlier_frac)]
 
   return(dat)
 }

@@ -7,22 +7,31 @@
 conta_swap(files, labels, concordance_threshold)
 }
 \arguments{
+\item{concordance_threshold}{float, threshold for genotype concordance}
+
 \item{gt_files}{list of strings, paths to genotype files}
 
 \item{gt_labels}{list of strings, labels for genotype files}
-
-\item{concordance_treshold}{float, threshold for genotype concordance}
 }
 \value{
-data.frame with all pairwise concordances and swap calls
+list of 2, first element being the results in wide format, and the
+        second element being the results in long format
 }
 \description{
 Calculates pairwise concordance between n genotype samples.
 Number of files and number of labels must match and be greater
 than two. Genotype files must contain gt column. Files and labels
 will be paired by index.
-This returns a data frame with two metrics for each pair of samples:
-concordance and call. Call is true if the concordance is less than
-or equal to the concordance threshold. Metrics are only reported
-once for each pair of samples.
+This returns a list of 2, first element being the results in wide format,
+and the second element being the results in long format. There are 8 metrics
+for each pair of samples: 'Sample1_snps', 'Sample2_snps', 'Hom_Ref_to_Hom_Alt',
+'Hom_Alt_to_Hom_Ref', 'Het_Change', 'No_Change', 'Concordance', 'Call'.
+Sample1_snps and Sample2_snps are the total number of SNPs in the
+respecitive samples gt file. 'Hom_Ref_to_Hom_Alt' and 'Hom_Alt_to_Hom_Ref'
+are the counts of homozygous gt changes. 'Het_Change' are all genotype changes
+either from a homozygous to heterogyous genotype or visa versa. 'No_Change'
+denotes the SNP count where the same genotype is observed between samples.
+'Concordance' is the fraction of SNPs that have the same genotype between
+samples. 'Call' is true if the concordance is less than or equal to the
+concordance threshold. Metrics are only reported once for each pair of samples.
 }

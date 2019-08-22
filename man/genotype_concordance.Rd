@@ -2,7 +2,8 @@
 % Please edit documentation in R/conta_functions.R
 \name{genotype_concordance}
 \alias{genotype_concordance}
-\title{Calculate concordance between two samples' genotypes}
+\title{Calculate concordance between two samples' genotypes. Annotate the
+type of genotype swaps per SNP.}
 \usage{
 genotype_concordance(dt1, dt2)
 }
@@ -12,5 +13,6 @@ genotype_concordance(dt1, dt2)
 \item{dt2}{data.table of genotype set 2}
 }
 \description{
-TODO (edamato): support gt files from other pipelines
+Calculate concordance between two samples' genotypes. Annotate the
+type of genotype swaps per SNP.
 }
