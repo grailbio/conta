@@ -42,6 +42,13 @@ get_initial_range <- function() {
            5e-3, 1e-2, 2e-2, 5e-2, 1e-1, 2e-1, 3e-1, 4e-1, 5e-1))
 }
 
+#' Return initial test range
+#'
+#' @export
+get_initial_loh_range <- function() {
+  return(c(-10, -5, -3, -2, -1, -0.5, 0, 0.5, 1, 2, 3, 5, 10))
+}
+
 #' Return an empty results table to output when quitting early
 #' @param sample_id sample ID to use in empty result.
 #' @importFrom utils packageVersion
@@ -71,9 +78,9 @@ empty_result <- function(sample_id = "") {
 #' @export
 fail_test <- function(dat) {
   if ( is.null(dat) || nrow(dat) == 0 || is.null(dat$gt) ||
-       nrow(dat[gt == "0/0", ]) == 0 ||
-       nrow(dat[gt == "1/1", ]) == 0 ||
-       nrow(dat[gt == "0/1", ]) == 0) {
+       (dat %>% dplyr::filter(gt == "0/0") %>% nrow()) == 0 ||
+       (dat %>% dplyr::filter(gt == "1/1") %>% nrow()) == 0 ||
+       (dat %>% dplyr::filter(gt == "0/1") %>% nrow()) == 0) {
     msg <- "Either no SNPs passed filters or not all genotypes were called."
     if (interactive()) {
       stop(msg)
@@ -108,39 +115,39 @@ get_exp_cf <- function(cf, het_rate = 0.8) {
 #' contamination fraction and maf. So it actually simulates a
 #' sample randomly ignoring linkage disequilibrium.
 #'
-#' @param wgs data.frame containing counts and metrics per SNP
+#' @param dat data.frame containing counts and metrics per SNP
 #' @param cf numeric contamination fraction
 #'
 #' @return data.frame containing counts and metrics per SNP
 #'
 #' @importFrom stats rpois runif
 #' @export
-sim_conta <- function(wgs, cf) {
+sim_conta <- function(dat, cf) {
 
-  if (cf == 0) return(wgs)
+  if (cf == 0) return(dat)
 
   # Calculate allele depths for each chromosome
-  allele1 <- ifelse(runif(nrow(wgs)) > wgs$maf, wgs$major, wgs$minor)
-  allele2 <- ifelse(runif(nrow(wgs)) > wgs$maf, wgs$major, wgs$minor)
+  allele1 <- ifelse(runif(nrow(dat)) > dat$maf, dat$major, dat$minor)
+  allele2 <- ifelse(runif(nrow(dat)) > dat$maf, dat$major, dat$minor)
 
   # Add in contamination
   bases <- get_bases()
   for (b in bases) {
     locs1 <- which(allele1 == b)
-    allele1_probs <- wgs[locs1, "depth"] * cf / 2
-    allele1_draws <- rpois(allele1_probs[, .N], allele1_probs[, depth])
-    wgs[locs1, b] <- wgs[locs1, b, with = FALSE][[1]] + allele1_draws
+    allele1_probs <- c(dat[locs1, "depth"] * cf / 2)
+    allele1_draws <- rpois(length(allele1_probs), allele1_probs)
+    dat[locs1, b] <- dat[locs1, b] + allele1_draws
 
     locs2 <- which(allele2 == b)
-    allele2_probs <- wgs[locs2, "depth"] * cf / 2
-    allele2_draws <- rpois(allele2_probs[, .N], allele2_probs[, depth])
-    wgs[locs2, b] <- wgs[locs2, b, with = FALSE][[1]] + allele2_draws
+    allele2_probs <- c(dat[locs2, "depth"] * cf / 2)
+    allele2_draws <- rpois(length(allele2_probs), allele2_probs)
+    dat[locs2, b] <- dat[locs2, b] + allele2_draws
   }
 
   # Recalculate depth, ratio and counts
-  wgs <- ratio_and_counts(wgs)
+  dat <- ratio_and_counts(dat)
 
-  return(wgs)
+  return(dat)
 }
 
 #' Simulate LOH and/or contamination
@@ -212,7 +219,8 @@ simulate_loh_conta <- function(n, min_maf, dp_min, dp_max, er_min, er_max,
   ad <- ad1 + ad2 + ad3 + ad4
   dp <- ad + ad1_b + ad2_b + ad3_b + ad4_b
 
-  return(data.table(depth = dp, minor_count = ad, maf = maf, er = er))
+  return(data.table(depth = dp, minor_count = ad, maf = maf, er = er,
+                    het_mean = 0.5))
 }
 
 #' Load conta files
@@ -359,7 +367,7 @@ set_numeric_chrs <- function(dat) {
     mutate(
       chrom_int = substring(chrom, 4)) %>%
     mutate(
-      chrom_int = case_when(
+      chrom_int = dplyr::case_when(
         chrom_int == "X" ~ 23,
         chrom_int == "Y" ~ 24,
         chrom_int == "M" ~ 25,

@@ -4,7 +4,8 @@
 \alias{read_and_prep}
 \title{Read a counts tsv file and prep it}
 \usage{
-read_and_prep(file, file_rev = NA, baseline = NA)
+read_and_prep(file, file_rev = NA, baseline = NA,
+  default_het_mean = 0.43)
 }
 \arguments{
 \item{file}{tsv file containing SNP info for the sample}
@@ -12,6 +13,8 @@ read_and_prep(file, file_rev = NA, baseline = NA)
 \item{file_rev}{tsv file containing SNP counts for reverse strand}
 
 \item{baseline}{tsv file with blacklist and noise model}
+
+\item{default_het_mean}{default heterozygote allele frequency mean}
 }
 \value{
 data.table containing counts and metrics per SNP

@@ -4,7 +4,7 @@
 \alias{add_chunks}
 \title{Partition each chromosome to bins and tag each SNP with its bin}
 \usage{
-add_chunks(dat, max_portions = 10)
+add_chunks(dat, max_portions = 5)
 }
 \arguments{
 \item{dat}{data.table containing SNPs}

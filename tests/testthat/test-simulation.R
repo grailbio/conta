@@ -125,7 +125,7 @@ test_that("conta test run with simulation 20 percent", {
   result <- read_data_table(conta_out)
   expect_true(result[, .N] == 1)
   expect_true(result[, conta_call])
-  expect_equal(result[, cf], 0.2, tolerance = 3e-2)
+  expect_equal(result[, cf], 0.2, tolerance = 4e-2)
 })
 
 test_that("conta test run with simulation 30 percent", {

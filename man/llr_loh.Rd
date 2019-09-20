@@ -4,7 +4,7 @@
 \alias{llr_loh}
 \title{Log likelihood ratio for loss of heterozygosity hypothesis.}
 \usage{
-llr_loh(ad, depth, maf, er, delta, blackswan)
+llr_loh(ad, depth, maf, hm, er, delta, blackswan)
 }
 \arguments{
 \item{ad}{alternative allele depth for a given SNP}
@@ -12,6 +12,8 @@ llr_loh(ad, depth, maf, er, delta, blackswan)
 \item{depth}{total depth for a given SNP}
 
 \item{maf}{minor allele frequencies for host sample}
+
+\item{hm}{het mean frequency from baseline}
 
 \item{er}{error rate for a given SNP}
 

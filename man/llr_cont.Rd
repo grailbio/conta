@@ -4,7 +4,7 @@
 \alias{llr_cont}
 \title{Log likelihood ratio of contamination}
 \usage{
-llr_cont(ad, depth, maf1, maf2, er, alpha, delta, blackswan)
+llr_cont(ad, depth, maf1, maf2, hm, er, alpha, delta, blackswan)
 }
 \arguments{
 \item{ad}{alternative allele depth for a given SNP}
@@ -14,6 +14,8 @@ llr_cont(ad, depth, maf1, maf2, er, alpha, delta, blackswan)
 \item{maf1}{minor allele frequencies for host sample}
 
 \item{maf2}{minor allele frequencies for candidate contaminant}
+
+\item{hm}{het mean frequency from baseline}
 
 \item{er}{error rate for a given SNP}
 

@@ -11,16 +11,19 @@
 #' @param ad alternative allele depth for a given SNP
 #' @param depth total depth for a given SNP
 #' @param maf minor allele frequencies for host sample
+#' @param hm het mean frequency from baseline
 #' @param er error rate for a given SNP
 #' @param delta loss of heterozygosity level to be tested
 #' @param blackswan blackswan term sets a limit on probability for each event
 #' @return log likelihood ratio for LOH vs no LOH
 #'
 #' @export
-llr_loh <- function(ad, depth, maf, er, delta, blackswan) {
+llr_loh <- function(ad, depth, maf, hm, er, delta, blackswan) {
   l_min <- blackswan / depth
-  l_het <- l_min + (1 - l_min) * l_loh(ad, depth, maf, maf, 0, 0, er)
-  l_loh <- l_min + (1 - l_min) * l_loh(ad, depth, maf, maf, delta, 0, er)
+  l_het <- l_min + (1 - l_min) * l_loh(ad, depth, maf, maf, hm, 0, 0, er)
+  l_loh <- l_min + (1 - l_min) * l_loh(ad, depth, maf, maf, hm,
+                                       pmin(pmin(hm, 1 - hm) * 2 - 0.01, delta),
+                                       0, er)
   return(log(l_loh / l_het))
 }
 
@@ -35,10 +38,23 @@ llr_loh <- function(ad, depth, maf, er, delta, blackswan) {
 #'
 #' @export
 avg_llr_loh <- function(dat, delta, blackswan) {
-  weighted.mean(llr_loh(dat$minor_count, dat$depth, dat$maf, dat$er,
-                       delta, blackswan), dat$depth, na.rm = T)
+  weighted.mean(llr_loh_all(dat, delta, blackswan), dat$depth, na.rm = T)
 }
 
+#' Log likelihood ratios for loss of heterozygosity for a set of snps
+#'
+#' Avg log likelihood ratio across a given set of SNPs
+#'
+#' @param dat data table containing required fields
+#' @param delta loss of heterozygosity level to be tested
+#' @param blackswan blackswan term sets a limit on probability for each event
+#' @return sum of log likelihood ratios for LOH vs no LOH
+#'
+#' @export
+llr_loh_all <- function(dat, delta, blackswan) {
+  llr_loh(dat$minor_count, dat$depth, dat$maf, dat$het_mean, dat$er, delta,
+          blackswan)
+}
 
 #' Log likelihood ratio of contamination
 #'
@@ -49,6 +65,7 @@ avg_llr_loh <- function(dat, delta, blackswan) {
 #' @param depth total depth for a given SNP
 #' @param maf1 minor allele frequencies for host sample
 #' @param maf2 minor allele frequencies for candidate contaminant
+#' @param hm het mean frequency from baseline
 #' @param er error rate for a given SNP
 #' @param alpha contamination fraction to be tested
 #' @param cp contamination probability calculated from minor allele frequency
@@ -56,10 +73,10 @@ avg_llr_loh <- function(dat, delta, blackswan) {
 #' @return log likelihood ratio for contamination vs no contamination
 #'
 #' @export
-llr_cont <- function(ad, depth, maf1, maf2, er, alpha, delta, blackswan) {
+llr_cont <- function(ad, depth, maf1, maf2, hm, er, alpha, delta, blackswan) {
   l_min <- blackswan / depth
-  l_het <- l_min + (1 - l_min) * l_loh(ad, depth, maf1, maf2, delta, 0, er)
-  l_cont <- l_min + (1 - l_min) * l_loh(ad, depth, maf1, maf2, delta, alpha, er)
+  l_het <- l_min + (1 - l_min) * l_loh(ad, depth, maf1, maf2, hm, delta, 0, er)
+  l_cont <- l_min + (1 - l_min) * l_loh(ad, depth, maf1, maf2, hm, delta, alpha, er)
   return(log(l_cont / l_het))
 }
 
@@ -75,9 +92,22 @@ llr_cont <- function(ad, depth, maf1, maf2, er, alpha, delta, blackswan) {
 #'
 #' @export
 avg_llr_cont <- function(dat, alpha, blackswan, delta = 0) {
-  weighted.mean(llr_cont(dat$minor_count, dat$depth, dat$maf, dat$maf,
-                        dat$er, alpha, delta, blackswan),
-                dat$depth, na.rm = T)
+  weighted.mean(llr_cont_all(dat, alpha, blackswan), dat$depth, na.rm = T)
+}
+
+#' Log likelihood ratios for contamination for a set of SNPs
+#'
+#' Average log likelihood ratio across a given set of SNPs
+#'
+#' @param dat data table containing required fields
+#' @param alpha contamination level level to be tested
+#' @param blackswan blackswan term sets a limit on probability for each event
+#' @return sum of log likelihood ratios for LOH vs no LOH
+#'
+#' @export
+llr_cont_all <- function(dat, alpha, blackswan, delta = 0) {
+  llr_cont(dat$minor_count, dat$depth, dat$maf, dat$maf, dat$het_mean, dat$er,
+           alpha, delta, blackswan)
 }
 
 #' Likelihood of observing the data with LOH
@@ -92,6 +122,7 @@ avg_llr_cont <- function(dat, alpha, blackswan, delta = 0) {
 #' @param dp total depth for a given SNP
 #' @param maf1 minor allele frequencies for host sample
 #' @param maf2 minor allele frequencies for candidate contaminant
+#' @param hm mean heterozygote frequency from baseline
 #' @param d LOH level as deviation from 0.5
 #' @param a alpha contamination level
 #' @param er error rate
@@ -99,23 +130,32 @@ avg_llr_cont <- function(dat, alpha, blackswan, delta = 0) {
 #' @importFrom stats dbinom
 #' @importFrom stats dnbinom
 #' @export
-l_loh <- function(ad, dp, maf1, maf2, d = 0, a = 0, er = 3e-4) {
+l_loh <- function(ad, dp, maf1, maf2, hm, d = 0, a = 0, er = 3e-4) {
   pg2(0, 0, maf1, maf2) * dbinom(ad, dp, er) +
-    pg2(0, 1, maf1, maf2) * dbinom(ad, dp, er + a / 2) +
-    pg2(0, 2, maf1, maf2) * dbinom(ad, dp, er + a) +
-    pg2(1, 0, maf1, maf2) * (0.5 * dnbinom(ad, dp - ad, 0.5 - d / 2 - a / 2) +
-                             0.5 * dnbinom(ad, dp - ad, 0.5 + d / 2 - a / 2)) +
-    pg2(1, 1, maf1, maf2) * (0.25 * dnbinom(ad, dp - ad, 0.5 - d / 2 - a / 2) +
-                             0.25 * dnbinom(ad, dp - ad, 0.5 + d / 2 - a / 2) +
-                             0.25 * dnbinom(ad, dp - ad, 0.5 - d / 2 + a / 2) +
-                             0.25 * dnbinom(ad, dp - ad, 0.5 + d / 2 + a / 2)) +
-    pg2(1, 2, maf1, maf2) * (0.5 * dnbinom(ad, dp - ad, 0.5 - d / 2 + a / 2) +
-                             0.5 * dnbinom(ad, dp - ad, 0.5 + d / 2 + a / 2)) +
-    pg2(2, 0, maf1, maf2) * dbinom(ad, dp, 1 - er - a) +
-    pg2(2, 1, maf1, maf2) * dbinom(ad, dp, 1 - er - a / 2) +
+    pg2(0, 1, maf1, maf2) * dbinom(ad, dp, er + hm * a) +
+    pg2(0, 2, maf1, maf2) * dbinom(ad, dp, er + 2 * hm * a) +
+    pg2(1, 0, maf1, maf2) * (0.5 * dnbinom(ad, dp - ad, ssig(-d, hm) - a/2) +
+                               0.5 * dnbinom(ad, dp - ad, ssig(d, hm) - a/2)) +
+    pg2(1, 1, maf1, maf2) * (0.5 * dnbinom(ad, dp - ad, ssig(-d, hm)) +
+                              0.5 * dnbinom(ad, dp - ad, ssig(d, hm))) +
+    pg2(1, 2, maf1, maf2) * (0.5 * dnbinom(ad, dp - ad, ssig(-d, hm) + a/2) +
+                              0.5 * dnbinom(ad, dp - ad, ssig(d, hm) + a/2)) +
+    pg2(2, 0, maf1, maf2) * dbinom(ad, dp, 1 - er - 2 * (1 - hm) * a) +
+    pg2(2, 1, maf1, maf2) * dbinom(ad, dp, 1 - er - (1 - hm) * a) +
     pg2(2, 2, maf1, maf2) * dbinom(ad, dp, 1 - er)
 }
 
+#' Skewed sigmoid with center around provided mean
+#'
+#' @param x input value
+#' @param m the value when x = 0
+#'
+#' @export
+ssig <- function(x, m = 0.5) {
+  1 / (1 + exp(-x) * (1 - m) / m)
+}
+
+#' Biased sigmoid function to convert a given number to a proportion
 #' Prior probability of genotype pair
 #'
 #' @param gt1 Genotype of first sample's SNP
@@ -158,9 +198,10 @@ pg <- function(gt, maf) {
 #'
 #' @importFrom utils write.table
 #' @export
-get_per_bin_loh <- function(dat, save_dir, sample, min_lr, blackswan,
-                            min_loh = 0.15, min_snps = 20, max_snps = 200,
-                            min_auto_loh = 0.4, seed = 1359) {
+get_per_bin_loh <- function(dat, save_dir, sample, min_lr = 0.01, blackswan, conta_cf,
+                            min_loh = 3, min_snps = 20, max_snps = 200,
+                            min_auto_loh = 9, het_mean_min = 0.25,
+                            seed = 1359) {
 
   results <- data.table(chrom = character(), chunk = numeric(),
                         snps = numeric(),
@@ -170,12 +211,21 @@ get_per_bin_loh <- function(dat, save_dir, sample, min_lr, blackswan,
 
   # combs contains combination of chrom and chunk
   combs <- expand.grid(unique(dat$chrom), unique(dat$chunk))
-  combs <- combs[order(combs[, 1]), ]
+  combs <- combs %>%
+    arrange(Var1, Var2)
 
   for (i in 1:nrow(combs)) {
 
     # Get the data in this specific chunk
-    dat_chunk <- dat[chrom == combs[i, 1] & chunk == combs[i, 2], ]
+    dat_chunk <- dat %>%
+      dplyr::filter(chrom == combs[i, 1],
+                    chunk == combs[i, 2])
+
+    # Remove SNPs without baseline or having means below or above a threshold
+    dat_chunk <- as.data.table(dat_chunk) %>%
+      dplyr::filter(!is.na(het_mean) &
+                      het_mean > het_mean_min &
+                      het_mean < (1 - het_mean_min))
 
     # Set dat as a subset of dat if it exceeds a pre-determined size
     if (nrow(dat_chunk) > max_snps) {
@@ -184,32 +234,34 @@ get_per_bin_loh <- function(dat, save_dir, sample, min_lr, blackswan,
     }
 
     # Optimize LOH starting on a grid (if there are enough SNPs)
-    loh_opt <- optimize_after_grid(dat_chunk, "avg_llr_loh", blackswan)
+    loh_opt <- optimize_after_grid(dat_chunk, "avg_llr_loh", blackswan,
+                                   cf = get_initial_loh_range())
 
     # If loh_opt is not null, its objective (avg. likelihood ratio) is above
     # a specified threshold, its level is above a minimum LOH level, then
     # calculate contamination mle for the same region. Do not call a region as
     # LOH otherwise, also do not call if there aren't enough SNPs to access.
-    if (!is.na(loh_opt$objective)
-        && dat_chunk[, .N] >= min_snps
-        && loh_opt$objective >= min_lr
-        && loh_opt$maximum >= min_loh) {
+    if (!is.na(loh_opt$objective) &&
+        nrow(dat_chunk) >= min_snps &&
+        loh_opt$objective >= min_lr &&
+        abs(loh_opt$maximum) >= min_loh) {
 
-      cont_opt <- optimize_after_grid(dat_chunk, "avg_llr_cont", blackswan)
+      #cont_opt <- optimize_after_grid(dat_chunk, "avg_llr_cont", blackswan)
+      conta_opt <- avg_llr_cont(dat_chunk, alpha = conta_cf, blackswan)
 
       dfres <- data.table(chrom = combs[i, 1], chunk = combs[i, 2],
-                          snps = dat_chunk[, .N],
+                          snps = nrow(dat_chunk),
                           loh_mle = loh_opt$maximum,
                           loh_val = loh_opt$objective,
-                          cont_mle = cont_opt$maximum,
-                          cont_val = cont_opt$objective,
+                          cont_mle = conta_cf,
+                          cont_val = conta_opt,
                           loh = (loh_opt$maximum >= min_auto_loh ||
-                                   (loh_opt$objective > cont_opt$objective &
+                                   (loh_opt$objective > conta_opt &
                                       loh_opt$objective > min_lr)))
     } else {
 
       dfres <- data.table(chrom = combs[i, 1], chunk = combs[i, 2],
-                          snps = dat_chunk[, .N],
+                          snps = nrow(dat_chunk),
                           loh_mle = loh_opt$maximum,
                           loh_val = loh_opt$objective,
                           cont_mle = NA, cont_val = NA,
@@ -237,10 +289,7 @@ get_per_bin_loh <- function(dat, save_dir, sample, min_lr, blackswan,
 #'
 #' @importFrom stats optimize
 #' @export
-optimize_after_grid <- function(dat_chunk, LR_func, blackswan) {
-
-  # Get initial range
-  cf <- get_initial_range()
+optimize_after_grid <- function(dat_chunk, LR_func, blackswan, cf) {
 
   grid_lr <- lapply(cf, function(x) match.fun(LR_func)(dat_chunk, x,
                                                        blackswan = blackswan))

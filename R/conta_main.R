@@ -37,6 +37,7 @@
 #' @param cores number of cores to be used for parallelization
 #' @param subsample Either NA (use all SNPs) or number of SNPs to subsample to
 #' @param context_mode whether to run with errors calculated in 3-base context
+#' @param default_het_mean default for heterozygote mean allele frequency
 #' @param seed random seed
 #'
 #' @return none
@@ -46,15 +47,16 @@
 #' @export
 conta_main <- function(tsv_file, sample_id, save_dir, filename_prefix = sample_id,
                        metrics_file = "",
-                       lr_th = 0.001, sim_level = 0, baseline = NA,
-                       min_depth = 10, max_depth = 10000, loh_lr_cutoff = 0.01,
-                       loh_delta_cutoff = 0.3, loh_auto_delta_cutoff = 0.4,
+                       lr_th = 0.001, sim_level = 0, baseline_file = NA,
+                       min_depth = 10, max_depth = 10000, loh_lr_cutoff = 0.001,
+                       loh_delta_cutoff = 1.5, loh_auto_delta_cutoff = 9,
                        loh_min_snps = 20, loh_max_snps = 1000,
                        min_maf = 0.01, subsample = NA,
                        cf_correction = 0, min_cf = 0.0001, blackswan = 1,
                        outlier_frac = 0.002, tsv_rev_file = NA,
                        cores = 2, context_mode = FALSE,
-                       chr_y_male_threshold = 0.0005, seed = 1359) {
+                       chr_y_male_threshold = 0.0005,
+                       default_het_mean = 0.5, seed = 1359) {
 
   options("digits" = 8)
   options("mc.cores" = cores)
@@ -70,11 +72,12 @@ conta_main <- function(tsv_file, sample_id, save_dir, filename_prefix = sample_i
               quote = FALSE)
 
   # Read baseline if available
-  if (!is.na(baseline))
-    baseline <- read_data_table(baseline)
+  baseline <- NA
+  if (!is.na(baseline_file))
+    baseline <- read_data_table(baseline_file)
 
   # Prep snp counts
-  dat <- read_and_prep(tsv_file, tsv_rev_file, baseline)
+  dat <- read_and_prep(tsv_file, tsv_rev_file, baseline, default_het_mean)
 
   # Set dat as a subset of dat if it exceeds a pre-determined size
   if (!is.na(subsample) & nrow(dat) > subsample) {
@@ -85,7 +88,8 @@ conta_main <- function(tsv_file, sample_id, save_dir, filename_prefix = sample_i
   dat <- sim_conta(dat, sim_level)
 
   # Original depth by chr
-  plot_depth_by_chr(dat, save_dir, filename_prefix, min_depth, ext_plot = "depth.png")
+  plot_depth_by_chr(dat, save_dir, filename_prefix, min_depth = min_depth,
+                    ext_plot = "depth.png", min_maf = min_maf)
 
   # Add in more useful fields and filter based on depth and outlier fractions
   dat <- annotate_and_filter(dat, min_depth = min_depth, max_depth = max_depth,
@@ -95,16 +99,17 @@ conta_main <- function(tsv_file, sample_id, save_dir, filename_prefix = sample_i
   fail_test(dat)
 
   # Depth by chr after filters
-  plot_depth_by_chr(dat, save_dir, filename_prefix, min_depth,
-                    ext_plot = "filtered.depth.png")
+  plot_depth_by_chr(dat, save_dir, filename_prefix, min_depth = min_depth,
+                    ext_plot = "filtered.depth.png", min_maf = min_maf)
 
   # Calculate substitution rates per base and add them to SNP data table
   EE <- calculate_error_model(dat, save_dir, filename_prefix,
-    context_mode = context_mode)
+                              context_mode = context_mode)
   dat <- add_error_rates(dat, EE, context_mode)
 
   # Remove low maf positions (they were kept for error model calculations)
-  dat <- dat[ maf > min_maf & maf < (1 - min_maf), ]
+  dat <- dat %>%
+    dplyr::filter(maf > min_maf, maf < (1 - min_maf))
 
   # Add experimental bayesian genotype estimation.
   dat <- bayesian_genotype(dat)
@@ -119,7 +124,7 @@ conta_main <- function(tsv_file, sample_id, save_dir, filename_prefix = sample_i
 
   # Remove loss of heterozygosity regions
   bin_stats <- get_per_bin_loh(dat, save_dir, filename_prefix, min_lr = loh_lr_cutoff,
-                               blackswan = blackswan,
+                               blackswan = blackswan, conta_cf = result$cf,
                                min_loh = loh_delta_cutoff,
                                min_snps = loh_min_snps,
                                max_snps = loh_max_snps,
@@ -127,7 +132,7 @@ conta_main <- function(tsv_file, sample_id, save_dir, filename_prefix = sample_i
   dat_loh <- exclude_high_loh_regions(dat, bin_stats)
 
   # Plot minor allele ratio plot (.vr) with LOH
-  plot_minor_ratio(dat, dat_loh, save_dir, filename_prefix)
+  plot_minor_ratio(dat, dat_loh, save_dir, filename_prefix, max_snps = 100000)
 
   # Fail if there is no data, or one of the genotypes is never observed
   fail_test(dat_loh)

@@ -14,7 +14,7 @@ test_that("test LOH in wgs setting", {
   n <- 10000
   min_maf <- 0.25
   blackswan <- 1e-6
-  call_thr <- 0.005
+  call_thr <- 0.001
 
   # Simulate het sample, should not be called
   delta <- 0
@@ -98,7 +98,7 @@ test_that("test LOH in wgs setting", {
 
   # Simulate 20% LOH and 1% contamination, should be called LOH
   delta <- 0.2
-  alpha <- 0.01
+  alpha <- 0.001
   dat <- simulate_loh_conta(n, min_maf, dp, dp, er_min, er_max, delta, alpha)
   lr_loh <- avg_llr_loh(dat, delta, blackswan)
   lr_cont <- avg_llr_cont(dat, alpha, blackswan)
@@ -123,7 +123,7 @@ test_that("test LOH in targeted setting", {
   n <- 25
   min_maf <- 0.25
   blackswan <- 1e-6
-  call_thr <- 0.005
+  call_thr <- 0.001
 
   # Simulate het sample, should not be called
   delta <- 0
@@ -207,7 +207,7 @@ test_that("test LOH in targeted setting", {
 
   # Simulate 20% LOH and 1% contamination, should be called LOH
   delta <- 0.2
-  alpha <- 0.01
+  alpha <- 0.001
   dat <- simulate_loh_conta(n, min_maf, dp, dp, er_min, er_max, delta, alpha)
   lr_loh <- avg_llr_loh(dat, delta, blackswan)
   lr_cont <- avg_llr_cont(dat, alpha, blackswan)

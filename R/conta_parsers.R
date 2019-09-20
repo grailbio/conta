@@ -94,10 +94,12 @@ write_data_table <- function(out, out_file, header = TRUE, sep = "\t", ...) {
 #' @param file tsv file containing SNP info for the sample
 #' @param file_rev tsv file containing SNP counts for reverse strand
 #' @param baseline tsv file with blacklist and noise model
+#' @param default_het_mean default heterozygote allele frequency mean
 #' @return data.table containing counts and metrics per SNP
 #'
 #' @export
-read_and_prep <- function(file, file_rev = NA, baseline = NA) {
+read_and_prep <- function(file, file_rev = NA, baseline = NA,
+                          default_het_mean = 0.43) {
 
   dat <- read_data_table(file, stop_if_missing = TRUE)
 
@@ -108,6 +110,13 @@ read_and_prep <- function(file, file_rev = NA, baseline = NA) {
     dat <- combine_counts(dat, dat2)
   }
 
+  # Set chromosome as factors
+  dat$chrom <- gsub("Chr", "", gsub("chr", "", dat$chrom))
+  dat$chrom <- factor(dat$chrom, levels = c("1", "2", "3", "4", "5", "6", "7",
+                                            "8", "9", "10", "11", "12", "13",
+                                            "14", "15", "16", "17", "18", "19",
+                                            "20", "21", "22", "X", "Y"))
+
   # Remove blacklisted SNPs if provided
   required_columns <- c("blacklist", "rsid")
   if (!is.null(baseline) && !is.na(baseline) &&
@@ -116,10 +125,23 @@ read_and_prep <- function(file, file_rev = NA, baseline = NA) {
       filter(blacklist == TRUE)
     dat <- dat %>%
       filter(!rsid %in% blacklist$rsid)
+
     dat <- as.data.table(dat)
   } else if (!is.null(baseline) && !is.na(baseline)) {
     warning(paste("One of the required columns in baseline file is missing.",
                   "Required columns:", paste(required_columns, collapse = ", ")))
+  }
+
+  # Add mean for heterozygote SNPs if provided
+  optional_het_mean_column <- c("het_mean")
+  if (optional_het_mean_column %in% colnames(baseline)) {
+    dat <- dat %>%
+      left_join(baseline %>% dplyr::select(rsid, het_mean), by = c("rsid"))
+    dat <- dat %>%
+      dplyr::mutate(het_mean = ifelse(is.na(het_mean), default_het_mean, het_mean))
+
+  } else {
+    dat$het_mean <- default_het_mean
   }
 
   # Return if data.table is empty
@@ -127,12 +149,17 @@ read_and_prep <- function(file, file_rev = NA, baseline = NA) {
     return(dat)
 
   # Find minor allele
-  dat[, c("a1", "a2") := data.table::tstrsplit(alleles, "/", fixed = TRUE)]
-  dat$minor <- ifelse(dat$a1 == dat$major, dat$a2, dat$a1)
-  dat[, c("a1", "a2") := NULL]
+  dat <- dat %>%
+    tidyr::separate(alleles, c("a1", "a2"), sep = "/") %>%
+    dplyr::mutate(minor = ifelse(a1 == major, a2, a1)) %>%
+    dplyr::select(-c("a1", "a2"))
 
   # Add some other fields
   dat <- ratio_and_counts(dat)
+
+  # Final sort
+  dat <- dat %>%
+    arrange(chrom, pos)
 
   return(dat)
 }
@@ -152,11 +179,11 @@ combine_counts <- function(dat, dat2) {
   data.table::setkey(dat, chrom_int, pos, ref, major, alleles, rsid, maf, chrom)
   data.table::setkey(dat2, chrom_int, pos, ref, major, alleles, rsid, maf, chrom)
   datm <- merge(dat, dat2, sort = TRUE, all = TRUE)
-  datm$A <- rowSums(datm[, c("A.x", "A.y")], na.rm = TRUE)
-  datm$T <- rowSums(datm[, c("T.x", "T.y")], na.rm = TRUE)
-  datm$G <- rowSums(datm[, c("G.x", "G.y")], na.rm = TRUE)
-  datm$C <- rowSums(datm[, c("C.x", "C.y")], na.rm = TRUE)
-  datm$N <- rowSums(datm[, c("N.x", "N.y")], na.rm = TRUE)
+  datm$A <- as.integer(rowSums(datm[, c("A.x", "A.y")], na.rm = TRUE))
+  datm$T <- as.integer(rowSums(datm[, c("T.x", "T.y")], na.rm = TRUE))
+  datm$G <- as.integer(rowSums(datm[, c("G.x", "G.y")], na.rm = TRUE))
+  datm$C <- as.integer(rowSums(datm[, c("C.x", "C.y")], na.rm = TRUE))
+  datm$N <- as.integer(rowSums(datm[, c("N.x", "N.y")], na.rm = TRUE))
 
   if (sum(colnames(datm) == "context.x") == 1) {
     datm$context <- ifelse(!is.na(datm$context.x),
@@ -175,26 +202,25 @@ combine_counts <- function(dat, dat2) {
 #' @export
 ratio_and_counts <- function(dat) {
 
-  # Recalculate depth
-  dat[, depth := A + T + G + C]
-
-  # TODO: implement with data.matrix and match function
-  dat$major_count <- ifelse(dat$major == "A", dat$A,
-                            ifelse(dat$major == "T", dat$T,
-                                   ifelse(dat$major == "G", dat$G,
-                                          ifelse(dat$major == "C", dat$C, 0))))
-
-  dat$major_ratio <- dat$major_count / dat$depth
-
-  dat$minor_count <- ifelse(dat$minor == "A", dat$A,
-                            ifelse(dat$minor == "T", dat$T,
-                                   ifelse(dat$minor == "G", dat$G,
-                                          ifelse(dat$minor == "C", dat$C, 0))))
-
-  dat$minor_ratio <- dat$minor_count / dat$depth
-
-  dat$other_count <- dat$depth - dat$major_count - dat$minor_count
-  dat$other_ratio <- round(1 - dat$major_ratio - dat$minor_ratio, 4)
+  # Recalculate depth and major / minor ratio
+  # Define minor ratio only in respect to major and minor alleles
+  # Other count and ratio are calculated as a filter of noisy positions
+  dat <- dat %>%
+    dplyr::mutate(depth = A + T + G + C,
+                  major_count = dplyr::case_when(major == 'A' ~ A,
+                                                 major == 'T' ~ T,
+                                                 major == 'G' ~ G,
+                                                 major == 'C' ~ C,
+                                                 TRUE ~ as.integer(0)),
+                  minor_count = dplyr::case_when(minor == "A" ~ A,
+                                                 minor == "T" ~ T,
+                                                 minor == "G" ~ G,
+                                                 minor == "C" ~ C,
+                                                 TRUE ~ as.integer(0)),
+                  major_ratio = major_count / (major_count + minor_count),
+                  minor_ratio = minor_count / (major_count + minor_count),
+                  other_count = depth - major_count - minor_count,
+                  other_ratio = other_count / depth)
 
   return(dat)
 }
@@ -263,41 +289,44 @@ annotate_and_filter <- function(dat, het_limit = 0.25, min_other_ratio = 0.15,
     return(dat)
 
   # Remove non-ATGC alleles
-  dat <- dat[major %in% c(get_bases(), "N")]
-  dat <- dat[minor %in% c(get_bases(), "N")]
+  # Calculate genotypes, noise levels (vfn) and noise reads (vr)
+  # and contamination probability (cp)
+  dat <- dat %>%
+    dplyr::filter(major %in% c(get_bases(), "N"),
+                  minor %in% c(get_bases(), "N"))
+  dat <- dat %>%
+    dplyr::mutate(
+      gt = dplyr::case_when(
+        depth == 0 ~ "NA",
+        minor_ratio < het_limit ~ "0/0",
+        major_ratio < het_limit ~ "1/1",
+        TRUE ~ "0/1"),
+      vfn = dplyr::case_when(
+        gt == "1/1" ~ major_ratio,
+        gt == "0/0" ~ minor_ratio,
+        gt == "0/1" ~ pmin(major_ratio, minor_ratio),
+        TRUE ~ NaN),
+      vr = as.integer(floor(vfn * depth)),
+      cp = dplyr::case_when(
+        gt == "1/1" ~ 1 - (dat$maf) ^ 2,
+        gt == "0/0" ~ 1 - (1 - dat$maf) ^ 2,
+        gt == "0/1" ~ 1 - 2 * dat$maf * (1 - dat$maf),
+        TRUE ~ NaN))
 
-  # Genotype calls
-  dat$gt <- ifelse(dat$minor_ratio < het_limit, "0/0",
-                   ifelse(dat$major_ratio < het_limit, "1/1", "0/1"))
-
-  # Noise (or contamination) levels, flipped for 1/1 alt alleles
-  dat$vfn <- ifelse(dat$gt == "1/1", dat$major_ratio,
-                    ifelse(dat$gt == "0/0", dat$minor_ratio,
-                           ifelse(dat$gt == "0/1", pmin(dat$major_ratio,
-                                                        dat$minor_ratio), NA)))
-
-  # Noise number of reads
-  dat$vr <- (dat[, vfn]) * (dat[, depth])
-
-  # Contamination probability based on minor allele frequency
-  dat$cp <- ifelse(dat$gt == "1/1", (1 - (dat$maf) ^ 2),
-                   ifelse(dat$gt == "0/0", 1 - (1 - dat$maf) ^ 2,
-                          ifelse(dat$gt == "0/1",
-                                 1 - 2 * dat$maf * (1 - dat$maf), NA)))
-
-  # Remove otherAllele strange cases
-  # This is some type of artifact that is seen in the tsv file
-  # It may be due to alignments or tsv generation
-  dat <- dat[ !(other_ratio >= min_other_ratio), ]
-
-  # Remove low and high depth
-  dat <- dat[ !is.na(depth) & depth >= min_depth & depth <= max_depth, ]
+  # Apply filters
+  dat <- dat %>%
+    dplyr::filter(other_ratio < min_other_ratio,
+                  !is.na(depth) & depth >= min_depth & depth <= max_depth)
 
   # Add chunks
   dat <- add_chunks(dat)
 
   # Update context for SNPs with alternative homozygote genotypes
   dat <- update_context(dat)
+
+  # Final sort
+  dat <- dat %>%
+    arrange(chrom, pos)
 }
 
 #' Get the stats for a given chromosome from long biometrics file, including:
@@ -403,17 +432,25 @@ parse_field <- function(info, field) {
 #' @return data.table containing SNPs with tagged chunks
 #'
 #' @export
-add_chunks <- function(dat, max_portions = 10) {
+add_chunks <- function(dat, max_portions = 5) {
 
   if (nrow(dat) == 0) return(data.table())
 
-  portions <- max_portions # partions per chr
-  dat[, chunk := 0]
-  for (j in dat[, unique(chrom)]) {
-    bin_size <- ceiling(as.numeric(dat[chrom == j, .(.N / portions)]))
-    dat[chrom == j, chunk := .(ceiling(.I / bin_size))]
-  }
-  dat$chrom <- factor(dat$chrom, levels = unique(dat$chrom))
+  # Calculate chromosome boundaries and chunk size
+  max_chrom_pos <- dat %>%
+    dplyr::group_by(chrom) %>%
+    dplyr::summarize(max_snp = max(pos)) %>%
+    dplyr::mutate(chunk_size = max_snp / max_portions) %>%
+    dplyr::select(-c("max_snp"))
+
+  # Add sizes to chromosomes
+  dat <- dat %>%
+    dplyr::left_join(max_chrom_pos, by = "chrom")
+  dat$chunk <- 0
+
+  # Calculate which chunk on its chromosome each SNP belongs to
+  dat <- dat %>%
+    dplyr::mutate(chunk = ceiling(pos / chunk_size))
 
   return(dat)
 }

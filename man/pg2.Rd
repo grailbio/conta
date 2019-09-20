@@ -2,7 +2,8 @@
 % Please edit documentation in R/conta_loh.R
 \name{pg2}
 \alias{pg2}
-\title{Prior probability of genotype pair}
+\title{Biased sigmoid function to convert a given number to a proportion
+Prior probability of genotype pair}
 \usage{
 pg2(gt1, gt2, maf1, maf2)
 }
@@ -18,5 +19,6 @@ pg2(gt1, gt2, maf1, maf2)
 \item{maf2}{minor allele frequency of second sample's SNP}
 }
 \description{
+Biased sigmoid function to convert a given number to a proportion
 Prior probability of genotype pair
 }

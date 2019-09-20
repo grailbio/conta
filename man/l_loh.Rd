@@ -4,7 +4,7 @@
 \alias{l_loh}
 \title{Likelihood of observing the data with LOH}
 \usage{
-l_loh(ad, dp, maf1, maf2, d = 0, a = 0, er = 3e-04)
+l_loh(ad, dp, maf1, maf2, hm, d = 0, a = 0, er = 3e-04)
 }
 \arguments{
 \item{ad}{alternative allele depth for a given SNP}
@@ -14,6 +14,8 @@ l_loh(ad, dp, maf1, maf2, d = 0, a = 0, er = 3e-04)
 \item{maf1}{minor allele frequencies for host sample}
 
 \item{maf2}{minor allele frequencies for candidate contaminant}
+
+\item{hm}{mean heterozygote frequency from baseline}
 
 \item{d}{LOH level as deviation from 0.5}
 

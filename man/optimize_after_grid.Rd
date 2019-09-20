@@ -4,7 +4,7 @@
 \alias{optimize_after_grid}
 \title{optimize further after grid search}
 \usage{
-optimize_after_grid(dat_chunk, LR_func, blackswan)
+optimize_after_grid(dat_chunk, LR_func, blackswan, cf)
 }
 \arguments{
 \item{dat_chunk}{data.table containing counts and metrics per SNP}

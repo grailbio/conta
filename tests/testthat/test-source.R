@@ -25,11 +25,11 @@ test_that("conta source detection run",  {
 
   # Run conta source
   conta_source(base = out_dir_source, out_file = out_source,
-               outlier_frac = 0.001, cores = 4)
+               outlier_frac = 0, cores = 4)
 
   expect_true(file.exists(out_source))
   result <- read_data_table(out_source)
-  expect_true(result[, .N] == 6)
+  expect_true(nrow(result) == 6)
   expect_false(result[1, source_call])
   expect_equal(sum(result[2:5, source_call]), 4)
   expect_equal(sum(result[2:5, best_sample] == "170410_cfdna_100T_34795B_1"), 4)
@@ -123,11 +123,11 @@ test_that("conta source detection run double",  {
 
   # Run conta source
   conta_source(base = out_dir_source_double, out_file = out_source_double,
-               outlier_frac = 0.001, cores = 1)
+               outlier_frac = 0, cores = 1)
 
   expect_true(file.exists(out_source_double))
   result <- read_data_table(out_source_double)
-  expect_true(result[, .N] == 2)
+  expect_true(nrow(result) == 2)
   expect_false(result[1, source_call])
   expect_true(result[2, source_call])
   expect_true(result[2, best_sample] == "170410_cfdna_100T_34795B_1")

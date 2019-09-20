@@ -42,7 +42,7 @@ test_that("error model correctly calculates error rate with supp positions", {
   EE <- read_data_table(error_out_file)
 
   # Correction factor for masked positions not including supplementary positions
-  cof <- 2/3 * fdat[, mean(maf > 0)] + fdat[, mean(maf == 0)]
+  cof <- 2/3 * mean(fdat$maf > 0) + mean(fdat$maf == 0)
   avg_error <- mean(c(1 / 200, 2 / 200, 3 / 100) / cof)
   tol <- 1e-4
   expect_equal(EE[ref == "A" & subs == "T", er], avg_error, tolerance = tol)
@@ -66,8 +66,8 @@ test_that("error model correctly calculates tri-base context", {
   expect_true(file.exists(context_out_tsv))
 
   conta::conta_main(tsv_file = context_out_tsv, sample_id = "test",
-    save_dir = out_dir_context, context_mode = TRUE, min_maf = 0,
-    outlier_frac = 0, min_depth = 1)
+                    save_dir = out_dir_context, context_mode = TRUE,
+                    min_maf = 0, outlier_frac = 0, min_depth = 1)
 
   # Read the error out file
   error_out_file <- paste0(out_dir_context, "/test.error.tsv")

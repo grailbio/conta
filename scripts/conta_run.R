@@ -81,7 +81,11 @@ main <- function() {
     make_option(c("", "--chr_y"), type = "numeric", default = 0.0005,
                 help = "Chromosome Y normalized read threshold for male calls"),
     make_option(c("", "--seed"), type = "integer", default = 1234,
-                help = "seed for simulations", metavar = "integer"))
+                help = "seed for simulations", metavar = "integer"),
+    make_option(c("", "--default_het_mean"), type = "numeric", default = 0.5,
+                help = "default mean for hetetozygote allele frequqencies, in
+                        case it is expectd to deviate", metavar = "numeric")
+  )
 
   opt_parser <- OptionParser(option_list = option_list);
   opt <- parse_args(opt_parser);
@@ -151,7 +155,8 @@ main <- function() {
                     cores = opt$cores,
                     context_mode = !is.na(opt$fasta),
                     chr_y_male_threshold = opt$chr_y,
-                    seed = opt$seed)
+                    seed = opt$seed,
+                    default_het_mean = opt$default_het_mean)
   message(paste("Done."))
 
   # Remove maf file

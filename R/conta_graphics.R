@@ -187,14 +187,17 @@ plot_lr_per_bin <- function(dat, save_dir, filename_prefix,
 #' @importFrom utils capture.output
 #' @export
 plot_depth_by_chr <- function(dat, save_dir, filename_prefix, min_depth,
-                              ext_plot = "depth.png", max_snps = 10000,
-                              seed = 1359) {
+                              ext_plot = "depth.png", max_snps = 50000,
+                              seed = 1359, min_maf = 0.05) {
 
   png(file.path(save_dir, paste(filename_prefix, ext_plot, sep = ".")),
       width = 1280, height = 720)
 
-  if (dat[, .N] > 0 && dat[depth >= min_depth, .N] > 0) {
-    dat <- dat[depth >= min_depth, ]
+  if (nrow(dat) > 0 && nrow(dat[dat$depth >= min_depth, ]) > 0) {
+
+    dat <- dat %>%
+      dplyr::filter(depth >= min_depth,
+                    maf >= min_maf)
 
     # Set dat as a subset of dat if it exceeds a pre-determined size
     if (nrow(dat) > max_snps) {
@@ -244,21 +247,46 @@ plot_minor_ratio <- function(dat, dat_loh = NULL,
   # Find SNPs removed due to LOH and color them differently in the plot
   dat$loh <- FALSE
   if (!is.null(dat_loh)) {
-    dat_loh_dummy <- dat_loh[, c("rsid")]
-    dat_loh_dummy$loh_present <- TRUE
-    dat <- dplyr::left_join(x = dat, y = dat_loh_dummy, by = "rsid")
+
+    dat_loh_dummy <- dat_loh %>%
+      dplyr::select("rsid") %>%
+      dplyr::mutate(loh_present = FALSE)
+
+    dat <- dplyr::left_join(x = dat, y = dat_loh_dummy, by = "rsid") %>%
+      arrange(chrom, pos)
+
+    # Missing entries
     if (!is.null(dat$loh_present)) {
-      dat$loh <- ifelse(is.na(dat$loh_present), TRUE, dat$loh)
+      dat$loh <- ifelse(is.na(dat$loh_present), TRUE, FALSE)
     }
   }
 
   png(file.path(save_dir, paste(filename_prefix, ext_plot, sep = ".")),
       width = 1280, height = 720)
   plot_cols <- ifelse(dat$loh, "orange",
-                      ifelse(dat$gt == "0/1", "green",
-                             ifelse(dat$gt == "1/1", "red", "blue")))
+                      ifelse(dat$bayes_gt == "0/1", "green",
+                             ifelse(dat$bayes_gt == "1/1", "red", "blue")))
   plot(dat$minor_ratio, col = plot_cols,
        ylab = "Observed Minor Allele Frequency", xlab = "Sorted positions",
        cex.main = 1.25, cex.lab = 1.25, cex.axis = 1.25)
+  snp_bounds <- as.integer(t(table(dat$chrom, dat$chunk)))
+  abline(v = get_cumulative_sum(snp_bounds),
+         lty = 2, col = "gray", lwd = 0.5)
   msg.trap <- capture.output(suppressMessages(dev.off()))
+}
+
+#' Get cumulative sum of a set of numbers
+#'
+#' @param v vector of numbers
+#' @export
+get_cumulative_sum <- function(v) {
+  cs <- v
+  if (length(v) <= 1) {
+    return(cs)
+  }
+
+  for (i in 2:length(cs)) {
+    cs[i] <- cs[i - 1] + cs[i]
+  }
+  return(cs)
 }

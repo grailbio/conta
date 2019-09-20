@@ -53,18 +53,23 @@ calculate_error_model <- function(dat, save.dir = NA, filename_prefix = NA,
       # occurence of each event i>j in the context of the genotype
       if (!context_mode) {
         EE[subs, ]$reads <-
-          sum(as.matrix(dat[gt == "0/0" & major == i & minor != j, j,
-                          with = FALSE]),
-            as.matrix(dat[gt == "1/1" & minor == i & major != j, j,
-                          with = FALSE]))
+          sum(dat %>%
+                dplyr::filter(gt == "0/0", major == i,
+                              minor != j) %>%
+                dplyr::pull(j)) +
+          sum(dat %>%
+                 dplyr::filter(gt == "1/1", minor == i,
+                               major != j) %>%
+                 dplyr::pull(j))
       } else {
 
         # Context reference and snp are already updated based on genotype
         # See update_context() function
         j2 <- substring(j, 2, 2)
-        EE[subs, ]$reads <-
-          sum(as.matrix(dat[gt != "0/1" & context == i & context_snp != j,
-                            j2, with = FALSE]))
+        EE[subs, ]$reads <- sum(dat %>%
+                                  dplyr::filter(gt != "0/1", context == i,
+                                                context_snp != j) %>%
+                                  dplyr::pull(j2))
       }
     }
   }
@@ -92,7 +97,7 @@ calculate_error_model <- function(dat, save.dir = NA, filename_prefix = NA,
       # contamination and can be used to look at all types of error rates.
       # In other terms, denom_factor will be 0.66 if all bases in dat are
       # from dbSNP, otherwise it will be a larger number closer to 1.
-      denom_factor <- 2/3 * dat[, mean(maf > 0)] + dat[, mean(maf == 0)]
+      denom_factor <- 2/3 * mean(dat$maf > 0) + mean(dat$maf == 0)
 
       # Denominator in error model is all the times ref base was the original
       # base. For example, denom for A>A, A>T, A>G, and A>C are all the same,
@@ -142,17 +147,23 @@ calculate_error_model <- function(dat, save.dir = NA, filename_prefix = NA,
 add_error_rates <- function(dat, EE, context_mode = FALSE) {
 
   # Substitution type
-  dat[, et := ""]
+  dat$et = ""
   if (context_mode) {
-    dat[, et := paste(context, ">", context_snp, sep = "")]
+    dat <- dat %>%
+      dplyr::mutate(et = paste(context, ">", context_snp, sep = ""))
+
   } else {
-    dat[gt == "0/0", et := paste(major, ">", minor, sep = "")]
-    dat[gt == "0/1", et := paste(major, ">", minor, sep = "")]
-    dat[gt == "1/1", et := paste(minor, ">", major, sep = "")]
+    dat <- dat %>%
+      dplyr::mutate(et = dplyr::case_when(
+        gt == "0/0" ~ paste(major, ">", minor, sep = ""),
+        gt == "0/1" ~ paste(major, ">", minor, sep = ""),
+        gt == "1/1" ~ paste(minor, ">", major, sep = "")))
   }
 
   # Error rate corresponding to that substitution type
-  dat[, er := EE[dat$et, ]$er]
+  EE$et <- rownames(EE)
+  dat <- dat %>%
+    dplyr::left_join(EE %>% dplyr::select(et, er), by = "et")
 
   return(dat)
 }

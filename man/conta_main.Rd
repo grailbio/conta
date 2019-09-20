@@ -5,13 +5,14 @@
 \title{Run conta.}
 \usage{
 conta_main(tsv_file, sample_id, save_dir, filename_prefix = sample_id,
-  metrics_file = "", lr_th = 0.001, sim_level = 0, baseline = NA,
-  min_depth = 10, max_depth = 10000, loh_lr_cutoff = 0.01,
-  loh_delta_cutoff = 0.3, loh_auto_delta_cutoff = 0.4,
-  loh_min_snps = 20, loh_max_snps = 1000, min_maf = 0.01,
-  subsample = NA, cf_correction = 0, min_cf = 1e-04, blackswan = 1,
-  outlier_frac = 0.002, tsv_rev_file = NA, cores = 2,
-  context_mode = FALSE, chr_y_male_threshold = 5e-04, seed = 1359)
+  metrics_file = "", lr_th = 0.001, sim_level = 0,
+  baseline_file = NA, min_depth = 10, max_depth = 10000,
+  loh_lr_cutoff = 0.001, loh_delta_cutoff = 1.5,
+  loh_auto_delta_cutoff = 9, loh_min_snps = 20, loh_max_snps = 1000,
+  min_maf = 0.01, subsample = NA, cf_correction = 0,
+  min_cf = 1e-04, blackswan = 1, outlier_frac = 0.002,
+  tsv_rev_file = NA, cores = 2, context_mode = FALSE,
+  chr_y_male_threshold = 5e-04, default_het_mean = 0.5, seed = 1359)
 }
 \arguments{
 \item{tsv_file}{input tsv file}
@@ -29,8 +30,6 @@ by the user based on a sensitivity - specificity trade-off.}
 \item{sim_level}{if non-zero, a contaminant at this level will
 be added to the current sample. The contaminant will be randomly
 generated from minor allele frequencies of the SNPs in the population.}
-
-\item{baseline}{baseline file for blacklist or noise model}
 
 \item{min_depth}{minimum depth for a SNP to be considered}
 
@@ -67,7 +66,11 @@ is provided then first tsv_file is considered as positive strand reads}
 
 \item{context_mode}{whether to run with errors calculated in 3-base context}
 
+\item{default_het_mean}{default for heterozygote mean allele frequency}
+
 \item{seed}{random seed}
+
+\item{baseline}{baseline file for blacklist or noise model}
 }
 \value{
 none

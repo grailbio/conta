@@ -4,10 +4,10 @@
 \alias{sim_conta}
 \title{Simulate contamination}
 \usage{
-sim_conta(wgs, cf)
+sim_conta(dat, cf)
 }
 \arguments{
-\item{wgs}{data.frame containing counts and metrics per SNP}
+\item{dat}{data.frame containing counts and metrics per SNP}
 
 \item{cf}{numeric contamination fraction}
 }
