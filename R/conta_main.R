@@ -38,6 +38,17 @@
 #' @param subsample Either NA (use all SNPs) or number of SNPs to subsample to
 #' @param context_mode whether to run with errors calculated in 3-base context
 #' @param default_het_mean default for heterozygote mean allele frequency
+#' @param error_quantile_filter remove SNPs with error rates higher than this
+#'     quantile. Default 1.0 does not remove any SNPs. The idea is to remove
+#'     SNPs with high mean error rates, since they might also contain high
+#'     variance and thus introduce spurious contamination likelihoods.
+#' @param min_lr_to_cf_ratio do not make a conta call if likelihood ratio to
+#'     contamination fraction is equal to or below this ratio. In general
+#'     conta likelihood ratio is greater than and is correlated with
+#'     the contamination fraction. In cases where this ratio is greatly violated
+#'     such as 10 times or less likelihood ratio compared to contamination
+#'     fraction, it is very likely that is is a spurious call generated due to
+#'     LOH or other artifacts.
 #' @param seed random seed
 #'
 #' @return none
@@ -56,7 +67,10 @@ conta_main <- function(tsv_file, sample_id, save_dir, filename_prefix = sample_i
                        outlier_frac = 0.002, tsv_rev_file = NA,
                        cores = 2, context_mode = FALSE,
                        chr_y_male_threshold = 0.0005,
-                       default_het_mean = 0.5, seed = 1359) {
+                       default_het_mean = 0.5,
+                       error_quantile_filter = 1.0,
+                       min_lr_to_cf_ratio = 0.1,
+                       seed = 1359) {
 
   options("digits" = 8)
   options("mc.cores" = cores)
@@ -111,6 +125,10 @@ conta_main <- function(tsv_file, sample_id, save_dir, filename_prefix = sample_i
   dat <- dat %>%
     dplyr::filter(maf > min_maf, maf < (1 - min_maf))
 
+  # Optionally remove high error positions
+  dat <- dat %>%
+    dplyr::filter(er <= quantile(dat$er, error_quantile_filter))
+
   # Add experimental bayesian genotype estimation.
   dat <- bayesian_genotype(dat)
 
@@ -140,7 +158,8 @@ conta_main <- function(tsv_file, sample_id, save_dir, filename_prefix = sample_i
   # Calculate likelihood, max likelihood, and whether to call it
   result <- optimize_likelihood(dat_loh, lr_th, save_dir,
                                 filename_prefix, loh = TRUE, blackswan, min_cf,
-                                cf_correction, outlier_frac = outlier_frac)
+                                cf_correction, outlier_frac = outlier_frac,
+                                min_lr_to_cf_ratio = min_lr_to_cf_ratio)
 
   # Calculate chr X and Y counts from metrics file if provided
   chr_y_stats <- chr_stats(metrics_file, "chrY")
@@ -182,9 +201,11 @@ conta_main <- function(tsv_file, sample_id, save_dir, filename_prefix = sample_i
 
   # Write genotype files for all SNPs
   write_gt_file(dat, max_result, blackswan, outlier_frac,
-                file.path(save_dir, paste(filename_prefix, "gt.tsv", sep = ".")))
+                file.path(save_dir, paste(filename_prefix, "gt.tsv",
+                                          sep = ".")))
 
   # Write genotype files for LOH-excluded SNPs
   write_gt_file(dat_loh, max_result, blackswan, outlier_frac,
-                file.path(save_dir, paste(filename_prefix, "gt.loh.tsv", sep = ".")))
+                file.path(save_dir, paste(filename_prefix, "gt.loh.tsv",
+                                          sep = ".")))
 }

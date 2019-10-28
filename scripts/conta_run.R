@@ -84,7 +84,17 @@ main <- function() {
                 help = "seed for simulations", metavar = "integer"),
     make_option(c("", "--default_het_mean"), type = "numeric", default = 0.5,
                 help = "default mean for hetetozygote allele frequqencies, in
-                        case it is expectd to deviate", metavar = "numeric")
+                        case it is expectd to deviate", metavar = "numeric"),
+    make_option(c("", "--error_quantile_filter"), type = "numeric",
+                default = 1.0,
+                help = "Remove positions with error quantile higher than this
+                        level from conta likelihood analysis",
+                metavar = "numeric"),
+    make_option(c("", "--min_lr_to_cf_ratio"), type = "numeric",
+                default = 0.1,
+                help = "Do not make a conta call if likelihood ratio to
+                        contamination fraction is equal to or below this ratio",
+                metavar = "numeric")
   )
 
   opt_parser <- OptionParser(option_list = option_list);
@@ -156,7 +166,10 @@ main <- function() {
                     context_mode = !is.na(opt$fasta),
                     chr_y_male_threshold = opt$chr_y,
                     seed = opt$seed,
-                    default_het_mean = opt$default_het_mean)
+                    default_het_mean = opt$default_het_mean,
+                    error_quantile_filter = opt$error_quantile_filter,
+                    min_lr_to_cf_ratio = opt$min_lr_to_cf_ratio
+                    )
   message(paste("Done."))
 
   # Remove maf file

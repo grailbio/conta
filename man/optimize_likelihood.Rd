@@ -5,7 +5,8 @@
 \title{Optimize a set of likelihood metrics across SNPs using optimize function.}
 \usage{
 optimize_likelihood(dat, lr_th, save_dir = NA, filename_prefix = NA,
-  loh = FALSE, blackswan, min_cf, cf_correction, outlier_frac)
+  loh = FALSE, blackswan, min_cf, cf_correction, outlier_frac,
+  min_lr_to_cf_ratio = 0)
 }
 \arguments{
 \item{dat}{data.table containing counts and metrics per SNP, hets filtered}

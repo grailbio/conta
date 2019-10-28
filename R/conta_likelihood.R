@@ -147,6 +147,8 @@ conta_llr <- function(cf, dat, save_dir = NA, filename_prefix = NA,
 #' @param min_cf minimum contamination fraction to call
 #' @param cf_correction cf correction which is subtracted from calculated cf
 #' @param outlier_frac fraction of outliers to remove
+#' @param min_lr_to_cf_ratio do not make a conta call if likelihood ratio to
+#'     contamination fraction is equal to or below this ratio.
 #'
 #' @return data.table of likelihoods and related metrics
 #'
@@ -154,7 +156,7 @@ conta_llr <- function(cf, dat, save_dir = NA, filename_prefix = NA,
 #' @export
 optimize_likelihood <- function(dat, lr_th, save_dir = NA, filename_prefix = NA,
                                 loh = FALSE, blackswan, min_cf, cf_correction,
-                                outlier_frac) {
+                                outlier_frac, min_lr_to_cf_ratio = 0) {
 
   # Do an initial grid search
   cf <- get_initial_range()
@@ -185,7 +187,8 @@ optimize_likelihood <- function(dat, lr_th, save_dir = NA, filename_prefix = NA,
   result$cf <- max(result$cf - cf_correction, 0)
 
   # Make a call based on likelihood threshold
-  conta_call <- (result$avg_log_lr >= lr_th) & (result$cf >= min_cf)
+  conta_call <- (result$avg_log_lr >= lr_th) & (result$cf >= min_cf) &
+    (result$avg_log_lr / result$cf > min_lr_to_cf_ratio)
 
   # Plot the likelihood distribution and the maximum likelihood (in red cross)
   # Do not plot if this was not a post-loh run

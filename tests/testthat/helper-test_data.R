@@ -22,6 +22,7 @@ out_source_double     <- file.path(out_dir_source_double, "source.tsv")
 out_dir_strand        <- file.path(base_out_dir, "test_strand")
 out_dir_context       <- file.path(out_dir, "test_context")
 out_dir_edge          <- file.path(out_dir, "test_edge_cases")
+out_dir_error_filter  <- file.path(out_dir, "error_filter_test")
 
 # Remove existing test output directories
 unlink(out_dir, recursive = TRUE)

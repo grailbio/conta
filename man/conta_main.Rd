@@ -12,7 +12,8 @@ conta_main(tsv_file, sample_id, save_dir, filename_prefix = sample_id,
   min_maf = 0.01, subsample = NA, cf_correction = 0,
   min_cf = 1e-04, blackswan = 1, outlier_frac = 0.002,
   tsv_rev_file = NA, cores = 2, context_mode = FALSE,
-  chr_y_male_threshold = 5e-04, default_het_mean = 0.5, seed = 1359)
+  chr_y_male_threshold = 5e-04, default_het_mean = 0.5,
+  error_quantile_filter = 1, min_lr_to_cf_ratio = 0.1, seed = 1359)
 }
 \arguments{
 \item{tsv_file}{input tsv file}
@@ -67,6 +68,19 @@ is provided then first tsv_file is considered as positive strand reads}
 \item{context_mode}{whether to run with errors calculated in 3-base context}
 
 \item{default_het_mean}{default for heterozygote mean allele frequency}
+
+\item{error_quantile_filter}{remove SNPs with error rates higher than this
+quantile. Default 1.0 does not remove any SNPs. The idea is to remove
+SNPs with high mean error rates, since they might also contain high
+variance and thus introduce spurious contamination likelihoods.}
+
+\item{min_lr_to_cf_ratio}{do not make a conta call if likelihood ratio to
+contamination fraction is equal to or below this ratio. In general
+conta likelihood ratio is greater than and is correlated with
+the contamination fraction. In cases where this ratio is greatly violated
+such as 10 times or less likelihood ratio compared to contamination
+fraction, it is very likely that is is a spurious call generated due to
+LOH or other artifacts.}
 
 \item{seed}{random seed}
 
