@@ -46,7 +46,7 @@ get_initial_range <- function() {
 #'
 #' @export
 get_initial_loh_range <- function() {
-  return(c(-10, -5, -3, -2, -1, -0.5, 0, 0.5, 1, 2, 3, 5, 10))
+  return(c(-5, -3, -2, -1, -0.5, 0, 0.5, 1, 2, 3, 5))
 }
 
 #' Return an empty results table to output when quitting early

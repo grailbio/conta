@@ -1,6 +1,6 @@
 Package: conta
 Title: Detect cross-contamination
-Version: 0.9.20
+Version: 0.9.21
 Authors@R: as.person(c(
     "Onur Sakarya <osakarya@grailbio.com> [aut, cre]", 
     "TaeHyung Simon Kim <tkim@grailbio.com> [aut]",

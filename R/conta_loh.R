@@ -38,7 +38,8 @@ llr_loh <- function(ad, depth, maf, hm, er, delta, blackswan) {
 #'
 #' @export
 avg_llr_loh <- function(dat, delta, blackswan) {
-  weighted.mean(llr_loh_all(dat, delta, blackswan), dat$depth, na.rm = T)
+  weighted.mean(llr_loh_all(dat, delta, blackswan), log(dat$depth),
+                na.rm = TRUE)
 }
 
 #' Log likelihood ratios for loss of heterozygosity for a set of snps
@@ -92,7 +93,8 @@ llr_cont <- function(ad, depth, maf1, maf2, hm, er, alpha, delta, blackswan) {
 #'
 #' @export
 avg_llr_cont <- function(dat, alpha, blackswan, delta = 0) {
-  weighted.mean(llr_cont_all(dat, alpha, blackswan), dat$depth, na.rm = T)
+  weighted.mean(llr_cont_all(dat, alpha, blackswan), log(dat$depth),
+                na.rm = TRUE)
 }
 
 #' Log likelihood ratios for contamination for a set of SNPs

@@ -26,6 +26,9 @@ optimize_likelihood(dat, lr_th, save_dir = NA, filename_prefix = NA,
 \item{cf_correction}{cf correction which is subtracted from calculated cf}
 
 \item{outlier_frac}{fraction of outliers to remove}
+
+\item{min_lr_to_cf_ratio}{do not make a conta call if likelihood ratio to
+contamination fraction is equal to or below this ratio.}
 }
 \value{
 data.table of likelihoods and related metrics

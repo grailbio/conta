@@ -92,21 +92,23 @@ conta_llr <- function(cf, dat, save_dir = NA, filename_prefix = NA,
 
   # Calculate average likelihoods of contamination per SNP per depth
   if (is.na(save_dir) | is.na(filename_prefix)) {
-    return(max(weighted.mean(dat[, lr], dat[, depth], na.rm = TRUE), 0))
+    return(max(weighted.mean(dat$lr, log(dat$depth), na.rm = TRUE), 0))
   } else {
 
-    sum_log_lr <- sum(dat[, lr], na.rm = TRUE)
-    avg_log_lr <- weighted.mean(dat[, lr], dat[, depth], na.rm = TRUE)
-    pos_lr_all <- mean(dat[, lr] > 0, na.rm = TRUE)
+    sum_log_lr <- sum(dat$lr, na.rm = TRUE)
+    avg_log_lr <- weighted.mean(dat$lr, log(dat$depth), na.rm = TRUE)
+    pos_lr_all <- mean(dat$lr > 0, na.rm = TRUE)
 
     # Generate stats per chr
-    per_chr <- dat[, .(.N, depth = mean(depth, na.rm = TRUE),
-                       avg_lr = weighted.mean(lr, depth, na.rm = TRUE),
+    per_chr <- dat %>%
+      mutate(log_depth = log(depth)) %>%
+      dplyr::group_by(chrom) %>%
+      dplyr::summarize(depth = mean(depth, na.rm = TRUE),
+                       avg_lr = weighted.mean(lr, log_depth, na.rm = TRUE),
                        pos_lr = sum(lr > 0, na.rm = TRUE),
                        pos_ratio = mean(lr > 0, na.rm = TRUE),
                        vfn = mean(vfn, na.rm = TRUE),
-                       vr = mean(vr, na.rm = TRUE)),
-                   by = chrom]
+                       vr = mean(vr, na.rm = TRUE))
 
     # Generate likelihood ratio plots
     if (loh) {
@@ -119,15 +121,17 @@ conta_llr <- function(cf, dat, save_dir = NA, filename_prefix = NA,
     }
 
     # Pos lr ratio on X chr tells us whether the contaminant is male or female
-    pos_lr_x <- per_chr[chrom == "X" | chrom == "chrX", pos_ratio]
-    pos_cv <- as.numeric(per_chr[, .(sd(pos_ratio, na.rm = TRUE) /
-                            mean(pos_ratio, na.rm = TRUE))])
+    pos_lr_x <- per_chr %>%
+      dplyr::filter(chrom == "X" | chrom == "chrX") %>%
+      dplyr::pull(pos_ratio)
+    pos_cv <- sd(per_chr$pos_ratio, na.rm = TRUE) /
+                            mean(per_chr$pos_ratio, na.rm = TRUE)
 
     return(data.table( cf = round(cf, 5),
-                       sum_log_lr = max(sum_log_lr, 0),
-                       avg_log_lr = max(avg_log_lr, 0),
-                       hom_snps = dat[, .N],
-                       depth = round(dat[, mean(depth)], 0),
+                       sum_log_lr = max(c(sum_log_lr, 0), na.rm = TRUE),
+                       avg_log_lr = max(c(avg_log_lr, 0), na.rm = TRUE),
+                       hom_snps = nrow(dat),
+                       depth = round(mean(dat$depth, na.rm = TRUE), 0),
                        pos_lr_all = pos_lr_all,
                        pos_lr_x = ifelse(length(pos_lr_x) > 0, pos_lr_x, NA),
                        pos_lr_chr_cv = pos_cv,
