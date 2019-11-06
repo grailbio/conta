@@ -17,5 +17,5 @@ do
 	name="${tsv_file%.tsv}"
 	echo Running "$name"
 	Rscript ../scripts/conta_run.R --dbSNP_file "$dbSNP_file" --min_cf 5e-05 --sample "$name" \
-	--save_dir "$name" --tsv_file "$tsv_file" --min_maf 0.01 --cf_correction 0
+	--save_dir "$name" --tsv_file "$tsv_file" --min_maf 0.01 --lr_th 0.05 --cf_correction 0
 done

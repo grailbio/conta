@@ -2,6 +2,9 @@
 
 Following scripts are used to run conta toolset:
 
+First install conta library (outside conta folder, run):
+R CMD INSTALL --preclean --no-multiarch --with-keep.source conta
+
 ### 0) dbSNP file:
 Full dbSNP file may be downloaded from:
 ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606_b151_GRCh37p13/VCF/common_all_20180423.vcf.gz
@@ -84,20 +87,19 @@ concordance <- genotype_concordance(conta_gt1, conta_gt2)
 
 ### General Guidelines
 
-* There is a trade-off between the --blackswan and the --min_maf options. Lower
-the min_maf, the more SNPs (with lower population minor allele frequency)
-will be included. Blackswan term is a threshold on the minimum probability a
+* Blackswan term is a threshold on the minimum probability a
 given event (SNP) may contribute to overall likelihood. Extremely rare events
 may get very low probabilities, and this measure prevents one or few
 artifactual signals to cause contamination calls. In other terms, blackswan
-controls the depth of signal for each SNP, whereas min_maf controls the width.
+controls the depth of signal for each SNP.
 
 * Baseline error model (error rate for each loci) may be provided optionally,
-otherwise default is to calculate a generic per substitution error model.
+otherwise default is to calculate a generic per sample substitution error model.
 
 * To detect contamination with bisulfite converted data, one may use A>T and T>A
 SNPs as input (pre-filter dbSNP file), which are unaffected by bisulfite
-conversion on CpG contexts.
+conversion on CpG contexts. Also allowed are strand specific counts where each
+SNP would be counted on a specific strand. See tests for an example.
 
 * Current pregnancy metric can only detect male pregnancy (for female host) by
 considering the presence of partial Y chromosome. Y chromosome counts are
