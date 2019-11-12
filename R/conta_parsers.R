@@ -111,11 +111,8 @@ read_and_prep <- function(file, file_rev = NA, baseline = NA,
   }
 
   # Set chromosome as factors
-  dat$chrom <- gsub("Chr", "", gsub("chr", "", dat$chrom))
-  dat$chrom <- factor(dat$chrom, levels = c("1", "2", "3", "4", "5", "6", "7",
-                                            "8", "9", "10", "11", "12", "13",
-                                            "14", "15", "16", "17", "18", "19",
-                                            "20", "21", "22", "X", "Y"))
+
+  dat <- factorize_chroms(dat)
 
   # Remove blacklisted SNPs if provided
   required_columns <- c("blacklist", "rsid")

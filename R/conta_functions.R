@@ -270,6 +270,23 @@ load_conta_file <- function(conta_loc, snps = NULL) {
   return(conta_loc_dt)
 }
 
+#' Read conta genotype file
+#'
+#' @param gt_file input gt file
+#' @return data frame containing gt file contents transformed in a way
+#'     useful to downstream methods
+#' @export
+read_gt_file <- function(gt_file) {
+
+  dat <- read.table(gt_file, header = TRUE, stringsAsFactors = FALSE) %>%
+    dplyr::select(dplyr::everything(), chrom = chr, depth = dp) %>%
+    factorize_chroms() %>%
+    arrange(chrom, pos) %>%
+    add_chunks()
+
+  return(dat)
+}
+
 #' Calculate concordance between two samples' genotypes. Annotate the
 #' type of genotype swaps per SNP.
 #'
@@ -375,6 +392,18 @@ set_numeric_chrs <- function(dat) {
         TRUE ~ as.numeric(chrom_int))
     )
   return(data.table(datt))
+}
+
+#' Set factor equivalent of chromosomes for sorting purposes
+#' This function also removes Chr or chr prefixes.
+#'
+#' @param dat data.table to add factorized chromosome
+#' @export
+factorize_chroms <- function(dat) {
+
+  dat$chrom <- gsub("chr", "", dat$chrom, ignore.case = TRUE)
+  dat$chrom <- factor(dat$chrom, levels = as.character(c(1:22, "X", "Y")))
+  return(dat)
 }
 
 #' Make a sex call for the host

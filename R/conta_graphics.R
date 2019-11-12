@@ -290,3 +290,23 @@ get_cumulative_sum <- function(v) {
   }
   return(cs)
 }
+
+
+#' Visualize a given conta gt.loh file using several methods
+#'
+#' @param gt_file conta genotype output file
+#' @param gt_loh_file conta genotype output file with only non-LoH regions
+#' @param sample sample name (to put on graphics and prefix for output files)
+#' @param save_dir location to save graphics
+#'
+#' @export
+conta_graphics <- function(gt_file, gt_loh_file, sample, save_dir) {
+
+  # Read gt and gt.loh files
+  dat <- read_gt_file(gt_file)
+  dat_loh <- read_gt_file(gt_loh_file)
+
+  # Plot minor allele ratio plot (.vr) with LOH
+  plot_minor_ratio(dat, dat_loh, save_dir, sample, max_snps = 100000)
+
+}
