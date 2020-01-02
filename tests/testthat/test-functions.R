@@ -15,3 +15,4 @@ test_that("Test skewed sigmoid", {
   expect_true(ssig(-5, 0.3) < ssig(-5))
   expect_true(ssig(-5) < ssig(-5, 0.7))
 })
+

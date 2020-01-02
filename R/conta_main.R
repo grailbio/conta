@@ -22,8 +22,6 @@
 #' @param max_depth maximum depth for a SNP to be considered
 #' @param loh_lr_cutoff minimum likelihood ratio to call a region as LOH
 #' @param loh_delta_cutoff minimum delta (het deviation) to call a region as LOH
-#' @param loh_auto_delta_cutoff minimum delta to call a region automatically,
-#'     without looking at contamination likelihood, as LOH
 #' @param loh_min_snps minimum number of SNPs in a region to consider LOH
 #' @param loh_max_snps maxmimum number of SNPs in a region to use for LOH, if
 #'     there are more SNPs, they are subsampled to this number
@@ -38,6 +36,8 @@
 #' @param subsample Either NA (use all SNPs) or number of SNPs to subsample to
 #' @param context_mode whether to run with errors calculated in 3-base context
 #' @param default_het_mean default for heterozygote mean allele frequency
+#' @param default_het_sum default heterozygote allele frequency alpha + beta
+#'     from beta binomial alternative formulation
 #' @param error_quantile_filter remove SNPs with error rates higher than this
 #'     quantile. Default 1.0 does not remove any SNPs. The idea is to remove
 #'     SNPs with high mean error rates, since they might also contain high
@@ -58,18 +58,19 @@
 #' @export
 conta_main <- function(tsv_file, sample_id, save_dir, filename_prefix = sample_id,
                        metrics_file = "",
-                       lr_th = 0.001, sim_level = 0, baseline_file = NA,
-                       min_depth = 10, max_depth = 10000, loh_lr_cutoff = 0.001,
-                       loh_delta_cutoff = 1.5, loh_auto_delta_cutoff = 9,
+                       lr_th = 0.005, sim_level = 0, baseline_file = NA,
+                       min_depth = 15, max_depth = 10000, loh_lr_cutoff = 0.001,
+                       loh_delta_cutoff = 0.2,
                        loh_min_snps = 20, loh_max_snps = 1000,
-                       min_maf = 0.01, subsample = NA,
-                       cf_correction = 0, min_cf = 0.0001, blackswan = 1,
-                       outlier_frac = 0.002, tsv_rev_file = NA,
+                       min_maf = 0.001, subsample = NA,
+                       cf_correction = 0, min_cf = 0.002, blackswan = 0.2,
+                       outlier_frac = 0, tsv_rev_file = NA,
                        cores = 2, context_mode = FALSE,
                        chr_y_male_threshold = 0.0005,
                        default_het_mean = 0.5,
-                       error_quantile_filter = 1.0,
-                       min_lr_to_cf_ratio = 0.1,
+                       default_het_sum = 200,
+                       error_quantile_filter = 0.75,
+                       min_lr_to_cf_ratio = 0.2,
                        seed = 1359) {
 
   options("digits" = 8)
@@ -87,11 +88,13 @@ conta_main <- function(tsv_file, sample_id, save_dir, filename_prefix = sample_i
 
   # Read baseline if available
   baseline <- NA
-  if (!is.na(baseline_file))
+  if (!is.na(baseline_file)) {
     baseline <- read_data_table(baseline_file)
+  }
 
   # Prep snp counts
-  dat <- read_and_prep(tsv_file, tsv_rev_file, baseline, default_het_mean)
+  dat <- read_and_prep(tsv_file, tsv_rev_file, baseline, default_het_mean,
+                       default_het_sum)
 
   # Set dat as a subset of dat if it exceeds a pre-determined size
   if (!is.na(subsample) & nrow(dat) > subsample) {
@@ -145,8 +148,7 @@ conta_main <- function(tsv_file, sample_id, save_dir, filename_prefix = sample_i
                                blackswan = blackswan, conta_cf = result$cf,
                                min_loh = loh_delta_cutoff,
                                min_snps = loh_min_snps,
-                               max_snps = loh_max_snps,
-                               min_auto_loh = loh_auto_delta_cutoff)
+                               max_snps = loh_max_snps)
   dat_loh <- exclude_high_loh_regions(dat, bin_stats)
 
   # Plot minor allele ratio plot (.vr) with LOH

@@ -12,18 +12,17 @@
 #' @param depth total depth for a given SNP
 #' @param maf minor allele frequencies for host sample
 #' @param hm het mean frequency from baseline
+#' @param M het alpha + beta parameters for beta binomial alt formulation
 #' @param er error rate for a given SNP
 #' @param delta loss of heterozygosity level to be tested
 #' @param blackswan blackswan term sets a limit on probability for each event
 #' @return log likelihood ratio for LOH vs no LOH
 #'
 #' @export
-llr_loh <- function(ad, depth, maf, hm, er, delta, blackswan) {
+llr_loh <- function(ad, depth, maf, hm, M, er, delta, blackswan) {
   l_min <- blackswan / depth
-  l_het <- l_min + (1 - l_min) * l_loh(ad, depth, maf, maf, hm, 0, 0, er)
-  l_loh <- l_min + (1 - l_min) * l_loh(ad, depth, maf, maf, hm,
-                                       pmin(pmin(hm, 1 - hm) * 2 - 0.01, delta),
-                                       0, er)
+  l_het <- l_min + (1 - l_min) * l_loh(ad, depth, maf, maf, hm, M, 0, 0, er)
+  l_loh <- l_min + (1 - l_min) * l_loh(ad, depth, maf, maf, hm, M, delta, 0, er)
   return(log(l_loh / l_het))
 }
 
@@ -44,7 +43,7 @@ avg_llr_loh <- function(dat, delta, blackswan) {
 
 #' Log likelihood ratios for loss of heterozygosity for a set of snps
 #'
-#' Avg log likelihood ratio across a given set of SNPs
+#' Log likelihood ratio across a given set of SNPs
 #'
 #' @param dat data table containing required fields
 #' @param delta loss of heterozygosity level to be tested
@@ -53,8 +52,8 @@ avg_llr_loh <- function(dat, delta, blackswan) {
 #'
 #' @export
 llr_loh_all <- function(dat, delta, blackswan) {
-  llr_loh(dat$minor_count, dat$depth, dat$maf, dat$het_mean, dat$er, delta,
-          blackswan)
+  llr_loh(dat$minor_count, dat$depth, dat$maf, dat$het_mean, dat$het_sum,
+          dat$er, delta, blackswan)
 }
 
 #' Log likelihood ratio of contamination
@@ -67,17 +66,18 @@ llr_loh_all <- function(dat, delta, blackswan) {
 #' @param maf1 minor allele frequencies for host sample
 #' @param maf2 minor allele frequencies for candidate contaminant
 #' @param hm het mean frequency from baseline
+#' @param M het alpha + beta parameters for beta binomial alt formulation
 #' @param er error rate for a given SNP
 #' @param alpha contamination fraction to be tested
-#' @param cp contamination probability calculated from minor allele frequency
+#' @param delta LoH delta to be tested
 #' @param blackswan blackswan term sets a limit on probability for each event
 #' @return log likelihood ratio for contamination vs no contamination
 #'
 #' @export
-llr_cont <- function(ad, depth, maf1, maf2, hm, er, alpha, delta, blackswan) {
+llr_cont <- function(ad, depth, maf1, maf2, hm, M, er, alpha, delta, blackswan) {
   l_min <- blackswan / depth
-  l_het <- l_min + (1 - l_min) * l_loh(ad, depth, maf1, maf2, hm, delta, 0, er)
-  l_cont <- l_min + (1 - l_min) * l_loh(ad, depth, maf1, maf2, hm, delta, alpha, er)
+  l_het <- l_min + (1 - l_min) * l_loh(ad, depth, maf1, maf2, hm, M, delta, 0, er)
+  l_cont <- l_min + (1 - l_min) * l_loh(ad, depth, maf1, maf2, hm, M, delta, alpha, er)
   return(log(l_cont / l_het))
 }
 
@@ -108,8 +108,8 @@ avg_llr_cont <- function(dat, alpha, blackswan, delta = 0) {
 #'
 #' @export
 llr_cont_all <- function(dat, alpha, blackswan, delta = 0) {
-  llr_cont(dat$minor_count, dat$depth, dat$maf, dat$maf, dat$het_mean, dat$er,
-           alpha, delta, blackswan)
+  llr_cont(dat$minor_count, dat$depth, dat$maf, dat$maf, dat$het_mean,
+           dat$het_sum, dat$er, alpha, delta, blackswan)
 }
 
 #' Likelihood of observing the data with LOH
@@ -120,31 +120,124 @@ llr_cont_all <- function(dat, alpha, blackswan, delta = 0) {
 #' contaminate genotypes are calculated using the given minor allele frequencies
 #' for the host (maf1) and contaminate (maf2).
 #'
+#' Description of expectation of alt allele:
+#' Host hom ref, cont hom ref: just the error rate
+#' Host hom ref, cont het: error rate times expectation of alt
+#' Host hom ref, cont hom alt: error rate times twice the expectation of alt
+#' Host het, cont hom ref: case 1) d - a/2: delta pushes the expected
+#' het frequency up, while contamination pulls it down since contaminant does
+#' not have the alt allele
+#' Host het, cont hom ref: case 2) -d -a/2: same thing delta is in the other
+#' direction. Since we don't know which chromosome is affected by LoH, we test
+#' probability of both delta and -delta, and multiply each by half
+#' Host het, cont het: just d or -d, because host and contaminant have the
+#' same alleles.
+#' Host het, cont hom alt: Opposite of case 1 and 2, where contamination is
+#' actually pulling the allele frequency up because contaminant is hom alt.
+#' Host hom alt cases are mirror images of host hom ref with corresponding cont
+#'
 #' @param ad alternative allele depth for a given SNP
 #' @param dp total depth for a given SNP
 #' @param maf1 minor allele frequencies for host sample
 #' @param maf2 minor allele frequencies for candidate contaminant
 #' @param hm mean heterozygote frequency from baseline
+#' @param M het alpha + beta parameters for beta binomial alt formulation
 #' @param d LOH level as deviation from 0.5
 #' @param a alpha contamination level
 #' @param er error rate
-#'
+#' @TODO try an alternate formulation of l_loh modeling the total alt and
+#'       ref counts from host and contaminant
 #' @importFrom stats dbinom
-#' @importFrom stats dnbinom
 #' @export
-l_loh <- function(ad, dp, maf1, maf2, hm, d = 0, a = 0, er = 3e-4) {
+l_loh <- function(ad, dp, maf1, maf2, hm, M = 100, d = 0, a = 0, er = 3e-4) {
   pg2(0, 0, maf1, maf2) * dbinom(ad, dp, er) +
     pg2(0, 1, maf1, maf2) * dbinom(ad, dp, er + hm * a) +
     pg2(0, 2, maf1, maf2) * dbinom(ad, dp, er + 2 * hm * a) +
-    pg2(1, 0, maf1, maf2) * (0.5 * dnbinom(ad, dp - ad, ssig(-d, hm) - a/2) +
-                               0.5 * dnbinom(ad, dp - ad, ssig(d, hm) - a/2)) +
-    pg2(1, 1, maf1, maf2) * (0.5 * dnbinom(ad, dp - ad, ssig(-d, hm)) +
-                              0.5 * dnbinom(ad, dp - ad, ssig(d, hm))) +
-    pg2(1, 2, maf1, maf2) * (0.5 * dnbinom(ad, dp - ad, ssig(-d, hm) + a/2) +
-                              0.5 * dnbinom(ad, dp - ad, ssig(d, hm) + a/2)) +
+    pg2(1, 0, maf1, maf2) * (0.5 * dbetabinom(ad, dp, nloh(hm, d - a/2), M) +
+                           0.5 * dbetabinom(ad, dp, nloh(hm, -d - a/2), M)) +
+    pg2(1, 1, maf1, maf2) * (0.5 * dbetabinom(ad, dp, nloh(hm, d), M) +
+                           0.5 * dbetabinom(ad, dp, nloh(hm, -d), M)) +
+    pg2(1, 2, maf1, maf2) * (0.5 * dbetabinom(ad, dp, nloh(hm, d + a/2), M) +
+                           0.5 * dbetabinom(ad, dp, nloh(hm, -d + a/2), M)) +
     pg2(2, 0, maf1, maf2) * dbinom(ad, dp, 1 - er - 2 * (1 - hm) * a) +
     pg2(2, 1, maf1, maf2) * dbinom(ad, dp, 1 - er - (1 - hm) * a) +
     pg2(2, 2, maf1, maf2) * dbinom(ad, dp, 1 - er)
+}
+
+#' Normalize expected allele frequency by LoH or contamination
+#'
+#' This function calculates the expected allele frequency for a SNP based on
+#' additional contamination or LoH. hm is the original expected minor allele
+#' fraction. If it is say 0.2, we expect 0.2 fraction of alleles to be from
+#' minor allele and 0.8 fraction from reference. This expectation is further
+#' modified by delta value which can be due to LoH or contamination. 0.5 + d
+#' is the expected modifier for allele1, and 0.5 - d is the modifier for
+#' allele2. If we are testing d = 0.2, with hm = 0.2, we expect 0.2 * 0.7 = 0.14
+#' fraction of alleles to come from minor allele and 0.8 * 0.3 = 0.24 from
+#' reference allele. When normalized this corresponds to 0.14 / (0.14 + 0.24) =
+#' ~0.37. This is the expected minor allele frequency. For LoH likelihood, we
+#' would also test delta = -0.2 at the same time since SNPs are not phased.
+#' In that case, we get 0.2 * 0.3 = 0.06 for minor allele and 0.8 * 0.7 = 0.56
+#' for reference, which when normalized is 0.06 / (0.06 + 0.56) = 0.1 minor
+#' allele frequency.
+#'
+#'
+#' @param hm mean heterozygote frequency baseline for a specific SNP
+#' @param d delta from level of heterozygote where 0.5 is no deviation case.
+#'     If there is no deviation (d = 0), then function will return a value
+#'     equal to hm. Otherwise it will increase or decrease hm based on the
+#'     level of difference of this value from 0.5 considering the original hm.
+#' @param d_min d should not be less than this number
+#' @param d_max d should not be more than this number
+#'
+#' @export
+nloh <- function(hm, d, d_min = -0.49, d_max = 0.49) {
+
+  # d should be less than 0.49 and greater than 0.01
+  d <- pmax(d_min, pmin(d_max, d))
+
+  return(hm * (0.5 + d) / (hm * (0.5 + d) + (1 - hm) * (0.5 - d)))
+}
+
+#' Calculate probability density for alternative parameterization of beta
+#' binomial distribution
+#'
+#' @param k total successes binomial
+#' @param n total trials binomial
+#' @param mu expected mean from beta prior (alpha / (alpha + beta))
+#' @param M sum from beta prior (alpha + beta)
+#'
+#' @export
+dbetabinom <- function(k, n, mu, M) {
+  betaprob <- choose(n, k) * beta(k + mu * M, n - k + M * (1 - mu)) /
+    beta(mu * M, M * (1 - mu))
+  return(betaprob)
+}
+
+#' Calculate log probability density for alternative parameterization of beta
+#' binomial distribution
+#'
+#' @param k total successes binomial
+#' @param n total trials binomial
+#' @param mu mean from beta (alpha / (alpha + beta))
+#' @param M sum from beta (alpha + beta)
+#' @param mu_min mu should not be less than this number
+#' @param mu_max mu should not be more than this number
+#'
+#' @export
+ldbetabinom <- function(k, n, mu, M, mu_min = 0.01, mu_max = 0.99) {
+
+  mu <- pmax(mu_min, pmin(mu_max, mu))
+  lbetaprob <- lchoose(n, k) + lbeta(k + mu * M, n - k + M * (1 - mu)) -
+    lbeta(mu * M, M * (1 - mu))
+  return(lbetaprob)
+}
+
+#' Return initial test range for LoH
+#'
+#' @export
+get_initial_loh_range <- function() {
+  return(c(0.1, 0.2, 0.3, 0.4, 0.45, 0.49))
 }
 
 #' Skewed sigmoid with center around provided mean
@@ -189,11 +282,13 @@ pg <- function(gt, maf) {
 #' @param sample sample name
 #' @param min_lr likelihood ratio threshold to call LOH
 #' @param blackswan blackswan term sets a limit on probability for each event
+#' @param conta_cf contamination fraction to be tested
 #' @param min_loh to worry about affecting contamination results,
 #'     if LOH is less than this fraction do not call
 #' @param min_snps minimum number of snps required to evaluate a region for LOH
 #' @param max_snps max snps to evaluate in a region, if greater number of
 #'     SNPs are present, subsample to this many SNPs.
+#' @param het_mean_min minimum het allele frequency to call
 #' @param seed random seed
 #'
 #' @return data.table containing stats per bin
@@ -201,9 +296,8 @@ pg <- function(gt, maf) {
 #' @importFrom utils write.table
 #' @export
 get_per_bin_loh <- function(dat, save_dir, sample, min_lr = 0.01, blackswan, conta_cf,
-                            min_loh = 3, min_snps = 20, max_snps = 200,
-                            min_auto_loh = 9, het_mean_min = 0.25,
-                            seed = 1359) {
+                            min_loh = 0.2, min_snps = 20, max_snps = 200,
+                            het_mean_min = 0.25, seed = 1359) {
 
   results <- data.table(chrom = character(), chunk = numeric(),
                         snps = numeric(),
@@ -257,9 +351,8 @@ get_per_bin_loh <- function(dat, save_dir, sample, min_lr = 0.01, blackswan, con
                           loh_val = loh_opt$objective,
                           cont_mle = conta_cf,
                           cont_val = conta_opt,
-                          loh = (loh_opt$maximum >= min_auto_loh ||
-                                   (loh_opt$objective > conta_opt &
-                                      loh_opt$objective > min_lr)))
+                          loh = (loh_opt$objective > conta_opt &
+                                      loh_opt$objective > min_lr))
     } else {
 
       dfres <- data.table(chrom = combs[i, 1], chunk = combs[i, 2],
@@ -287,6 +380,7 @@ get_per_bin_loh <- function(dat, save_dir, sample, min_lr = 0.01, blackswan, con
 #' @param dat_chunk data.table containing counts and metrics per SNP
 #' @param LR_func Log-likelihood ratio function
 #' @param blackswan blackswan term sets a limit on probability for each event
+#' @param cf contamination fraction to be tested
 #' @return maxima and its objective
 #'
 #' @importFrom stats optimize

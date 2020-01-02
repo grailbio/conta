@@ -13,3 +13,4 @@ rm -rf 170501_cfDNABRH1308323_Conta_0_1.collapsed.nobaq/
 rm -rf 170501_cfDNABRH1308323_Conta_0_6.collapsed.nobaq/
 rm -rf 170501_cfDNABRH1308323_Conta_0_8.collapsed.nobaq/
 rm -rf 170501_cfDNABRH1308323_Conta_1.collapsed.nobaq/
+rm results.tsv

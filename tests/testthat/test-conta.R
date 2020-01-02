@@ -50,7 +50,7 @@ test_that("conta test targeted run", {
   expect_true(file.exists(targeted_tsv))
 
   # run conta on dummy sample
-  conta_main(targeted_tsv, "targeted", out_dir_targeted)
+  conta_main(targeted_tsv, "targeted", out_dir_targeted, min_cf = 0.001)
   conta_out <- file.path(out_dir_targeted, "targeted.conta.tsv")
   expect_true(file.exists(conta_out))
   result <- read_data_table(conta_out)

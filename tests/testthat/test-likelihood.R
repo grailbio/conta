@@ -52,3 +52,22 @@ test_that("test likelihood ratio of contamination is higher when
   expect_true(log_lr(0.7, 30, 0.01, 0.0003, 1) >
               log_lr(0.5, 30, 0.01, 0.0003, 0))
 })
+
+#' 0.2 * 0.7 / (0.2 * 0.7 + 0.8 * 0.3) = 0.37
+#' 0.2 * 0.3 / (0.2 * 0.3 + 0.8 * 0.7) = 0.1
+test_that("test allele frequency normalization", {
+  expect_true(round(nloh(0.2, 0.2), 2) == 0.37)
+  expect_true(round(nloh(0.2, -0.2), 2) == 0.1)
+})
+
+# Likelihoods below were verified by alternative implementations of beta
+# binomial likelihood in Go
+test_that("test beta binomial likelihood", {
+  expect_true(round(ldbetabinom(10, 40, .25, 40), 1) == -2.3)
+  expect_true(round(dbetabinom(10, 40, .25, 40), 1) == round(exp(-2.3), 1))
+  expect_true(round(ldbetabinom(20, 80, .25, 40), 1) == -2.8)
+  expect_true(round(dbetabinom(20, 80, .25, 40), 2) == round(exp(-2.8), 2))
+  expect_true(round(ldbetabinom(100, 200, .4, 400), 1) == -5.8)
+  expect_true(round(dbetabinom(100, 200, .4, 400), 3) == round(exp(-5.8), 3))
+
+})

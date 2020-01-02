@@ -42,13 +42,6 @@ get_initial_range <- function() {
            5e-3, 1e-2, 2e-2, 5e-2, 1e-1, 2e-1, 3e-1, 4e-1, 5e-1))
 }
 
-#' Return initial test range
-#'
-#' @export
-get_initial_loh_range <- function() {
-  return(c(-5, -3, -2, -1, -0.5, 0, 0.5, 1, 2, 3, 5))
-}
-
 #' Return an empty results table to output when quitting early
 #' @param sample_id sample ID to use in empty result.
 #' @importFrom utils packageVersion
@@ -163,7 +156,12 @@ sim_conta <- function(dat, cf) {
 #' @param dp_max max depth to simulate
 #' @param er_min minimum error rate to simulate
 #' @param er_max maximum error rate to simulate
-#' @param delta LOH deviation from heterozygosity
+#' @param delta LoH deviation from heterozygosity for host
+#' @param max_delta maximum allowed delta, if larger value set to this
+#' @param het_mean_binomial_size higher value has het_means tighter across SNPs
+#' @param delta_cont LoH for contaminant
+#' @param default_het_mean default expected mean for beta binomial
+#' @param default_het_size default expected size for beta binomial
 #' @param alpha contamination level
 #' @param seed numeric set seed for simulation
 #'
@@ -171,14 +169,21 @@ sim_conta <- function(dat, cf) {
 #'
 #' @export
 simulate_loh_conta <- function(n, min_maf, dp_min, dp_max, er_min, er_max,
-                               delta, alpha, seed = 1359) {
+                               delta, alpha, delta_cont = 0,
+                               default_het_mean = 0.43,
+                               max_delta = 0.49,
+                               het_mean_binomial_size = 50,
+                               default_het_size = 200,
+                               seed = 1359) {
+
+  # Delta should not exceed 0.49 for this simulation
+  if (delta > max_delta) {
+    delta <- max_delta
+  }
+
   set.seed(seed)
 
-  # Add maf check
-  if (min_maf > 0.5)
-    min_maf <- 0.5
-
-  # Simulate maf for each SNP (at range 25 to 75%)
+  # Simulate maf for each SNP (at range as provied)
   maf <- runif(n, min = min_maf, max = 1 - min_maf)
 
   # Simulate error rate for each SNP randomly at specified range
@@ -187,40 +192,41 @@ simulate_loh_conta <- function(n, min_maf, dp_min, dp_max, er_min, er_max,
   # Simulate depth for each SNP randomly around specified target
   dp <- rpois(n, runif(n, dp_min, dp_max))
 
-  # Simulate alleles for host
-  a1 <- ifelse(runif(n) > maf, 1, 0)
-  a2 <- ifelse(runif(n) > maf, 1, 0)
+  # Simulate mean expected allele frequency and its variance based on alternative
+  # beta binomial formulation, size sets the shape of binomial
+  het_mean <- rbinom(n, size = het_mean_binomial_size,
+                    prob = default_het_mean) / het_mean_binomial_size
 
-  # Simulate alleles for contaminant
-  a3 <- ifelse(runif(n) > maf, 1, 0)
-  a4 <- ifelse(runif(n) > maf, 1, 0)
+  # Simulate alleles for host, 1 = reference, 0 = minor allele
+  a1 <- runif(n) > maf
+  a2 <- runif(n) > maf
+
+  # Simulate alleles for contaminant, 1 = reference, 0 = minor allele
+  a3 <- runif(n) > maf
+  a4 <- runif(n) > maf
 
   # Simulate depth for host
-  dp1 <- rpois(n, dp * (1 - alpha) * (0.5 - delta / 2))
-  dp2 <- rpois(n, dp * (1 - alpha) * (0.5 + delta / 2))
+  dp_host <- rpois(n, dp * (1 - alpha))
+  dp_cont <- rpois(n, dp * alpha)
 
-  # Simulate depth for contaminant
-  dp3 <- rpois(n, dp * alpha / 2)
-  dp4 <- rpois(n, dp * alpha / 2)
+  # Draw minor allele and reference depths for host
+  ad1 <- rpois(n, dp_host * ifelse(a1, er, 1 - er) * nloh(het_mean, -delta))
+  ref1 <- rpois(n, dp_host * ifelse(a1, 1 - er, er) * nloh(het_mean, -delta))
+  ad2 <- rpois(n, dp_host * ifelse(a2, er, 1 - er) * nloh(het_mean, delta))
+  ref2 <- rpois(n, dp_host * ifelse(a2, 1 - er, er) * nloh(het_mean, delta))
 
-  # Draw minor allele depths for host
-  ad1 <- rpois(n, dp1 * abs(a1 - er))
-  ad1_b <- rpois(n, dp1 * (1 - abs(a1 - er)))
-  ad2 <- rpois(n, dp2 * abs(a2 - er))
-  ad2_b <- rpois(n, dp2 * (1 - abs(a2 - er)))
+  # Draw minor allele and reference depths for contaminant
+  ad3 <- rpois(n, dp_cont * ifelse(a3, er, 1 - er) * nloh(het_mean, -delta_cont))
+  ref3 <- rpois(n, dp_cont * ifelse(a3, 1 - er, er) * nloh(het_mean, -delta_cont))
+  ad4 <- rpois(n, dp_cont * ifelse(a4, er, 1 - er) * nloh(het_mean, delta_cont))
+  ref4 <- rpois(n, dp_cont * ifelse(a4, 1 - er, er) * nloh(het_mean, delta_cont))
 
-  # Draw minor allele depths for contaminant
-  ad3 <- rpois(n, dp3 * abs(a3 - er))
-  ad3_b <- rpois(n, dp3 * (1 - abs(a3 - er)))
-  ad4 <- rpois(n, dp4 * abs(a4 - er))
-  ad4_b <- rpois(n, dp4 * (1 - abs(a4 - er)))
-
-  # Sum the ads
+  # Make a mix of the two simulated samples
   ad <- ad1 + ad2 + ad3 + ad4
-  dp <- ad + ad1_b + ad2_b + ad3_b + ad4_b
+  dp <- ad + ref1 + ref2 + ref3 + ref4
 
-  return(data.table(depth = dp, minor_count = ad, maf = maf, er = er,
-                    het_mean = 0.5))
+  return(data.frame(depth = dp, minor_count = ad, maf = maf, er = er,
+                    het_mean = het_mean, het_sum = default_het_size))
 }
 
 #' Load conta files
