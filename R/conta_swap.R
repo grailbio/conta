@@ -26,6 +26,8 @@
 #' @param gt_files list of strings, paths to genotype files
 #' @param gt_labels list of strings, labels for genotype files
 #' @param concordance_threshold float, threshold for genotype concordance
+#' @param maf_filter float, minimum maf required to include snp in concordance calculations
+#' @param depth_fitler float, minimum depth required to include snp in concordance calculations
 #'
 #' @return list of 2, first element being the results in wide format, and the
 #'         second element being the results in long format
@@ -34,7 +36,7 @@
 #' @importFrom dplyr mutate
 #' @importFrom reshape2 melt
 #' @export
-conta_swap <- function(files, labels, concordance_threshold) {
+conta_swap <- function(files, labels, concordance_threshold, maf_filter, depth_filter) {
   # Create all pairings of samples, without duplicates
   n <- length(files[[1]])
   combination_indices <- combn(n, 2)
@@ -48,8 +50,8 @@ conta_swap <- function(files, labels, concordance_threshold) {
     gt1 <- combination_indices[1, c]
     gt2 <- combination_indices[2, c]
     # Read in the gt files as data tables
-    dt1 <- data.table::fread(files[[1]][gt1])
-    dt2 <- data.table::fread(files[[1]][gt2])
+    dt1 <- data.table::fread(files[[1]][gt1]) %>% conta::filter_gt_file(maf_filter, depth_filter)
+    dt2 <- data.table::fread(files[[1]][gt2]) %>% conta::filter_gt_file(maf_filter, depth_filter)
     # Get sample labels and number of snps
     sample_info <- data.frame("Sample1" = labels[[1]][gt1],
                               "Sample2" = labels[[1]][gt2],

@@ -21,13 +21,19 @@
 main <- function() {
   option_list <- list(
     optparse::make_option(c("-f", "--file_paths"), type = "character", default = NULL,
-                help = "n comma separated genotype files, n>2. Must contain gt column. Required.",
+                help = "n comma separated genotype files, n>=2. Must contain gt column. Required.",
                 metavar = "character"),
     optparse::make_option(c("-l", "--file_labels"), type = "character", default = NULL,
-                help = "list of n comma separated labels for genotype files, n>2. Required.",
+                help = "list of n comma separated labels for genotype files, n>=2. Required.",
                 metavar = "character"),
     optparse::make_option(c("-c", "--concordance_threshold"), type = "numeric", default = 0.85,
                           help = "The genotype concordance cutoff  Default: 0.85.",
+                          metavar = "character"),
+    optparse::make_option(c("--maf"), type = "numeric", default = 0.01,
+                          help = "Minimum maf for snps  Default: 0.01.",
+                          metavar = "character"),
+    optparse::make_option(c("--depth"), type = "numeric", default = 15,
+                          help = "Minimum depth for snps  Default: 15.",
                           metavar = "character"),
     optparse::make_option(c("-o", "--out"), type = "character", default = NULL,
                 help = "out file with swap results, required", metavar = "character"))
@@ -49,7 +55,7 @@ main <- function() {
     stop("There must be at least two files.\n", call=FALSE)
   }
   # Run pairwise genotype concordance
-  df <- conta::conta_swap(files, labels, opt$concordance_threshold)
+  df <- conta::conta_swap(files, labels, opt$concordance_threshold, opt$maf, opt$depth)
   df_long <- df[2]
   # Write results to tsv
   utils::write.table(df_long, opt$out, sep = "\t", row.names = FALSE, quote = FALSE)

@@ -497,3 +497,25 @@ get_pregnancy_call <- function(result, sex, chr_y_stats, chr_y_male_threshold,
 
   return(pregnancy)
 }
+
+#' Return snps with the following filters:
+#'    - loh call absent or false
+#'    - valid rsid
+#'    - maf >= maf_threshold
+#'    - dp >= depth_threshold
+#'
+#' @param dt data frame with conta snps
+#' @param maf_threshold
+#' @param depth_threshold
+#' @return filtered data table
+#  @export
+filter_gt_file <- function(dt, maf_threshold, depth_threshold) {
+  # TODO(jrosenfield): remove this fix once rsids are formatted properly upstream
+  result <- dplyr::mutate(dt, rsid = as.character(rsid)) %>%
+    dplyr::mutate(rsid = ifelse(startsWith(rsid, "rs"), rsid, paste("rs", rsid, sep="")))
+  result <- dplyr::filter(result, rsid!="rs0", maf>=maf_threshold, dp>=depth_threshold)
+  if ("loh" %in% colnames(result)) {
+    result <- dplyr::filter(result, !loh)
+  }
+  return(result)
+}
